@@ -1,0 +1,172 @@
+javascript数组方法
+添加条目
+push()          数组末尾添加一个或多个条目，并返回数组的长度
+unshift()       数组开头添加一个或多个条目，并返回数组的长度
+
+移除条目
+pop()           删除数组的最后一个元素，并返回该元素
+shift()         删除数组的第一个元素，并返回该元素
+
+遍历
+forEach(function(value,index,array){})       为数组中每一个元素都执行一次函数*  回调函数中有3个参数，value,index,array
+some(function(value,index,array){})          检查数组中是否有一些元素能通过指定函数的测试,返回true/false
+every(function(value,index,array){})         检查数组中的所有元素是否都能通过指定函数的测试,返回true/false
+
+组合
+concat()                                创建一个包含该数组和其他数组或值的新数组
+arrayObject.concat(arrary1,array2,...)  可以是数值也可以是数组
+                                        例子：  var arr = [1,2,3]
+                                                   arr.concat(4,5)    
+                                                   var arr2 = [4,5,6]
+                                                   arr.concat(arr2);
+
+
+
+筛选  
+filter(function(value,index,array){})       创建一个新数组，包含能够通过指定函数测试的元素
+                                            即条件返回true时，会将回调的参数加入新的数组
+
+
+排序
+sort()          使用一个函数（比较函数）来重新排序数组中的条目   （默认使用字典顺序：即首字母顺序）
+比较函数一次比较2个值，a和b，必须返回一个数字才能生效
+a-b :
+<0  表示a显示在b前面 
+0   表示保持现有顺序
+>0  表示a显示在b后面
+
+升序排列
+var prices=[1,2,125,2,19,14];
+prices.sort(function(a,b){
+    return a-b;
+});
+降序排列
+var prices=[1,2,125,2,19,14];
+prices.sort(function(a,b){
+    return b-a;
+});
+
+随机排列：
+随机返回-1到1之间的值来进行随机排序
+prices.sort(function(){ 
+    return 0.5-Math.random();
+})
+
+日期排序：
+var holidays=['2014-12-25','2014-01-01','2014-07-04','2014-11-28'];
+holidays.sort(function(a,b){
+    var dateA=new Date(a);      //转换成date对象后，就能以1970年开始的毫秒数进行比较
+    var dateB=new Date(b);
+    return dateA-dateB;
+});
+
+slice()   //接受1或2个参数，返回开始到结束的一个新数组
+var colors=['red','green','yellow','blue','black'];
+var colors2=colors.slice(1)     //['green','yellow','blue','black']  从开始位一直到数组末尾
+var colors3=colors.slice(1,4)   //['green','yellow','blue']    包含开始位，不包含结束位
+
+splice(index,howmany,item1~n)    该方法会返回删除的项，若没有删除项则返回空数组
+删除:指定2个参数，删除的第一项的位置和要删除的项数，如splice(0,2)删除数组中的前2项
+插入:指定3个参数，起始位置，要删除的项数（指定0），要插入的项.如splice(2,0,'red','green'),在索引值2的位置插入red,green字符串
+替换:指定3个参数，起始位置，要删除的项数，要插入的任意数量的项。 如splice(2,1,'green','red'),删除位置2的项，并从位置2插入green,red
+
+join()    返回一个字符串。通过把 arrayObject 的每个元素转换为字符串，然后把这些字符串连接起来，在两个元素之间插入 separator 字符串而生成的。
+          把数组中的所有元素放入一个字符串
+          arrayObject.join(separator)
+
+reverse()       逆向排序
+
+数组迭代        特定函数function(item,index,array) 包含3个参数  
+filter()        对数组中每一项运行特定函数，返回该函数会返回true的项组成的新数组
+map()           对数组中每一项运行特定函数，并将返回结果组合成一个新数组
+every()         对数组中每一项运行特定函数，若函数对每一项都返回true,则返回true
+some()          对数组中每一项运行特定函数，若函数对任意一项返回true,则返回true
+forEach()       对数组中每一项运行特定函数，没有返回值
+
+数组归并         特定函数接受4个参数,前一个值，当前值，项的索引，数组本身
+reduce()        从数组第一项开始，迭代数组的所有项，并构建一个最终返回的值
+reduceRight()   从数组最后一项开始，迭代数组的所有项，构建一个最终返回值
+例：
+var values=[1,2,3,4,5]
+var sum=values.reduce(function(prev,cur,index,array){   //第一个参数就是数组第一项，第二个参数是数组第二项
+    return prev+cur;
+    
+})
+alert(sum);     //15   数组所有项求和   
+
+
+jquery筛选和排序的方法
+添加或组合条目
+.add()       向一组匹配的元素添加一个新元素
+
+移除条目
+.not()      从一组匹配的元素删除元素
+
+遍历
+.each()     为匹配集中的每一个元素都应用相同的函数
+
+筛选
+.filter()   通过保留匹配某个选择器或者通过了指定函数测试的元素来减少匹配集中的元素数量
+
+转换
+.toArray()  将jquery合集转换为DOM元素数组，这样就可以使用上面的javascript数组方法了
+
+把people数组的筛选结果建一个新表
+var $tableBody=$('<tbody></tbody>');    //创建tbody元素
+for(i=0;i<results.length;i++){
+    var person=results[i];              //遍历results结果中的name,rate属性，添加到表中
+    var $row=$('<tr></tr>');
+    $row.append($('<td></td>')).text(person.name);
+    $row.append($('<td></td>')).text(person.rate)
+}
+
+
+数据静态筛选   forEach()方法
+$(function(){
+    var results=[];
+    people.forEach(function(person){
+        if(person.rate>=65&&person.rate<=90){
+            results.push(person);
+        }
+    });
+})
+
+filter() 方法
+$(function(){
+    function priceRange(person){
+        return (person.rate>=65)&&(person.rate<=90);
+    };
+    var  results=[];
+    results=people.filter(priceRange);
+})
+
+
+people.filter(function(person){
+    var results=[];
+    if(person.rate>65&&person.rate<90){
+        results.push(person);
+    }
+    
+    
+})
+
+
+--------------------------------------------
+
+解构语法push 例子：
+const num1 = [22,13,421]
+const num2 = [32,44,66,11]
+let totalNum = [];
+
+
+如何把num1中的值依次放入？
+
+普通方法，遍历:
+for(var i in num1){
+    totalNum.push(i)
+}
+
+解构方法:
+totalNum.push(...num1)   //...即为结构语法， 把num1中的数字依次push到totalNum中
+
+

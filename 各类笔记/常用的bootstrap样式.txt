@@ -1,0 +1,169 @@
+易混淆的几个嵌套样式：
+<form>
+    <div class='form-group'>
+    ...
+
+导航:
+navbar navbar-default
+    container
+    navbar-header
+        navbar-brand
+    
+    navbar-collapse collapse //折叠区
+    navbar-nav nav
+
+媒体:
+media
+    media-left
+        media-object //媒体对象
+    media-body
+        media-heading  //媒体标题
+        。。。 //媒体文字
+
+面板:
+panel panel-primary
+    panel-heading
+        panel-title
+    
+    panel-body
+
+    panel-footer
+
+弹出框:
+modal
+    modal-dialog
+        modal-content
+            modal-header
+
+            modal-body
+
+            modal-footer
+            
+
+全局样式
+container,container-fluid
+col-xx-N
+row    
+
+表格组
+table table-hover
+行样式
+tr class='success||warning||danger'
+
+图片
+img-responsive||rounded||thumbnail
+
+小图标
+glyphicon glyphicon-xx
+
+三角图标
+span class='caret'
+
+按钮
+btn btn-default/primary...
+按钮组
+btn-group
+
+
+表单组
+div class='form-group'   //每一个表单控件都要加一个容器
+label class='control-label'
+input class='form-control'
+单选，复选
+div class='checbox||radio'
+
+输入框组
+容器：input-group
+固定文字：   span class=input-group-addon,
+按钮下拉菜单容器：div calss=input-group-btn
+
+列表组
+ul class=list-group
+li class=list-group-item
+
+面板
+容器：panel panle-success||info||danger..
+panel-heading
+panel-title     应用于h1~h6元素
+panel-body
+panel-footer
+
+巨幕
+div class=jumbotron
+
+well
+div class='well well-sm||lg'
+
+缩略图
+a class='thumbnail'
+
+
+校验状态(校验框颜色)
+has-success||warning||danger
+校验图标
+1.div class='has-feedback'     
+2.span class='form-control-feedback'
+
+导航组件 一般用<ul>
+nav nav-tabs||pills  nav-stacks  
+
+导航条，<nav>或者<div>代替
+navbar navbar-default||inverse
+导航条中的导航组件
+ul class='nav navbar-nav'
+导航条中的表单
+form class='navbar-form'
+头部图标容器
+div class=navbar-header
+    a class=navbar-brand
+
+分页导航
+ul class='pagination'
+翻页导航
+ul class='pager'
+
+
+标签  label
+徽章  badge
+
+
+
+交互相关
+----------------------------------
+下拉菜单
+容器：     class='dropdown'
+触发元素： class='dropdown-toggle' data-toggle='dropdown'   <a>，<button>都能作为下拉菜单触发键
+菜单:      class='dropdown-menu'
+标题和分割线   dropdown-header, divider
+
+折叠式响应导航
+触发元素： class='navbar-toggle'  data-toggle='collapse' data-target='#折叠元素'
+折叠元素： class='collapse navbar-collapse' id='折叠元素'  
+
+面板折叠
+a data-toggle='collapse' href='#折叠元素'  // a元素用href   button元素用data-target
+div id='折叠元素' class='panel-collapse'
+
+
+可关闭警告框
+button data-dismiss='alert' data-target='#目标框'
+
+选项卡
+ul class='nav nav-tabs'
+li data-toggle='tab' data-target='#选项卡1'
+li data-toggle='tab' data-target='#选项卡2'
+选项卡面板
+div class='tab-content'
+    div class='tab-pane' id='选项卡1'
+    div class='tab-pane' id='选项卡2'
+
+提示栏    需js配合
+a data-toggle='tooltip' title='提示内容'
+$('[data-toggle="tooltip"]').tooltip()
+
+弹出框    需js配合
+a data-toggle='popover' title='弹出标题' data-content='内容'
+$('[data-toggle="popover"]').popover();
+
+隐藏单选框复选框的按钮
+容器：div data-toggle='buttons'

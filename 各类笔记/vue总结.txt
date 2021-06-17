@@ -1,0 +1,351 @@
+1.1 
+    计算属性的本质
+    fullName:{set(),get()}
+    和methods区别
+    计算属性多次使用时，只会调用一次，有缓存
+
+2.1 事件监听基本使用
+
+2.2 参数问题
+    btnClick   //不传参
+    btnClick(event)    //默认会传一个event
+    btnClick(abc,event)
+
+2.3 修饰符
+    .stop 
+    .prevent
+    .enter
+    .once
+    .native
+
+3.1 条件判断
+    v-if/v-else-if/v-else
+
+3.2 v-show
+
+4.1 遍历
+    遍历数组
+    
+    遍历对象
+    value,key,index
+
+
+5.1 v-model的本质
+    v-model=>v-bind:value v-on:input  监听input事件的值
+
+
+
+6.1 组件化开发
+    6.2 全局组件 局部组件
+    6.3 父组件和子组件
+    6.4 组件数据的存放
+        子组件中有自己的data,而且必须是函数
+    
+    6.5 父子组件通信
+        父传子：props
+        子传父：$emit
+
+
+
+slot插槽的含义
+组件的插槽：
+1.让封装的组件更具有扩展性
+2.让使用者可以决定组件内部的一些内容到底展示什么
+
+如何封装组件和插槽
+保留共性，预留slot
+
+
+1.插槽默认值,插入一个button： <slot><button>我是默认值</button></slot>
+2.空插槽,在组件内覆盖：<slot></slot>   <cpn><div>我是替换值</div></cpn>
+
+
+组件变量的作用域:
+<div id='app'>
+    <cpn v-show='isShow'></cpn>    //此处isShow=true,调用的是实例内的数据，不是组件内的数据，这就是变量的作用域
+</div>
+var app = new Vue({
+    el:'#app',
+    data:{
+        isShow:true  //实例内的isShow
+    },
+    components:{
+        cpn:{
+            template:'#cpn',
+            data:function(){
+                return {
+                    isShow:false    //组件内的isShow
+                }
+            }
+        }
+    }
+    
+})
+
+---------------------------------------------------------
+模块化开发：
+为什么要使用模块化开发？ 
+Answer:既能实现代码复用，又能避免命名冲突
+
+---多人开发的中大型项目，会引用多个js文件，
+当产生命名冲突时，虽然可以用匿名函数解决，但缺少代码复用性。因为有作用域，不能引用别的Js文件中的变量
+
+模块化步骤：1.在匿名函数内部定义一个对象 2.给对象添加需要暴露给外部的属性或方法  3.将这个对象返回
+
+模块化ES5写法：
+//A.JS文件创建一个module接收return的obj
+var moduleA = (function(){
+    var obj = {};   //创建一个空对象，保存要导出的属性
+    var flag = true;
+    var sum = function(sum1,sum2){
+        return sum1 + sum2;
+    }
+    obj.flag = flag;   //把flag赋值给obj的flag属性
+    obj.sum = sum;    //把sum函数赋值给obj的sum属性
+    return obj;   //这个obj保存着想要导出的一些变量或函数
+})
+
+//B.JS文件调用module对象
+(function(){
+    //想使用A.JS的flag变量
+    if(moduleA.flag){
+        //XXXXX
+    }
+    //调用sum
+    moduleA.sum(40,50)
+})
+
+
+常见的模块化规范：commonJS,ES6的modules,AMD,CMD,
+模块化核心：导出、导入  
+
+commonJS写法：
+导出写法：
+module.exports = {
+    flag:flag,
+    sum:sum
+}
+导入传统写法：
+var aaa = require('./A.js');   //关键词require
+var flag = aaa.flag;
+var sum = aaa.sum;
+导入解构写法：
+var {flag,sum} = require('./A.js')
+
+-----------------------------------
+
+es6模块化写法：
+两个关键词：export/import
+
+引用时加上type=module, 每个文件模块化，无法相互引用，避免命名冲突，和匿名函数的效果一样
+<script src='./a.js' type='module'></script>
+<script src='./b.js' type='module'></script>    
+
+导出方式一：
+export {flag,sum}
+导入：
+import {flag} from './a.js';
+
+导出方式二：  直接声明
+export var num1 = 1000;
+export var height = 1.88;
+导入：
+import {num1,height} from './a.js';
+
+
+导出函数:
+export function mul(num1,num2){
+    return num1 + num2;
+}
+导入：
+import {mul} from './a.js';
+
+默认导出（一个模块只能有一个默认导出）：
+const address = 'HANGZHOU'
+export default address    //默认导出在同一模块中只允许存在一个，import时就可以使用任意名字
+导入export default内容：
+import addr from './a.js'      //名字随便起，且不需要{} 
+
+
+导出匿名函数
+export default function(){
+    xxxx
+}
+
+import add from './a.js'    //此处add就是上面的匿名函数
+
+全部导入：
+import * as total from './a.js'   //把所有要导入的内容放到total对象中
+使用导入内容：  
+total.mul , total.height   这些导入内容都是total对象的属性
+
+
+$router和$route区别和用法：
+
+$route为当前router跳转对象里面可以获取name、path、query、params等。
+$router为VueRouter实例，想要导航到不同URL，则使用router.push方法，返回上一个history使用router.go方法。
+这里的router就管理路由的跳转，英文里er结尾的都表示一种人，这里你可以把这个想象中一个管理者，他来控制路由去哪里（push、go）
+
+路由跳转的2个写法：
+this.$router.push('user')      //入栈，  浏览器可以后退
+this.$router.replace('user')   //不入栈，浏览器不可以后退
+
+
+路由跳转: this.$router.push({path:`/user/${userId}`})
+配置文件内： 
+{
+    path:'/user/:userid',
+    component: xxxx,
+    name: xxxx
+}
+这种接收参数的方式是this.$route.params.userId
+
+1.命名路由搭配params，刷新页面参数会丢失
+2.查询参数搭配query，刷新页面数据不会丢失
+3.接受参数使用this.$router后面就是搭配路由的名称就能获取到参数的值
+
+命名路由类似表单提交而查询就是url传递
+
+用params传参跳转：
+this.$router.push({name:'Login',params:{id:'leelei'}})   //使用params传参,必须使用name，不然取参取不到
+对应取参
+this.$route.params.id
+
+用query传参：
+this.$router.push({path:'/login',query:{id:'leelei'})   //使用query传参，必须使用path
+对应取参
+this.$route.query.id  //get请求url后面带的参数
+
+
+params与query使用区别
+url上
+params方式，在url中不会将传递的参数进行显示，类似于post，相对安全。
+query方式，在url中会将传递的参数进行展示，类似于get，不安全。
+用法
+params需要用name引入，query需要path引入。
+
+
+$refs和$el区别
+$refs 加在组件中，获取的是组件实例，加在DOM上，获取的是DOM元素
+$el获取vue关联的DOM元素，例如要获取组件的offsetTop属性只能通过this.$refs.xxx.$el.offsetTop
+
+图片懒加载库：vue-lazyload
+
+使用方法：
+1.安装  npm install vue-lazyload --save
+
+2.使用:
+main.js内：
+import VueLazyLoad from 'vue-lazyload'
+
+Vue.use(VueLazyLoad,{
+    loading: require('~assets/common/img/xxx.png')   //未完成加载时的默认占位图
+})
+
+组件内使用：
+<img v-lazy="showImage">
+
+
+
+$extend()用法：
+// 创建构造器
+var Profile = Vue.extend({
+  template: '<p>{{firstName}} {{lastName}} aka {{alias}}</p>',
+  data: function () {
+    return {
+      firstName: 'Walter',
+      lastName: 'White',
+      alias: 'Heisenberg'
+    }
+  }
+})
+
+// 创建 Profile 实例，并挂载到一个元素上。需使用$mount
+new Profile().$mount('#mount-point')
+
+
+
+$nextTick()用法:
+在Vue生命周期的created()钩子函数进行的**DOM操作**一定要放在Vue.nextTick()的回调函数中
+在created()钩子函数执行的时候DOM 其实并未进行任何渲染，
+而此时进行DOM操作无异于徒劳，所以此处一定要将DOM操作的js代码放进Vue.nextTick()的回调函数中。
+与之对应的就是mounted()钩子函数，因为该钩子函数执行时所有的DOM挂载和渲染都已完成，此时在该钩子函数中进行任何DOM操作都不会有问题 。
+在数据变化后要执行的某个操作，而这个操作需要使用随数据改变而改变的DOM结构的时候，这个操作都应该放进Vue.nextTick()的回调函数中。
+
+例子：
+<div class="app">
+  <div ref="msgDiv">{{msg}}</div>
+  <div v-if="msg1">Message got outside $nextTick: {{msg1}}</div>
+  <div v-if="msg2">Message got inside $nextTick: {{msg2}}</div>
+  <div v-if="msg3">Message got outside $nextTick: {{msg3}}</div>
+  <button @click="changeMsg">
+    Change the Message
+  </button>
+</div>
+
+new Vue({
+  el: '.app',
+  data: {
+    msg: 'Hello Vue.',
+    msg1: '',
+    msg2: '',
+    msg3: ''
+  },
+  methods: {
+    changeMsg() {
+      this.msg = "Hello world."
+      this.msg1 = this.$refs.msgDiv.innerHTML     //hello vue
+      this.$nextTick(() => {
+        this.msg2 = this.$refs.msgDiv.innerHTML   //hello world  异步操作该DOM发生改变
+      })
+      this.msg3 = this.$refs.msgDiv.innerHTML     //hello vue
+    }
+  }
+})
+
+
+
+
+
+相关面试题：
+1.VUE的生命周期
+2.如何实现VUE的非父子组件通信
+
+3.VUE的响应式原理（重要）
+例子:
+<div id='app'>{{message}}</div>
+
+new Vue({
+    el: '#app',
+    data: {
+        message: '哈哈哈'
+    }
+})
+
+1.app.message='呵呵呵' 可以修改数据，Vue内部如何监听数据发生改变？
+***Object.defineProperty -> 监听对象属性的改变
+实现方法:
+const obj = {         
+    name: 'david',
+    age: '33',
+    height: '175cm'
+}
+Object.keys(obj).forEach(key => {   //遍历obj的key
+    let value = obj[key]            //获取每个key对应的value
+
+    Object.defineProperty(obj,key,{  //传入obj,key,set和get函数，监听value的改变
+    set(newValue){
+        console.log('监听'+ key + '改变')    
+        value = newValue          //当传入新的值时，把新值赋给value
+    },
+    get(){
+        return value
+    }
+})
+})
+
+
+
+2.当数据发生改变，Vue是如何知道通知哪些人，让界面发生刷新？
+***发布订阅者模式
+

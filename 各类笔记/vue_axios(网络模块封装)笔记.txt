@@ -1,0 +1,173 @@
+axios框架主要特点：
+1.在浏览器中发送XMLHttpRequest请求
+2.在node.js中发送http请求
+3.支持Promise API
+4.拦截请求和响应
+5.转换请求和响应数据
+
+请求方式：
+axios(config)  //不写method时，默认get方法，可以通过修改config来修改请求方式
+axios.request(config)
+axios.get(url,config)
+axios.delete(url,config)
+axios.head(url,config)
+axios.post(url,data,config)
+axios.put(url,data,config)
+axios.patch(url,data,config)
+
+axios执行get请求：
+axios.get('/xxx',{
+  params: {
+    id: 123
+  }
+}).then(res => {
+  console.log(res)
+}).catch(err => {
+  console.log(err)
+})
+
+axios执行post请求：
+axios.post('/xxx',{
+  data: {
+    name: 'david',
+    age: 30
+  }
+}).then(res => {
+  console.log(res)
+})
+
+或者直接axios(config)方式进行post请求
+axios({
+  url: '/xxx',
+  method: post,
+  data: {
+    name: 'david',
+    age: 18
+  }
+}).then(res => {
+  console.log(res)
+})
+
+
+axios最基本的使用
+安装: npm install axios --save
+导入和使用:
+import axios from 'axios'
+
+axios({
+  url: 'http://xxxxxxx',
+  params: {         //可以分开写url后面跟的参数,即xxx?type=pop&page=1
+    type: 'pop',
+    page: 1
+  },
+  method: 'get'
+}).then(res => {      //axios插件支持Promise方法，所以可以直接调用then()，对返回数据进行处理
+  console.log(res)   
+})
+
+
+
+axios发送并发请求：all()方法内传入一个数组，对应多个axios方法
+axios.all([axios({
+  url: ''
+}),axios({
+  url: ''   
+})]).then(results => {   //上面2个请求都完成时，拿到results，才会到then()
+
+})
+
+
+设置全局配置，防止重复代码
+axios.defaults.baseURL = 'https://192.168.0.1'  //默认主页
+axios.defaults.timeout = 5000   //单位毫秒
+
+常见的全局配置选项：
+请求地址：url: '/user'
+请求类型：method: 'get'
+根路径：baseURL: 'https://www.mt.com/api'
+请求前的数据处理: transformRequest:[function(data){}]
+请求后的数据处理: transformResponse:[function(data){}]
+自定义的请求头: headers:{'x-Requested-With':'XMLHttpRequest'} 
+URL查询对象：params:{id:12}
+
+
+method:get对应 params:{}   //获取数据
+method:post对应 data:{}    //上传数据
+
+
+创建多个axios实例：
+const instance1 = axios.create({
+  baseURL: 'https://xxxx',
+  timeout: 5000
+})
+
+调用实例:
+instance1({
+  url: '/home'      //1.传入config，即请求的地址
+}).then(res => {    //2.调用then方法处理返回的数据
+  console.log(res)
+})
+
+const instance2 = axios.create({}) //以此类推
+
+
+
+
+网络请求模块封装:
+1.在src目录下新建network文件夹  
+2.创建request.js 网络请求文件
+
+导入网络请求模块：
+----------------------------------------
+方法1（使用Promise方法）：
+request.js文件:
+import axios from 'axios'
+//导出封装的网络请求方法，此处不建议用匿名导出，如果需要创建多个请求方法
+export function request(config){   //只传一个配置参数
+  return new Promise((resolve,reject) => { //返回promise方法
+    // 1.创建axios实例
+    const instance = axios.create({
+      baseURL: 'http://xxxx',
+      timeout: 5000
+    })
+
+    //2.发送网络请求
+    instance(config).then(res => {  //通过resolve和reject函数将res回调出去
+      resolve(res)
+    }).catch(err => {
+      reject(err)
+    })
+  })
+}
+
+main.js文件：
+request({
+  url: '/aaa'
+}).then(res => {
+  console.log(res)
+}).catch(err => {
+  console.log(err)
+})
+----------------------------------------
+方式2（最简洁写法,推荐）:
+request.js文件：
+import axios from 'axios'
+export function request(config){
+  const instance = axios.create({
+    baseURL: 'http://ssss',
+    timeout: 5000
+  })
+  return instance(config)  //直接return instance这个实例,它返回的就是一个promise
+}
+
+main.js文件:
+request({
+  url: '/xxx'
+}).then(res => {   //request()返回一个promise,所以可以直接调用.then()
+  console.log(res)
+}).catch(err => {
+  console.log(err)
+})
+
+-------------------------------------
+拦截器:

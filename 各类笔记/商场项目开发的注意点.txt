@@ -1,0 +1,44 @@
+一、划分好目录结构
+样式文件：src/assets/css
+图片：src/assets/img
+
+公共组件:
+src/common
+
+其他组件:  内部细分各文件夹
+src/components
+
+网络请求相关方法:
+src/network   
+
+路由文件:
+src/router/index.js
+
+vuex文件:
+src/store/index.js
+
+项目各模块目录:
+views/Home
+views/Category
+views/Profile
+views/Shopcart
+
+二、开发步骤
+1.路由文件配置 
+
+2.TabBar(底部导航)组件开发 
+MainTabbar - Tabbar - TabbarItem   
+
+TabbarItem 注意要素：
+template建议使用slot插槽
+监听路由跳转： @click="itemClick"  itemClick --> this.$router.replace(this.path)
+利用v-if v-else 切换激活时的图片
+v-if="!isActive"  isActive --> this.$route.path.indexOf(this.path) !== -1  //true  不激活
+v-else  ----显示激活图片
+利用绑定样式 :class="activeStyle" 切换激活时文字的颜色   activeStyle -->  return this.isActive ? {color: red} : {} 
+
+TabControl(时尚，潮流，精选分频导航) 要素：
+点击时切换对应分频，且激活样式
+创建一个data: currentIndex保存当前索引，用于激活样式
+绑定样式  :class="{active: currentIndex == index}"
+监听点击(2件事：1激活样式，2传递自定义事件)   itemClick(index) --> this.currentIndex = index    this.$emit('tabClick',index)

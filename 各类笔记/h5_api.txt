@@ -1,0 +1,100 @@
+Html5 API
+
+地理位置API
+对象:navigator
+子对象:geolocation
+方法：
+getCurrentPosition(success,fail)
+属性：
+Position.coords.latitude    纬度，10进制小数
+Position.coords.longitude   经度，10进制小数
+Position.coords.accuracy    经纬度的精确度，单位为米
+Position.coords.altitude    海拔高度，单位为米
+
+离线属性:
+navigator.onLine      //true表示设备能上网，false表示不能上网
+
+web存储API
+本地存储:localStorage     不经常更改，想再次使用的数据
+会话存储：sessionStorage  适合经常更改，私密数据
+区别：
+1.关闭窗口后数据是否还在：本地存储还在，会话存储没有了
+2.已经打开的所有窗口是否都可以访问数据：本地存储可以，会话存储不行
+
+通过window对象实现
+方法：
+key(index)          获得index处位置的键
+setItem(key,value)  创建新的键值对
+getItem(key)        获取与指定键对应的值
+removeItem(key)     移除与指定键对应的键值对
+clear()             清空存储对象中的所有信息
+属性：
+length              键的数量
+
+迭代:   遍历所有键值对
+for(var i=0,len=sessionStorage.length;i<len;i++){
+    var key=sessionStorage.key(i);      //获得键名
+    var value=sessionStorage.getItem(key);  //获得对应键的值
+    alert(key+'='+value);  //显示
+}
+
+
+localStorage.setItem('age','12');
+localStorage.setItem('color','blue');
+var age=localStorage.getItem('age');
+var color=localStorage.getItem('color');
+var items=localStorage.length
+
+本地储存实例
+if(window.localStorage){   
+    var TxtUsername=document.getElementById('username');
+    var txtAnswer=document.getElementById('answer');
+    txtUsername.value=localStorage.getItem('username');     //getItem()方法检查储存对象中是否已经存在这个两个元素的值，若存在就写入对应的文本框
+    txtAnswer.value=localStorage.getItem('answer');
+
+    txtUsername.addEventListener('input',function(){            //每次触发input事件时，表单将数据保存到localStorage，刷新页面他们就会自动显示出来
+        localStorage.setItem('username',txtUsername.value);
+    },false);
+    txtAnswer.addEventListener('input',function(){
+        localStorage.setItem('answer',txtAnswer.value);
+    }，false);
+};
+
+
+历史记录API
+history对象
+方法：
+history.back()      //在历史记录中向后导航，就像浏览器后退一样
+history.forward()   //在历史记录中向前导航，就像浏览器前进一样
+history.go()        //导航到历史记录中的特定页面，参数是一个从0开始的索引编号。 .go(1)就像点击了前进按钮，.go(-1)就像点击了后退按钮
+history.pushState(state,title,url)         //向history对象添加一个条目
+history.replaceState(state,title,url)      //修改当前历史记录节点
+属性：
+length                  //历史记录条目的数量
+window.onpopstate       //用来处理用户的前进或后退操作
+location.pathname       //当前url
+
+历史记录及前进后退实例：
+$(function(){
+    function loadContent(url){                              //jquery的load()方法，向页面加载新内容
+        $('#content').load(url+'#container').hide().fadeIn('slow');
+    }
+
+    $('nav a').on('click',function(e){
+        e.preventDefault();
+        var href=this.href;             //将要加载的页面保存到href变量中
+        var $this=$(this);
+        $('a').removeClass('current');  //更新当前链接
+        $this.addClass('current');
+        loadContent(href);              //调用loadContent()函数，向页面加载内容
+        history.pushState('',$this.text,href);  //调用pushstate()方法更新历史记录堆栈
+    });
+
+    window.onpopstate=function(){           //当用户点击前进或后退时触发onpopstate事件，继而触发匿名函数
+        var path=location.pathname;         //location.pathname获取将要加载的页面路径
+        loadContent(path);                  //再次调用loadContent()获取指定页面
+        var page=path.substring(location.pathname.lastIndexOf("/")+1);//用获取到的文件名更新当前链接
+        $('a').removeClass('current');
+        $('[href="'+page+'"]').addClass('current');
+    };
+}); 

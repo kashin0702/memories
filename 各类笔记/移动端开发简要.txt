@@ -1,0 +1,5 @@
+获取屏幕尺寸后动态调整内容尺寸
+$('#contentBody').width(screen.width).height(screen.height);
+
+让浏览器将网页渲染成与设备屏幕等宽
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  

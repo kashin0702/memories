@@ -1,0 +1,265 @@
+AJAX：一系列在浏览器中提供异步请求功能的技术
+ajax请求响应的三种格式：http,xml,json
+
+json格式： 值可以是文本，数字，数组，布尔，null,object   属性必须加双引号
+{
+    "location":"San Francisco,CA",
+    "capacity":270,
+    "booking":true
+}
+
+XMLHttpRequest常用属性：
+readyState:  0：对象还未发送请求 1：对象开始发送请求 2：请求发送完成 3：开始读取服务器响应 4：读取响应结束
+responseType：设置服务器返回的响应类型
+responseText：获取响应文本
+responseURL：返回响应来自的url
+status:服务器状态码
+statusText：服务器状态文本信息
+timeout：设置xmlhttprequest超时时长
+ontimeout：绑定事件处理函数的属性
+
+http头部信息:
+Accept:  浏览器能够处理的内容类型
+Accept-Charset: 浏览器能够显示的字符集
+Accept-encodeing: 浏览器能够处理的压缩编码
+Connection: 浏览器与服务器的链接类型
+Cookie: 当前页面的任何cookie
+Host:   发出请求页面的域
+Referer:发出请求页面的URI
+User-Agent: 浏览器用户代理字符串
+
+设置http头部信息
+setRequestHeader()      //接收2个参数，头部字段名称和头部字段值
+
+**onload和onreadystatechange的区别
+
+onreadystatechange的readystate有0~4 5个阶段
+
+xhr.onreadystatechange=function(){
+    if(xhr.readyState==4&&xhr.status==200){
+        //code...
+    }
+}
+
+只有readystate=4时，响应结束后才会进入onload阶段
+xhr.onload=function(){
+    if(xhr.status==200){   //此处略过了readystate==4的步骤
+        //code...
+    }
+}
+
+
+ajax请求方法：
+var xhr=new XMLHttpRequest()            //对象构造函数法创建XMLHttpRequest实例
+xhr.open('GET','data/test.json',true)   //open方法准备请求，3个参数。1.http方法 2.处理请求的页面地址 3.是否异步的布尔值
+xhr.send('search=arduino')              //send方法是将准备好的请求发送给服务器，括号内可以包含额外信息，如果没有就用null
+
+ajax加载html：
+var xhr=new XMLHttpRequest();
+xhr.onload=function(){
+if(xhr.status==200){            
+    document.getElementById('content').innerHTML=xhr.responseText;
+  }
+};
+xhr.open('GET','data/data.html',true);
+xhr.send(null);
+
+ajax加载xml:
+var responseText=xhr.responseXML
+
+html返回处理：xhr.responseText
+xml返回处理：xhr.responseXML
+JSON返回处理:responseObject=JSON.parse(xhr.responseText)
+
+
+json方法
+JSON.parse()        把json转化为js
+JSON.stringify()    把js对象转化为json字符串,不包含任何空格和缩进
+
+
+ajax加载json            //json数据是一个字符串，返回给浏览器时需要转化成javascript对象,转化后就可以使用json中的对象和属性了
+var xhr=new XMLHttpRequest();
+xhr.onload=function(){
+    if(xhr.status==200){
+        responseObject=JSON.parse(xhr.responseText);         //.parse()方法将json对象转化为javascript对象
+        var newContent='';                                   //声明一个新变量存放新的html数据
+        for(var i=0;i<responseObject.events.length;i++){     //使用for循环所有用来表示events的对象，循环中对象的内容会被整理成相应的html标记，然后添加到newContent变量中
+            newContent+='<div class="events">';
+            newContent+='<img src="'+responseObject.events[i].map+'" ';
+            newContent+='alt="'+responseObject.events[i].location+'"/>';
+            newContent+='<p><b>'+responseObject.events[i].location+'</b><br>';
+            newContent+=responseObject.events[i].date+'</p>';
+            newContent+='</div>';    
+        }
+    document.getElementById('content').innerHTML=newContent;     //循环完成对responseObject的遍历，使用innerHTML将新的内容添加到页面中
+    }
+};
+xhr.open('GET','data/data.json',true);
+xhr.send(null);
+
+转化的html格式
+<div class="events">
+<img src="file.png" alt="location" />
+<p><b>location</b><br />Event date</p>
+</div>
+
+
+一般ajax只能请求自己服务器的数据，跨服务器请求数据需要用到JSONP
+p代表padding填充，json数据格式以参数的形式传入该函数
+jsonp不需要使用parse(),stringify()方法，因为数据是以脚本文件的形式返回的（非字符串形式）
+jsonp后缀是.js不是.json
+
+jsonp原理:
+1.一个函数，用来处理服务器返回的json数据
+2.一个script元素，src属性从远程服务器请求json数据
+<script>
+function showEvents(data){          
+    //处理Json数据的函数,data就是传递进来的json数据，被当成js对象处理
+}
+</script>
+<script src="http://example.org/jsonp.js?callback=showEvents">  //src属性从远程服务器请求数据
+</script>
+
+
+jquery创建ajax请求：             本地装服务器环境，才能运行.load方法，包括ajax （chrome快捷方式添加--allow-file-access-from-files）
+.load(url,data,callback)        将html片段加载到元素中，最简单的获取数据方法
+$.get(url,data,callback)             使用http get方法来向服务器请求数据，并加载返回结果 
+$.post(url,data,callback)        使用http post方法向服务器发送数据，并加载服务器更新数据后的返回结果
+$.getJSON()                         使用http get方法请求JSON数据，并加载返回结果
+$.getScript()                      使用http get方法请求javascript数据（比如jsonp）,加载并执行返回结果
+callback函数:function(responseData,status,xhr) 包含3个可选参数
+
+$.ajax()                            以上所有方法实际都是这个方法的快捷方式
+beforeSend：请求前执行的函数
+complete:   在succees或error回调函数之后执行
+contentType:发送的内容类型，默认'application/x-www-form-urlencoded' 
+data:       发送的额外信息
+dataType:    服务器响应的类型，不指定将自动根据响应的MIME信息返回responseXML或responseText
+            支持xml,html,script,json,jsonp,text 
+error:  服务器响应出现错误的回调函数
+success:响应成功的回调函数
+timeout：请求超时时长
+type:  发送请求的方式，最常用为POST和GET
+url:请求的url地址
+
+
+jquery的ajax简写语法
+$.get(url,[data],[callback][type])  
+url:从哪里获取数据 
+data:向服务器发送额外信息 
+callback：用来指示当数据返回后应当调用哪个函数  (回调函数)
+type:post||get
+
+
+
+jquery有一个jqXHR对象，用来处理服务器返回数据
+属性：
+responseText        返回的文本数据
+responseXML         返回的XML数据
+status              状态码
+statusText          状态描述（通常用来显示错误信息）
+方法：
+.done()             请求成功后需要执行的代码
+.fail()             请求失败后需要执行的代码
+.always()           无论请求成功与否都要执行的代码
+.abort()            挂起通信
+
+jquery加载html语法
+   选中的对象        想要加载的url和片段
+$('#content').load('jq-ajax3.html #content');
+
+html部分：
+<nav>
+<a href="home.html" class="current">home</a>
+<a href="route.html">route</a>
+<a href="toys.html">toys</a>
+</nav>
+<section id="content">
+    <div id="container">
+    </div>
+</section>
+jq用ajax请求加载html页面实例：        .load()方法
+$('nav a').on('click',function(e){
+    e.preventDefult();
+    var url=this.href;                             //url变量保存将要加载的页面的url,href属性表明了将要加载的页面
+    $('nav a.current').removeClass('current');          //更新链接的class属性来体现当前页面
+    $(this).addClass('current');                        
+    $('#container').remove();                           //移除包含内容的元素
+    $('#content').load(url+' #content').hide().fadeIn('slow');  //把新的content加载到页面的content中
+});
+
+
+
+不刷新页面的投票实例： $.get()方法
+$('#selector a').on('click',function(e){              //点击某个链接触发匿名函数
+    e.preventDefult();                                //阻止打开新页面
+    var queryString='vote='+event.target.id;         //把用户点击的链接的id值保存到变量中
+    $.get('votes.php',queryString,function(data){     //调用.get()方法传递3个参数：处理请求的页面，要发送的数据，服务器返回结果调用的函数
+        $('#selector').html(data);                  //当服务器返回数据后，回调函数处理数据，该函数将选中元素的内容替换为服务器返回的数据，用了.html()方法
+    });
+});
+
+ajax提交表单：   $.post()方法
+$('#register').on('submit',function(e){
+    e.preventDefult();                              //阻止表单提交
+    var details=$('#register').serialize();         //.serialize()方法收集表单数据，并储存到变量details中
+    $.post('register.php',details,function(data){   //post方法传递3个参数，提交的url，传递的数据，以及回调函数
+        $('#register').html(data);                  //返回数据覆写register元素的内容
+    });
+});
+
+
+$.each()语法
+$.each(data,function(i,item){
+
+})
+$.each()函数不同于JQuery对象的each()方法，它是一个全局函数，不操作JQuery对象
+以一个需要遍历的数组或者对象作为第1个参数，
+以一个回调函数作为第2个参数。回调函数拥有2个参数：第1个为对象的属性或数组的索引，第2个为对应变量或内容。
+
+
+$.get()  $.getJSON $.post() $.ajax()后可链式调用.done() .fail() .always()
+
+$.ajax()方法设置项
+type：GET||POST
+url：请求地址
+data：发送的数据
+timeout：等待响应时间(毫秒)
+success :请求成功后执行的函数，得到一个参数即服务器返回的数据
+error
+complete:请求完成时调用的函数，得到2个参数，一个xmlhttprequest对象和一个描述成功类型的字符串
+beforeSend：请求前执行的函数
+
+json错误处理 刷新页面显示汇率的实例
+$('#exchangerates').append('<div id="rates"></div><div id="reload"></div>');    //向页面添加一个包含汇率的元素
+
+function loadRates(){               
+    $.getJSON('data/rates.json')                //.getJSON()方法尝试加载json数据，该方法后链式调用了3个方法，都不会运行
+    .done(function(data){                       //.done()方法仅在成功获取数据后运行，包含一个匿名函数来显示汇率及当时的时间
+        var d=new Date();
+        var hrs=d.getHours();
+        var mins=d.getMinutes();
+        var msg='<h2>Exchange Rates</h2>'
+        $.each(data,function(key,val){
+            msg+='<div class="'+key+'">'+key+':'+val+'</div>';
+        });
+        msg+='<br>Last update:'+hrs+':'+mins+'<br>';
+        $('#rates').html(msg);
+    })
+   .fail(function(){                        //.fail()方法仅在服务器无法返回数据时运行，他只显示一条错误信息
+    $('aside').append('sorry,we cannot load rates.');
+    })  
+    .always(function(){                     //.always()方法都会运行，他在页面上添加一个刷新按钮，该按钮会再一次触发loadRates函数
+        var reload='<a id="refresh" href="#"';
+        reload+='<img src="img/refresh.png" alt="refresh" /></a>';
+        $('#reload').html(reload);
+        $('#refresh').on('click',function(e){   //点击时再次触发loadRates()函数
+            e.preventDefult();
+            loadRates();
+        });
+    });
+} 
+
+loadRates();
+
+

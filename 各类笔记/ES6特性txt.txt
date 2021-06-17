@@ -1,0 +1,168 @@
+let/var：
+let是强化版的var,拥有块级作用域
+{
+    var name = 'xx';
+}
+console.log(name);  //可以调用
+
+{
+    let name = 'xx';
+}
+console.log(name);   //不可调用
+
+let有if for的块级作用域
+for(let i=0;i<xx.length;i++){
+    console.log(i)            //这里有作用域
+}   
+
+块级作用域例子：
+<button></button>
+<button></button>
+<button></button>
+<button></button>
+<button></button>
+
+es5
+var buttons = document.getElementByTagName('button');
+for(var i=0;i<buttons.length;i++){   //i没有块级作用域
+    buttons[i].addEventListner('click',function(){
+        //此处运行永远会显示第5个按钮被点击，因为没有块级作用域，回调函数去找i的时候，循环已经执行完毕，此时i等于5
+        console.log('第'+ i + '个按钮被点击')   
+    })
+}
+解决方案：使用闭包
+for(var i=0;i<buttons.length;i++){
+    (function(i){          //使用函数闭包保存每一个传入的i，产生块级作用域，因为只有函数才有块级作用域
+        buttons.addEventListner('click',function(){
+            console.log('第'+ i + '个按钮被点击了');
+        })(i);
+    })
+}
+
+es6
+for(let i=0;i<buttons.length;i++){   //let i=0定义，有了块级作用域
+    buttons[i].addEventListner('click',function(){
+        console.log('第'+ i + '个按钮被点击')   //这里会显示正确的i  因为每个i都有块级作用域
+    })
+}
+
+
+const    //const赋值不可以修改和再次赋值，用来保证数据安全性
+const name;  //错误，const必须赋值
+const name = 'david';
+const person = {
+    name:'david',
+    age:24
+}
+person.age = 30   //const对象的内部属性可以修改
+
+ES6 对象增强写法
+const obj = {
+    myFunction(){    //es5写法:  myFunction: function(){};
+
+    },
+    myFunction2(){
+        
+    }
+}
+
+箭头函数：
+const aaa = (参数) => {
+    //函数内容
+}
+
+1.有2个参数
+const bbb = (mul1,mul2) => {
+    return xxx
+}
+
+2.只有1个参数时，可以省略小括号
+const a = num => {
+    return num * num
+}
+
+3.函数代码只有一行时，可以省略大括号和return 函数会自动把这一行返回
+const x = num2 => num2 + num2 
+
+什么时候使用箭头函数？
+当需要把一个函数当做参数时，使用箭头函数
+例如:
+setTimeOut(function(){
+
+},1000)
+可以写成：
+setTimeOut(() => {
+
+},1000)
+
+ES6的一个新特性promise
+
+何时使用Promise?
+Promise是异步编程的一种解决方案，当请求非常复杂,可以使用该特性对异步操作进行封装
+Promise方法可以更优雅的处理链式调用，把每次调用的代码都分开处理
+
+
+当我们开发中有异步操作时，可以给它封装一个Promise
+Promise异步操作有3种状态：
+pending: 等待状态，比如正在进行网络请求，或者定时器没到时间
+fulfill: 满足状态，当主动回调resolve函数时，就处于该状态，并且会回调then()
+reject: 拒绝状态，当主动回调reject函数时，就处于该状态，并且会回调catch()
+
+ES6对象解构：
+常规写法：
+const obj = {
+    name: 'david',
+    age: 30,
+    height: 1.75
+}
+
+//需要写3行进行解构，分别赋值给新的变量
+const name = obj.name
+const age = obj.age
+const height = obj.height  
+
+
+ES6写法：
+const {name,age,height} = obj;  //仅需一行完成对象的解构
+
+const声明的常量，不能改变的是内存地址
+
+
+*****
+js调用对象属性时， .和[]的区别：
+例子：
+var obj = {
+    pop: {page: 1,list: [xxx,xxx,xxx]},
+    hot: {page: 1,list: [aaa,aaa,aaa]},
+    new: {page: 1,list: [bbb,bbb,bbb]}
+}
+.和[] 都可以调用对象的key，没有区别 
+obj.pop.page       //1
+obj['pop'].page    //1    注意要加引号
+
+****重要****
+但是当key是一个变量时，需要用[]引用
+例如:
+getHomeGoods(type,page){
+    this.goods[type].page += 1;   //传入形参type,因为是变量，引用时只能用[]
+}
+
+
+*************
+逻辑运算符&& || 参与计算:
+&&:   
+var a = check1() && check2()   //check1为真，不考虑&&后的值，a=check2()
+var a = 0 && 1                 //0为假，不考虑&&后的值，a=0
+
+||:
+var a = check1() || check2()   //check1为真，则不考虑check2  a=check1
+var a = check1() || check2()   //check1为假，则a=check2
+
+ES6创建一个类:
+
+class Person{   
+    constructor(name,age){   //关键词constructor
+        this.name = name
+        this.age = age
+    }
+}

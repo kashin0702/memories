@@ -1,0 +1,104 @@
+vuex是专为vue.js应用程序开发的状态管理模式
+采用集中式储存管理应用的所有组件的状态
+
+简单理解：
+多个组件共享的变量全部储存在一个对象中，将这个对象放在顶层的vue实例，让其他组件使用
+
+何时用Vuex?
+用户的登录状态，用户名，头像，地理信息，商品的收藏，购物车。  各种不同页面通用的状态信息
+这些状态信息可以保存在一个统一地方，并且是响应式的
+
+如何使用：
+项目下创建store目录，并新建index.js文件 (和router目录下的index.js区分)
+
+
+
+
+*****vuex5大关键属性：*****
+state,mutations,actions,modules,getters
+格式：
+import vue from 'vue'
+import vuex from 'vuex'
+
+Vue.use('vuex')
+
+export default new Vuex.Store({   
+  state: {
+    //要共享使用的变量
+  },
+  mutations: { //同步操作state 
+    //操作共享变量的唯一模块，所有操作都要放到mutations内
+  },
+  actions: {  //异步操作state
+    //通过mutations内的方法进行异步操作
+  },
+  modules:{ //通过模块化分割store
+    a:{     //a模块，拥有一样的一套属性         因为vuex只能定义一个Store,所以当项目需要的公共变量太多时，可以通过模块细分
+      state:{},
+      mutations:{},
+      getters:{}
+    },
+    b:{  //b模块
+      state:{},
+      mutations:{},
+      getters:{}
+    }
+  },
+  getters:{
+    //相当于state的计算属性
+  }
+})
+
+在别的组件中使用共享的数据
+$store.state.xxx        //访问状态
+$store.commit('方法','参数')  //调用mutations内的同步操作  修改状态
+$store.dispatch('方法','参数')  //调用actions内的异步操作
+
+监控vuex共享状态的修改信息: (必须通过mutation内的方法修改才能记录)
+1.浏览器安装vue_devtools插件
+2.每次修改$store.state.xxx数据时都会记录   
+
+vue响应式添加属性和删除属性  (使界面保持响应式更新)
+添加:
+Vue.set(state.info,'xxx','nnn')   //3个参数：要添加属性的对象，属性，值
+删除:
+Vue.delete(state.info,'xxx')   //2个参数：要删除的对象，要删除的属性
+
+分离modules写法:
+const moduleA = {
+  state:{},
+  mutations:{},
+  getters:{}
+}
+const moduleB = {
+  state:{},
+  mutations:{},
+  getters:{}
+}
+
+const store = new Vuex.Store({
+  state:{},
+  mutations:{},
+  modules:{
+    a: moduleA,
+    b: moduleB
+  }
+})
+
+actions用法：
+如果在mutations内有异步操作，mutations就无法捕获变量的修改，需要把异步操作放到actions中
+
+
+***重要***异步操作技巧：
+action内的异步操作可以封装在new Promise函数内
+这样外部组件调用时，可以直接使用then()回调函数进行异步操作
+actions: {
+  actionA(){
+    return new Promise((resolve,reject) => {
+      //处理代码
+    })
+  }
+}
+
+
+

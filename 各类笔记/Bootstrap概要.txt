@@ -1,0 +1,640 @@
+bootstrap其实是一个css库，主要用途并不是js编程，更像一个css框架，它的重点是引入css文件
+head引入bootstrap css库:
+<link rel='stylesheet' href='bootstrap/css/bootstrap.min.css'>
+<link rel='stylesheet' href='bootstrap/css/bootstrap-theme.min.css'> //这个不大用到，可以不引入
+
+引入bootstrap js插件：
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src='bootstrap/js/bootstrap.min.js'></script>  //bootstrap的js库依赖jquery库，所以必须先引入jquery库
+
+网格布局：将整个页面分为N行*12列（最多12列）的网格
+将网格布局放在一个.container或 .container-fluid的div元素中
+.container  //固定宽度并支持响应式布局,根据浏览器viewport宽度，分成<768px|| 768px<aaa<992px || 992pxaaa<1200px|| >1200px 4档
+            //<768 宽度为100% ||768~992：宽度固定为750  ||992~1200  宽度固定970 || >1200 宽度为100%
+class='col-xs-5 col-sm-5 col-md-5 col-lg-5'  //设置多个属性，适应所有宽度不产生堆叠
+.container-fluid //宽度100%布局
+
+container和container-fluid区别：
+1.container类出现内边距和外边距，.container-fluid类没有。
+2.container类左右内边距一直是15px，屏幕小于等于767px的时候没有margin值，屏幕大于767px开始有左右margin值，
+屏幕宽度为768px和1000px的时候，margin值相对最小，分别是9px和15px，其他时候margin值随着屏幕的增大而增大。
+.container-fluid类宽度不管屏幕宽度大小，一直是100%。
+
+
+
+
+xx:xs,sm,md,lg 4种宽度 N:1~12整数  即所占列数
+
+.col-xx-N   //单元格布局     
+.col-xx-offset-N //控制单元格向右偏移 N表示偏移几列
+.col-md-offset-4 // md尺寸宽度，单元格向右偏移4列
+<div class="col-md-5 col-md-offset-2"></div>
+
+.col-xx-push-N  //单元格向右浮动  N表示浮动几列
+.col-xx-pull-N  //单元格向左浮动
+
+
+
+Less语言：
+可以让css实现计算，保存变量等功能，让css样式修改更灵活
+使用方法2种：
+1.预编译：将less源代码通过编译器编译成css文件，bootstrap默认使用Grunt为编译器
+2.即时编译：把一个编译less的js库引入html页面，即引入less源文件和less.min.js库
+
+less使用关键字@定义变量，支持+-*/等常见运算符
+例子：
+//对颜色，高度值进行了计算
+@normal-height:25px;    //@定义变量
+@baseColor:#eee;
+@width:1px;
+.a{
+    height:@normal-height;
+    background-color:@baseColor;
+}
+.b{
+    height:@normal-height-5px;
+    background-color:@baseColor/2;
+    border:@width+1 solid black;     
+}
+
+mixin
+mixin就是一段可重用的代码块，可以将通用CSS定义提取出来方便复用
+例子：
+@block-width:300px;
+@block-height:120px;
+@block-back:rgba(86,61,124,.15);
+
+.make-block(@width:@block-width,@height:@block-height,@back:@block-back){   //定义mixin代码块
+    width:@width;
+    height:@width;
+    border:1px solid black;
+    background-color:@back;
+    border-radius:5px;
+}
+.md-block{
+    .make-block()           //调用mixin
+}
+.big-block{
+    .make-block(500px,200px,#eee)
+}
+
+
+列表样式：
+.list-unstyled  无样式列表，去掉列表前的符号，序号
+.list-inline   行内列表  该样式通过display:inline-block设置，并设置少量padding实现
+
+
+
+表格相关样式 :
+<table class='table'>
+.table              基本表格
+.table-striped      条纹表格
+.table-bordered     边框表格
+.table-hover        鼠标高亮  对鼠标悬停产生高亮效果
+.table-condensed    紧凑表格  单元格padding减半
+.table-responsive   响应式表格，在小屏幕上显示水平滚动条，宽度大于768px消失  
+
+行样式
+<tr class='active'>
+.active             高亮样式，悬停时的背景色
+.success            标识成功行为的背景色
+.info               标识普通提示信息的背景色
+.warning            标识警告的背景色
+.danger             标识危险的背景色
+
+图片样式
+<img class='img-responsive' />
+.img-responsive     响应式图片，通过为图片设置max-width:100%,height:auto,display:block,使图片在父元素中可以得到更好的缩放
+.center-block       使响应式图片居中
+.img-rounded        圆角图片
+.img-circle         圆形图片
+.img-thumbnail      缩略图图片，在图片四周添加一圈淡灰色的边框
+
+小图标样式      //该样式位于bootstrap/fonts文件夹内，勿动
+通过span标签，给它设置2个class类配合实现
+<span class='glyphicon glyphicon-xxx'>
+.glyphicon          设置它是一个小图标
+.glyphicon-xxx      设置小图标样式，xxx根据不同图标改变
+
+文本样式
+1.情境背景色
+<p class='bg-primary'>
+.bg-primary     首选背景色（蓝色）
+.bg-success     成功的绿色
+.bg-info        提示信息浅蓝色
+.bg-warning     提示信息浅黄色
+.bg-danger      提示信息浅红色
+2.情境文本色
+<p  class='text-primary'>
+.text-primary
+.text-success
+...
+和上面一样
+
+文本对齐：
+<p class="text-center">xxxx</p>
+.text-left
+.text-right
+.text-center
+.text-justify
+.text-nowrap
+
+大小写：
+<p class='text-lowercase'>xxx</p>
+.text-lowercase    字母小写
+.text-uppercase    字母大写
+.text-capitalize   每个单词首字母大写
+
+3.关闭按钮和三角箭头
+关闭按钮       //通过为<button设置.close样式，将该按钮设置为关闭按钮，关闭按钮总位于容器右上角
+三角箭头        //为空<span>设置.caret样式
+
+响应式显示/隐藏的相关样式，4个等级宽度和单元格可见宽度一样， xxx可以是block,inline,inline-block 3个表示块模型的代号
+.visible-xs-xxx       
+.visible-sm-xxx
+.visible-md-xxx
+.visible-lg-xxx
+.hidden-xs
+.hidden-sm
+.hidden-md
+.hidden-lg
+
+表单相关样式
+.form-group   //被指定该样式的<div>元素将作为容器来装载<label>元素和表单控件，以保证他们有最好的排列
+.form-control //大部分表单输入控件<input>都应该被指定该样式
+.checkbox     //被指定该样式的div元素将作为容器来装载label元素和复选框控件，以保证他们有最好的排列
+
+行内表单
+.form-inline   //为form元素或表单控件的容器添加该样式即可
+水平表单      //label和input在同一行
+.form-horizontal  //为form元素或表单控件的容器添加该样式即可
+                    为表单设置该样式后，表单内的form-group将表现为.row的样式行为，因此不再需要设置.row样式，
+                    直接将.col-xx-N样式应用于label元素和表单控件的容器即可，最好给label设置.control-label，保证label大小一致
+
+多选框和单选框
+.radio          应用于单选框所在的容器
+.checkbox       应用于多选框所在的容器
+.radio-inline   放在同一行，应用于单选框所在的容器或直接应用于单选框的<label>元素
+.checkbox-inline    放在同一行，应用于多选框所在的容器或直接应用多选框的<label>
+.disabled           应用于多选框或单选框的容器，禁用多选框和单选框
+
+控制表单控件大小
+.input-lg    //设置大的控件
+.input-sm    //设置小的控件
+.form-group-lg  //设置整个大控件
+.form-group-sm  //设置整个小控件
+<div class='container'>
+<input type='text' class='form-control input-lg'>
+<div class='form-group form-group-lg'>
+
+帮助文本
+<span class='help-block'>请输入你喜欢的用户名字</span>
+
+校验状态  样式需应用在控件的容器上
+.has-success        校验成功，显示绿色
+.has-warning        警告，显示黄色
+.has-error          校验错误，显示红色
+<div class='form-group has-success'>
+
+校验状态的小图标
+两处要添加
+.has-feedback    //包含label元素和表单控件的容器上添加该样式
+.form-control-feedback   //小图标<span>元素内添加该样式
+
+辅助可访问性
+aria-haspopup:true//false    点击时会出现菜单或浮动元素，false表示没有效果
+aria-expanded:true//false    默认undefined 表示展开状态未知，  true表示展开，false表示元素不是展开的
+aria-hidden:true//false      残障阅读器播放到该段自动跳过
+都是无障碍网页配置项，给屏幕阅读器使用的，不考虑残障人士则不需要
+
+
+
+
+按钮样式
+支持将<a> <button> <input>元素变成按钮,有如下样式   注意：尽可能只使用button来创建按钮样式，保持跨浏览器兼容性
+.btn            //所有按钮都需要添加该样式
+.btn-default    //默认样式，按钮背景色为蓝色
+.btn-primary    //首选项的按钮样式，背景色为蓝色
+.btn-success    //成功的样式，背景色为绿色
+.btn-info
+.btn-warning
+.btn-danger
+.btn-link
+按钮大小
+.btn-xx    //xx=lg,sm,xs,block
+按钮状态
+.hover      鼠标悬停的样式
+.active     单击后的样式
+.focus      获得焦点的样式
+
+下拉菜单样式
+.dropdown||.dropup   应用于下拉菜单的容器元素上,通常是div
+.dropdown-toggle     应用于下拉菜单的按钮上，可以是任意一种按钮，在下拉按钮上必须指定data-toggle='dropdown'
+.dropdown-menu       应用于下拉菜单中，通常使用ul构建下拉菜单，它包含的每个li元素将会被构建成一个菜单项
+.dropdown-header     应用于下拉菜单项，即li元素，将下拉菜单项变成标题
+.divider             应用于li元素，将下拉菜单项变成分隔条   
+下拉菜单对齐
+<ul class='dropdown-menu dropdown-menu-right'>
+.dropdown-menu-left         //左对齐，默认的对齐方式
+.dropdown-menu-right        //右对齐，沿容器右边对齐
+.open                       //默认菜单打开
+禁用菜单项
+<li class='disabled'><a href=''>xxx</a></li>
+
+按钮式下拉菜单
+.btn-group          //将该样式应用于菜单容器
+<div class='btn-group'>
+<button class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+
+分裂式下拉菜单   //就是让按钮旁的三角箭头变成下拉按钮
+<button class='btn btn-warning'></button>
+<button class='btn btn-warning dropdown-toggle' data-toggle='dropdown'>
+    <span class='caret'></span>
+</button>
+
+下拉菜单大小
+btn-xx   //xx=lg,sm,xs 
+<button class='btn btn-default btn-sm'>
+
+按钮组    //将多个按钮放在div内，并将div指定样式btn-group||btn-group-vertical
+btn-group  水平排列按钮组
+btn-group-vertical 垂直排列按钮组
+
+工具栏    //使用div将多个按钮组包含在一起，并指定btn-toolbar样式
+btn-toolbar
+
+按钮组大小
+btn-group-xx     //xx=xs,sm,lg
+<div class='btn-group btn-group-lg'>
+
+两端对齐按钮组
+.btn-group-justified
+<a>元素： 在按钮组容器元素上添加.btn-group-justified
+<button>元素：还要将每个按钮都包裹在按钮组中
+
+输入框组   //主要有3个样式
+.input-group            //用在输入框组的容器元素div
+.input-group-addon      //用在输入框组附加的普通元素上
+.input-group-btn        //用输入框组附加的按钮或按钮式下拉菜单上
+
+输入框组大小
+input-group-xx   //xx=lg,sm
+
+多按钮
+bootstrap不允许输入框组同一侧添加多个附加元素，但将多个按钮包裹在同一个附加元素内即可
+
+导航组件
+.nav                    //要实现导航必须设置该样式
+.nav-tabs||.nav-pills   //设置导航风格,tabs是标签式导航，pills是胶囊式导航,都依赖于.nav样式
+.nav-stacked            //使用胶囊式导航时，可通过该样式进行堆叠排列
+.active                 //导航项激活样式
+.disabled               //导航项禁用样式
+.nav-justified          //两端对齐
+
+路径导航（面包屑导航）
+.breadcrumb
+
+基础导航条          //导航组件可以单独使用，也可以放在导航条中，把导航条看做导航组件的容器
+.navbar                  //用于设置导航条样式，导航条通常使用<nav>元素,也可以用div代替
+.navbar-default||.navbar-inverse    //设置导航条风格   默认风格和反色风格
+.navbar-nav             //将导航放置到导航条时应设置该样式
+
+导航条中的品牌图标
+.navbar-header    //应用于导航条头部
+.navbar-brand     //应用于导航条的品牌图标，该样式设置了合适的padding和height,也可添加一些css覆盖默认设置
+
+导航条中的按钮
+.navbar-btn         //应用于导航条中的按钮，让按钮垂直居中
+
+导航条中的表单
+.nvabar-form    
+
+导航条中的文本和连接
+.navbar-text      //对<p>元素应用
+.navbar-link
+导航条中组件的浮动
+.navbar-right
+.navbar-left    //类似float效果，使组件在同一行显示
+
+导航条的位置
+.navbar-fixed-top      //固定在顶部
+.navbar-fixed-bottom    //固定在底部
+
+响应式导航条           //当设备宽度不足768px时，隐藏导航组件，显示为一个按钮
+.navbar-toggle          //打开导航条的按钮    通常放在button中
+.collapse               //用于被折叠隐藏的容器
+.navbar-collapse        //用于被折叠隐藏的容器，以导航条的方式被隐藏
+步骤
+1.将所有被折叠内容放入一个div,并添加样式.collapse,.navbar-collpase 
+2.在.nav-header添加一个按钮，为该按钮添加.navbar-toggle,并添加data-toggle='collapse'属性,并指定data-target 要折叠的目标
+
+分页导航
+<ul class='pagination'>
+.pagination             //应用于分页导航ul元素
+.disabled               //某页对应的链接，被禁用的样式
+.active                 //某页对应的链接，被激活的样式
+分页导航大小
+.pagination-xx          //xx=lg,sm
+
+翻页导航
+.pager              //设置翻页导航的样式，应用于ul元素
+.disabled           //禁用某个翻页按钮
+.previous           //翻页按钮居左显示
+.next               //翻页按钮居右显示
+
+标签和徽章
+语法
+<span class="label label-xx">
+.label              标签样式首选项，必填
+.label-default      各种颜色标签
+.label-primary
+.label-success
+.label-info
+.label-warning
+.label-danger
+徽章
+.badge
+<span class='badge'>热</span>
+
+
+面板
+<div class='panel panel-default'>
+    <div class='panel-body'>
+    ....
+    </div>
+</div>
+.panel              面板样式首选项，必填
+.panel-default
+.panel-primary
+.panel-success
+.panel-info
+.panel-warning
+.panel-danger
+.panel-heading     面板头，可作为面板标题的容器
+.panel-body        面板主体部分
+.panel-title       面板标题
+.panel-footer
+
+列表组
+.list-group             //普通列表组应用于ul元素, 其他列表组如链接列表组，按钮列表组应用于div元素,
+.list-group-item        //应用于li元素,a元素
+
+巨幕，页头，Well
+巨幕和页头都是一种特殊的容器，表现为一个矩形框，用于突出显示内容，Well则用于提供一种默认的优雅格式
+.jumbotron      //巨幕的样式，通常用于div元素
+.page-header    //页头样式，一般用来给标题元素（h1~h6）增加空间,不是直接用在标题元素上
+
+well样式用在元素上可以实现简单的inset嵌入效果
+.well           //基础well样式
+.well-lg        //大
+.well-sm        //小
+
+缩略图
+.thumbnail        //缩略图样式
+.caption          //缩略图文字描述的容器
+
+警告框
+也是一种简单的容器，用于向用户动作提供一些反馈信息
+.alert              //基础样式，必加
+.alert-success      //成功，绿色
+.alert-info         //普通消息，浅蓝色
+.alert-warning
+.alert-danger
+.alert-dismissible  //可关闭  ，依赖js库
+<div class='alert alert-dismissible'>
+    可关闭该窗口。
+<button class='btn btn-primary' data-dismiss='alert'>
+    <span>&times</span>
+</button>
+</div>
+
+进度条
+.progress               //容器设置进度条轨道，即灰色外框
+.progress-bar           //基础样式，所有进度条必加
+.progress-bar-success   绿色
+.progress-bar-info      淡蓝色
+.progress-bar-warning   黄色
+.progress-bar-danger    红色
+.progress-bar-striped   //条纹风格样式
+
+
+媒体对象            //左侧图片或视频，右边文字描述的效果称为媒体对象
+.media              //整个媒体对象所在的容器
+.media-object       //媒体对象本身(图片或视频)
+.media-body         //媒体对象描述文字所在的容器
+.media-heading      //描述文字的标题
+.media-left         //左对齐
+.media-right        //右对齐
+用法：
+1.定义一个<div>为整个媒体对象，并指定media样式
+2.添加媒体对象,并指定media-object样式
+3.定义一个<div>为描述文字的容器，指定media-body样式
+
+列表组
+.list-group                //应用于列表组容器<ul>样式
+.list-group-item            //列表组内的列表项<li>
+.list-group-item-success    //绿色背景
+.list-group-item-info       //淡蓝色背景
+.list-group-item-warning    //黄色背景
+.list-group-item-danger     //红色背景
+列表项状态
+.active 
+.disabled
+
+
+
+bootstrap的JS插件
+-------------------------------------------
+过渡动画Transition          对应transition.js插件
+对话框Modal Dialog          对应modal.js插件
+下拉菜单Dropdown Menu       对应dropdown.js插件
+滚动监听scrollspy           scrollspy.js
+选项卡Tab
+提示框Tooltips
+弹出框Popover
+警告框alert
+按钮button
+折叠collapse
+轮播图Carousel
+附件组件Affix
+
+
+使用插件的两种方式：
+1.使用data-xx属性，data-xx是h5新特性，用于储存自定义数据，这些数据可以被js读取，利用(bootstrap推荐方法)
+2.使用js代码, 两种方法本质一样
+使用js调用bootstrap插件方法：
+$('.btn.danger').button('toggle').addClass('fat')
+不使用data-xx,关闭dataAPI方法:
+$(document).off('.data-api')  //该方法关闭所有元素上绑定的data-xx属性的功能
+
+对话框插件
+对话分为3层容器
+1.class='modal'             整个对话框容器
+2.class='modal-dialog'      居中对话框
+3.class='modal-content'     对话框主体，主体可再添加modal-header,modal-body,modal-footer
+data方法调用对话框需指定2个属性
+data-toggle    属性值指定为要调用的插件名，比如modal
+data-target    指定容器，即被指定了class='modal'的元素，属性值一般用CSS选择器
+对话框其他属性:
+data-backdrop       //布尔型或字符串，用于指定是否包含一个DIV背景元素，若true则用户单击背景时对话框消失，false则不消失
+data-keyboard       //布尔值，是否可通过esc关闭对话框
+data-show           //布尔值，在页面加载时自动显示对话框
+js方法通过调用.modal()方法使用对话框插件，可传入show,hide,toggle,handleUpdate字符串，也可传入js对象
+
+对话框事件
+show.bs.modal           //对话框的show方法被调用时触发,通过事件的relatedTarget属性来访问触发的元素
+shown.bs.modal          //当对话框完全显示后触发（css动画完成），通过relatedTarget访问该元素
+hide.bs.modal           //当hide方法被调用时触发
+hidden.bs.modal         //当对话框完全隐藏后触发
+loaded.bs.modal         //从远端数据源加载数据后触发
+$('#myModal').on('show.bs.modal',function(e){
+    var src=e.relatedTarget.innerHTML;
+    var modal=$(this);
+    modal.find('.modal-title').html("'('+src+')'激发的对话框");
+    modal.find('.modal-body p').html('xxxxxx');
+})
+
+下拉菜单事件
+show.bs.dropdown
+shown.bs.dropdown
+hide.bs.dropdown
+hidden.bs.dropdown
+
+滚动监听        //实现用户滚动页面时，自动激活对应的导航链接，显示用户当前在查看的位置
+实现：使用data-xx 在被滚动的内容元素上指定2个属性
+data-spy         //值始终是'scroll'字符串   指定对该元素滚动监听
+data-target      //指定对应的导航条，可以是任意css选择器
+
+js实现滚动监听：  //调用scrollspy()方法
+$('[data-spy="scroll"]').each(function(){
+    var $spy=$(this).scrollspy('refresh')
+})
+
+标签页(选项卡)
+tab-content
+tab-pane
+由导航组件和内容面板组成，内容面板是样式class='tab-content'的div元素
+内容面板可包含多个标签页，标签页样式class='tab-pane'
+导航组件添加data-toggle='tab' data-target='#xx' 实现标签页切换
+
+js实现标签切换:  //调用.tab()方法
+$('tabnav a').click(function(){
+    $(this).tab('show')
+})
+
+标签页事件:
+show.bs.tab
+shown.bs.tab
+hide.bs.tab
+hidden.bs.tab
+
+
+
+工具提示            //鼠标悬停时出现提示信息
+须同时使用data- js实现
+1.按钮或链接设置data-toggle='tooltip'
+2.按钮或链接设置title或data-title属性
+3.按钮或链接设置data-placement,该属性控制提示出现的位置, top/bottom/left/right 四个值
+4.通过js调用tooltip()方法激活提示
+$('[data-toggle="tooltip"]').tooltip();
+
+提示事件
+show.bs.tooltip
+shown.bs.tooltip
+hide.bs.tooltip
+hidden.bs.tooltip
+inserted.bs.tooltip   html载入DOM时触发
+
+弹出框          //跟提示栏类似，但更大，且支持标题和内容，需要点击才会出现
+1.为元素设置data-toggle='popover'
+2.设置title或data-title：弹出框的标题,设置data-content：弹出的内容
+3.data-placement  弹出框出现的位置
+4.js调用popover()方法激活弹出框
+$('[data-toggle="popover"]').popover()
+
+弹出框的属性
+data-title     弹出框标题
+data-content    弹出内容
+data-animation  布尔值，是否对弹出框应用fade效果
+data-container  指定将弹出框附加到特定元素上  container:'body' 附加到body元素上
+data-delay
+data-html
+data-placement
+data-selector
+data-template
+data-trigger     触发方式 click hover focus manual
+
+弹出框事件
+show.bs.popover
+shown.bs.popover
+hide.bs.popover
+hidden.bs.popover
+inserted.bs.popover
+
+警告框
+div class='alert'
+button设置data-dismiss='alert' data-target='#xx' 即可关闭警告框
+
+警告框事件
+close.bs.alert      开始关闭时触发
+closed.bs.alert     关闭完成触发
+
+
+按钮
+切换按钮激活/非激活状态的2个方法
+1.data-toggle='button'
+2.js调用.button('toggle')
+
+js改变按钮文本
+.button('reset')    恢复按钮中的默认文本
+.button(string)     传入普通字符串，将按钮文本设为data-string-text属性所指定的内容
+
+
+
+折叠效果
+.collapse      被折叠元素的样式
+.collapsing    //折叠过程中的样式
+.collapse.info  折叠元素被显示出来
+实现方法：
+.data-toggle='collapse'
+.data-target='#xx'或者href='#xx'    指定要折叠的元素
+
+手风琴效果3个关键点
+data-toggle='collapse'
+data-parent='手风琴容器'
+data-target='要折叠的目标元素'
+
+js触发折叠
+调用collapse()方法，有3种用法
+1.不传参，相当于初始化data-xx属性，通常无需调用不传参的方法
+2.传字符串，可传入'toggle','show','hide'     $('#mydiv').collapse('toggle')
+3.传入js对象  可指定parent:false||css选择器
+
+折叠事件
+show.bs.collapse
+shown.bs.collapse
+hide.bs.collapse
+hidden.bs.collapse
+
+
+轮播图Carousel
+组成部分：
+轮播图容器          //通常是div 指定class='carousel'
+轮播图显示器        //通常是一个ul列表，每个li对应一个轮播图，指定class='carousel-indicator'
+轮播图主体          //包含多张图片的部分，通常是指定class='carousel-inner'的div元素，img放在class='item'的div内
+                     图片描述可指定class='carousel-caption'
+轮播图控制按钮      //其实就是2个链接，指定class='carousel-control',左边按钮指定left  右边指定right
+
+激活轮播图
+data-ride='carousel'    //激活轮播图容器，固定值
+data-interval='1000'    //轮播时间，毫秒
+data-pause              //建议默认值'hover'， 鼠标Hover时停止轮播
+data-wrap               //指定播到最后一图时是否重新开始
+data-keyboard           //是否对键盘事件响应
+data-target             //id选择器，指向轮播的元素
+data-slide-to           //用于列表项，指定点击该项时跳转到哪张图    0代表第一张图
+data-slide              //用于控制按钮  值为'prev'||'next'
+
+轮播事件
+slide.bs.carousel       开始轮播时触发
+slid.bs.carousel        图片切换完成时触发

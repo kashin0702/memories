@@ -1,0 +1,114 @@
+error对象：全局上下文中没有找到错误处理程序时，脚本会停止运行并创建一个error对象
+js有7种内置错误对象
+对象：
+Error               一般错误，其他错误的基础
+SyntaxError         语法未遵循规范
+ReferenceError      尝试引用未在作用域内声明的变量
+TypeError           意外的数据类型，无法进行自动转换
+RangeError          数字超出了可接受的范围
+URIError            encodeURI(),decodeURI(),以及类似的方法会在出错时使用此类型
+EvalError           Eval()函数会在出错时使用此类型
+属性：
+name            异常类型
+message         描述
+fileNumber      javascript文件名称
+lineNumber      错误所在代码行数
+
+
+SyntaxError 语法不正确问题
+引号不匹配或未闭合
+document.write('xxx")               报错：SyntaxError:Unexpected EOF
+
+缺少右括号
+document.getElementById('xxx'           报错：SyntaxError:Expected token')'
+
+数组中缺少逗号，缺少了结尾的]也会导致相同错误
+var list=['xxx1','xxx2' 'xxx3'];         报错：SyntaxError:Expected token')'
+
+格式错误的属性名称，包含空格，却没有放到引号内
+user={first name:"ben",lastName:"lee"};     报错：SyntaxError:Expected an identifier but found 'name' instead
+
+
+ReferenceError 变量不存在问题
+变量未声明           报错：ReferenceError:can't find variable:xxx
+
+命名函数未定义
+document.write(randomFunction());  报错：ReferenceError：can't find variable:randomFunction
+
+URIError  没有正确使用URI函数
+如果URI没有对以下字符转义，就会导致此错误：/ ? & # : ;
+字符?未转义：
+decodeURI('http://bbc.com/news.php?a=1');      报错:URIError: URI error
+
+
+TypeError  值为意外的数据类型
+document对象的大小写格式不正确
+Document.xxx                    报错：TypeError:'undefined'is not a randomFunction
+
+方法不存在
+略
+
+DOM节点不存在
+var el=document.getElementById('x');
+el.innerHTML='mango';                 报错：TypeError: 'null' is not an object(evaluating 'el.innerHTML='mango'')
+
+RangeError  数字在范围外
+pirce.toFixed(21);  toFixed小数位数范围只能是0-20
+
+浏览器控制台
+从脚本输出日志到控制台：
+可以方便自己观察代码运行到哪一步，输出的变量是否和期望一致
+console.log(想输出的内容)
+
+区分输出的类型，它们用不同的颜色和图表来相互区别,本质上都是console.log()
+console.info()      输出一般信息
+console.warn()      用于警告
+console.error()     输出错误
+
+把日志组合在一起： 可折叠
+console.group('日志名字');
+console.info(xxx);
+console.info(xxx);
+console.log(xxx);
+console.groupEnd();
+
+输出表格数据
+console.table(xxx)
+
+根据条件输出，测试条件是否成立，当值是false时会输出到控制台
+console.assert(this.value>10,'user entered less than 10') //检查用户是否输入了10或更大的数字，如果没有输出一条信息
+
+断点
+可以让脚本的任何一行暂停执行。然后就可以检查变量在当时所存放的值
+
+debugger关键字
+在js中插入debugger创造断点，部署到正式环境前需要删掉
+
+处理异常 
+try         将可能抛出异常的代码放入try
+catch       如果try块抛出异常，就会自动进入另一组catch块，有一个参数：错误对象
+finally     无论try成功与否，finally总被执行
+throw       随时抛出自定义错误，必须给throw指定一个值，类型不限
+例：
+throw 1235;  
+throw 'hello world'; 
+throw {name:'javascript'};
+
+
+获取json实例
+response={"details":[{"title":"xxx",...}]}
+
+if(response){
+    try{
+        var dealData=json.parse(response);
+        showContent(dealData);
+    }catch(e){
+        var errormessage=e.name+''+e.message;
+        console.log(errormessage);
+        feed.innerHTML='sorry,could not load deals';
+    }finally{
+        var link=document.creatElement('a');
+        link.innerHTML='<a href="try-catch-finally.html">reload</a>';
+        feed.appendChild(link);
+    }
+}

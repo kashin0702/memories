@@ -1,0 +1,35 @@
+搜索
+<input type="search" placeholder="search..." autofocus>
+
+电子邮件，url,电话
+<input type="email">
+<input type="url">
+<input type="telephone">
+
+数字                                  +-步进值     初始值
+<input type="number" min="0" max="10" step="2" value="6">
+
+范围
+<input type="range" min="0" max="10" step="2" value="6">
+
+颜色选择器
+<input type="color">
+
+日期
+<input type="date">
+<input type="month">
+<input type="week">
+<input type="time">
+<input type="datetime">
+
+属性
+autofocus   页面载入时聚焦到这个元素
+placeholder 这个属性的内容被作为提示显示在一个<input>元素中  即提示文本
+required    标识一个字段是否必须有值,可以是输入的值或选择的选项
+min         最小允许的数字
+max         最大允许的数字
+step        数字应当增加或减少的步进值
+value       当数字框在页面上被首次载入时的初始值
+autocomplete  默认为on:显示过去输入过的条目的列表(对信用卡号/敏感信息禁用)
+pattern       让你指定一个用来验证输入值的正则表达式
+novalidate    用于<form>元素,禁用html5内置的表单验证

@@ -1,0 +1,532 @@
+// 链式操作，在同一选取结果上处理多个方法  
+   原理：jquery每一步都会返回当前的操作对象，所以可以执行链式操作
+$('li[id!="one"]')
+.hide()       //隐藏元素
+.delay(500)     //创建暂停
+.fadein(1400);   //淡入元素
+
+//检测页面是否可用  .ready()方法
+大多数jquery都会在该方法内执行，确保脚本在DOM加载完成后执行
+$(document).ready(function(){
+
+});
+//简写
+$(function(){
+
+});
+
+匿名函数表达式和函数声明区别：匿名函数只会在解释器执行到代码才执行
+
+让匿名函数立即执行的方法：
+IIFE立即执行函数表达式语法，把整个代码用括号括起来
+(function(){
+
+})();
+
+
+获取元素内容
+.html()  返回第一个匹配元素内部的html,包括全部后代节点
+$('ul').html()  返回第一个ul的所有后代节点
+$('li').html()  返回第一个li的所有后代节点
+
+.text()   返回全部元素的文本包括空格，注意是全部
+$('ul').text()  返回ul所有子元素的文本
+$('li').text()  返回所有li元素的文本
+
+更新元素4个方法
+.html()          把每个元素设置相同的新内容，可以包含html
+.text()          把匹配结果中的每个元素设置相同的新文字，任何标签都会被转化为文本
+.replaceWith()   把匹配结果中的每个元素内容替换成新内容，并返回被替换的元素  $(selector).replaceWith(content)
+.replaceAll()    跟replaceWith()顺序相反   $(content).replaceAll(selector)
+.remove()        移除匹配结果中的所有元素   
+
+
+
+修改内容实例
+$(function(){
+    $('li:contains("pine")').text('almonds');      //选中包含单词pine的所有列表项，并将文本内容改成almonds
+    $('li.hot').html(function(){                  //使用函数作为参数来更新内容，给选中的列表项文本增加<em>标签
+        return '<em>'+$(this).text()+'</em>';
+    });
+    $('li#one').remove();                   //移除id=one的列表项，该方法不需要参数
+})；
+
+插入元素
+1.将新元素创建为jquery对象
+2.使用一个方法将元素插入到页面中
+var $newFragment=$('<li>');     //创建一个空li元素
+var $newItem=$('<li class="new">item</li>'); //创建包含class属性和文本的li元素
+.before()   将内容插入到选中的元素之前
+.after()    将内容插入到选中的元素之后
+.prepend()  插入到选中元素内部，紧跟在开始标签之后
+.append()   插入到选中元素内部，紧跟在结束标签之前
+.insertAfter()   和.after()顺序反一下
+
+//插入内容实例
+$(function(){
+    $('ul').before('<p class="notice">just updated</p>');       //选中ul元素，用before方法向列表前添加一个新元素
+    $('li.hot').prepend('+ ');                                  //选中class=hot列表项，用prepand方法在文字前插入一个+号
+    var $newListItem=$('<li><em>gluten-free</em>soy sauce</li>');   //创建新li元素
+    $('li:last').after($newListItem);                               //选中最后一个li元素，使用after方法添加新元素
+});
+
+创建/访问/更新属性
+.attr()                             读取或设置属性
+    $('li#one').attr('id');         读取元素的id属性, 在小括号中指定属性名称
+    $('li#one').attr('src')         获取元素的src属性
+    $('li#one').attr('id','hot')    更新id属性时，同时指定属性名称及新属性值
+    $('li').attr('class')           获取元素的class属性
+
+.removeAttr()                       移除指定的属性及其属性值
+.addClass()                         向class属性已有的值中添加一个新值，不会覆盖已有属性值
+.removeClass()                      从class属性中移除一个属性值，并保留该属性中的其他class名称
+.hasClass(className)                是否包含指定的class             返回true/false
+.is(.className)                     等效于hasClass,也可测试元素名     返回true/false
+.toggleClass(className,switch)   开关属性 可选参数switch设置true/false,启用或关闭类,true：开启类后不能关闭，false:关闭类，无法开启
+$('span').toggleClass('active',true)   
+
+两个类切换
+$('span').toggleClass('ascending descending')
+
+//更新属性实例
+$(function(){
+    $('li#three').removeClass('hot');       //找到id=three列表项，并移除其class属性hot
+    $('li.hot').addClass('favourite');      //找到class=hot列表项，添加新的class名称favourite,该条不会影响three列表项
+    $('ul').attr('id','group');             //选中ul元素，添加id属性值group
+});
+
+获取和设置css属性
+获取属性  .css()方法返回第一个列表项的内容
+var backgroundColor=$('li').css('background-color');    
+设置单个属性
+$('li').css('background-color','#272727');   设置颜色，中间用逗号，没有大括号
+$('li').css('padding-left','+=20');  增加20内边距，单位是像素
+设置多个属性
+$('li').css({                       //里面用大括号，属性之间用逗号
+    'background-color':'#272727',
+    'font-family':'Courier'
+});
+
+修改CSS规则实例
+$(function(){
+    var backgroundColor=$('li').css('background-color');        //返回第一个列表项的背景色，保存在变量中
+    $('ul').append('<p>Color was:'+backgroundColor+'</p>');     //把第一个列表项的背景色写在页面上，添加到ul内容后
+    $('li').css({                                               //修改多个li元素的css规则，有大括号
+        'background-color':'#c5a996',
+        'border':'1px solid #fff',
+        'color':'#000',
+        'font-family':'Georgia',
+        'padding-left':'+=75'
+    });
+});
+
+
+循环：操作选取结果中的每一个元素
+$(selector).each(function(index,element){
+            //在每一个元素上执行一条或多条语句，就像js循环一样
+})   
+$.each(obj,function(index,value){   
+     //each方法有两个默认参数：索引值和属性值，即键值对
+})   
+
+
+//遍历每个li元素，给其内容后加上他自己的id名
+$(function(){
+    $('li').each(function(){        //在每一个li元素上调用这个匿名方法
+        var ids=this.id;            //获取当前元素的id属性
+        $(this).append('<span class="order">+ids+</span>'); //向列表项添加一个新的span元素，新元素内容是第二行获得的id属性
+    });
+});
+
+处理事件  .on()方法 
+
+实例：鼠标移动到列表项上时显示id,移开后消失
+$(function(){
+    var ids='';
+    var $listItems=$('li');
+    $listItems.on('mouseover click',function(){     //使用.on()创建事件监听器，当鼠标移到列表项上或点击触发匿名函数,用空格分开指定两个事件
+        ids=this.id;
+        $listItems.children('span').remove();           //移除子元素中所有span元素
+        $(this).append('<span class="priority">'+ids+'</span>');    //将一个新span元素添加进列表，包含该列表项的id属性
+    });
+});
+$listItems.on('mouseout',function(){        mouseout时触发
+    $(this).children('span').remove();      移除列表项中所有span元素，去掉之前添加的内容
+});
+
+事件对象
+属性 
+type        事件类型
+which       被按下的按钮或键
+data        当事件发生时传入该函数的一些额外信息
+target      发生了这个事件的DOM元素
+pageX       鼠标相对可视区域左边缘的位置
+pageY       鼠标相对可视区域上边缘的位置
+timeStamp   1970.1.1距现在的毫秒数
+
+实例：点击一个列表项后，事件发生的时间以及触发的事件类型写入列表项后面
+$(function(){
+    $('li').on('click',function(e){
+        $('li span').remove();                      //移除li中的span元素
+        var date=new Date();                        //创建新的日期对象实例
+        date.setTime(e.timeStamp);                  //设置时间为事件发生时的时间
+        var clicked=date.toTimeString();            //把时间戳转化为人类阅读的时间
+        $(this).append('<span class="date">'+clicked+''+e.type+'</span>');      //在列表项最后上点击时间和事件类型
+    });
+});
+
+
+事件委托
+.on()方法有2个可选参数  1.额外的选择器继续筛选 2.额外参数
+$(selector).on(event,childSelector,data,function)
+$(function(){
+    var listItems,itemStatus,eventType;
+    $('ul').on(
+        'click mouseover',
+        ':not(#four)',          //可选参数1：额外选择器，排除id=four的元素  
+        {status:'important'},   //可选参数2：额外传递参数status, 即事件对象的data属性
+        function(e){
+            listItems='Item: '+e.target.textContent+'<br />';   //获取对象的文本内容
+            itemStatus='status: '+e.data.status+'<br />';       //获取对象的data内容，即额外信息
+            eventType='event: '+e.type;                         //获取对象的事件类型
+            $('#notes').html(listItems+itemStatus+eventType);   //把全部结果显示在notes元素中
+        }
+    );
+});
+
+
+特效:
+所有特效的3个可选参数：duration/easing/callback   持续时间，线性，回调函数
+基本特效
+.show()         显示选中的元素
+.hide()         隐藏选中的元素
+.toggle()       在选中元素上切换显示和隐藏状态
+
+淡入淡出特效
+.fadeIn()                           淡入选中元素使其变得不透明
+.fadeOut()                          淡出选中元素使其变得透明
+.fadeTo(speed,opacity,callback)     修改选中元素的透明度
+.fadeToggle()                       使用透明度来隐藏或显示选中的元素（切换当前状态）
+
+滑动特效
+.slideUp()      使用滑动特效来隐藏元素（向上滑动）
+.slideDown()    使用滑动特效显示被隐藏的元素（向下滑动）
+.slideToggle()  在slideup和slideDown之间切换
+
+自定义特效
+.delay()        延迟队列中操作的执行
+.stop(stopAll,stopEnd)         停止当前正在运行的动画  
+       stopAll:可选，停止所有加入队列的动画  stopEnd:是否允许完成当前动画，只有设置stopAll时才能使用    
+
+
+创建自定义动画
+.animate(styles,speed,easing,callback)          
+
+实例：页面加载完后，列表项淡入出现，当点击列表项时则会淡出
+$(function(){
+    $('h2').hide().slideDown();         //隐藏h2元素
+    var $li=$('li');                    
+    $li.hide().each(function(index){            //先隐藏列表项，然后用each方法依次淡入显示出来,index相当于计数器，表示当前li元素是第几个
+        $(this).delay(700*index).fadeIn(700);   //delay的时间被设置为索引号乘以700毫秒依次显示，否则列表项会一起显示，然后用fadeIn淡入显示
+    });                 
+    $li.on('click',function(){              //当用户点击列表项时，列表淡出消失，淡出过程持续700毫秒
+        $(this).fadeOut(700);
+    });
+});
+
+动画效果,通过改变css属性实现
+语法                              //speed：动画持续时间，毫秒  easing(线性或非线性):linear||swing  complete:动画结束时要调用的函数(回调函数)
+.animate({动画效果，即修改的css属性},[speed],[easing],[complete]);  /
+
+$(function(){
+    $('li').on('click',function(){
+        $(this).animate({
+            opacity:0.0,                
+            paddingLeft:'+=80'},        //动画效果，向右滑动，且慢慢淡出的效果
+            500,function(){             //回调函数，动画结束后删除这个元素
+                $(this).remove();
+            } );
+    });
+});
+
+
+遍历DOM
+必须要选择器
+.find()         在当前结果内符合选择器的所有元素
+.closest()      符合选择器的最近的祖先（不止父节点）
+非必须选择器
+祖先
+.parent()       当前选取结果的直接父节点
+.parents()      当前选取结果的所有父级节点
+后代
+.children()     当前选取结果的所有子节点
+.find()     
+同胞    
+.siblings()      当前选取结果的所有兄弟节点  
+.next()         当前元素的下个兄弟节点
+.nextAll()      当前元素后面的所有兄弟节点
+.prev()         当前元素的前一个兄弟节点
+.prevAll()      当前元素前面的所有兄弟节点
+
+
+向选取结果中添加元素
+.add()          向已有的选取结果中添加新的元素   $('p').add('span') 等效于$('p,span')
+使用第二个选择器进行筛选
+.filter()       在匹配结果集中查找符合第二个选择器的元素 ,亦可以通过函数来筛选
+.find()         在匹配结果集中查找符合这个选择器的后代节点
+.not()/:not()   查找不匹配这个选择器的元素，亦可以通过函数来筛选
+.has()/:has()   从匹配结果集中查找后代节点符合该选择器的元素     
+:contains()     选择所有包含指定文字的元素（参数是大小写敏感的）
+测试内容
+.is(selector)           当前选取结果是否满足条件，返回true/false
+.is(.className)         类名前加点
+.hasClass(className)    类名前不加点
+
+基本筛选器 伪类
+:not(selector)
+$("div:not('#summary')")
+:first
+:last
+:even 索引编号为偶数的元素
+:odd  索引编号为奇数的元素
+:animated  正在进行动画的元素
+:focus    当前拥有焦点的元素
+:eq(index) 指定索引号的元素     
+:gt(index) 大于指定索引号的元素   不包含该索引
+:lt(index)  小于指定索引号的元素 不包含该索引
+header    所有h1~h6元素
+
+内容筛选器
+:contains('text')   包含指定文本
+:empty      没有子节点的所有元素
+:parent     拥有子节点   的所有元素
+:has(selector)  
+div:has(p)  包含P元素的div元素
+可见性筛选器
+:hidden     所有隐藏元素
+:visible    在页面布局中占据空间的元素 不会选中：display:none; height/width:0 会选中：visibility:hidden;opacity:0;
+
+子节点筛选器
+:first-child  //$('p:first-child')   所有父元素里第一个子元素是P的所有P元素
+:last-child
+:only-child   比如：div p:only-child    p是的div唯一子元素
+:nth-child(expr) 
+:nth-child(2)           选第2个                   
+:nth-child(n+4)         大于等于4(从第4个到最后)  
+:nth-child(-n+4)        小于等于4(前4个)         
+:nth-child(even)        选偶数                    
+:nth-child(odd)         选奇数                    
+
+
+
+属性选择器
+[attribute]      拥有指定属性值
+[attribute='value'] 
+[attribute!='value']
+[attribute^='value']    以特定值开头
+[attribute*='value']    包含特定值
+实例：
+var $listItems=$('li');
+$listItems.filter('.hot:last').removeClass('hot');    //使用.filter方法查找最后一个class属性包含hot的列表项，然后从中移除hot属性
+$('li:not(.hot)').addClass('cool');                 //查找不包含hot的li元素，然后添加class属性cool
+$listItems.has('em').addClass('complete');          //查找包含em元素的li,添加class属性complete
+
+$listItems.each(function(){                      //使用each()方法遍历列表项
+    var $this=$(this);                               
+    if($this.is('.hot')){                       //使用.is()方法检查是否包含hot属性
+        $this.prepend('priority item: ');       //如果包含就在元素前面加上"priority item:"内容
+    }
+});
+
+$('li:contains("honey")').append('(local)');  //选中包含honey的li元素，并在这些元素后加上"(local)"
+
+
+
+按顺序查找元素
+:eq()/.eq()     匹配索引编号的元素            .eq()是方法，lt/gt是选择器
+:lt()           索引编号小于指定数字的元素     
+:gt()           索引编号大于指定数字的元素
+
+方法
+.index()
+$(selector).index()   //返回被选元素在列表中的位置
+$(selector).index('#id')   //返回id在选择器selector中的位置
+
+$(function(){
+    $('li:lt(2)').removeClass('hot');       //查找索引编号小于2的列表项，从中移除Hot属性
+    $('li').eq(0).addClass('complete');     //eq方法选择第一个列表项（0代表索引第一个，类似数组），添加complete属性
+    $('li:gt(2)').addClass('cool');         //查找索引编号大于2的列表项，添加cool属性
+});
+
+对象：input
+表单元素选择器
+:button         button元素和type=button的input元素
+:checkbox       type=checkbox的input元素
+:checked        选中的单选按钮和复选框元素
+:disabled       所有被禁用的元素
+:enabled        所有被启用的元素
+:focus          当前焦点所在的元素
+:file           所有文件选择器元素
+:image          所有图片按钮
+:input          所有button,input,select,textarea元素
+:password       所有密码输入框
+:radio          所有单选按钮
+:reset          所有重置按钮
+:selected       所有被选中的元素
+:submit         button元素和type=submit的input元素
+:text           所有type=text的,或者未指定type的input元素
+
+表单事件和方法
+获取元素值
+.val()          主要用于input,select,textarea元素,用来获取匹配元素中第一个元素的值，或设置所有元素的值
+其他方法
+.filter()         第二选择器来筛选jquery选取结果
+.is()             检查表单元素是否选中  
+
+.serialize()        获取整个表单输入的值,返回一个组合字符串
+.serializeArray()   把获取的值转化为一个js对象
+
+$(selector).toArrary()      //以数组形式返回对象元素
+$.isArray(obj)              //判断是否是数组，返回true||false
+$.isNumeric()               //检查值是否是一个数字并返回一个布尔结果
+以下都会返回true
+$.isNumeric(1)
+$.isNumeric(-3)
+$.isNumeric("2")  
+$.isNumeric(4.4)  
+$.isNumeric(+2)
+$.isNumeric(0xFF)    
+事件方法
+.on()       处理所有事件
+事件
+blur        失去焦点
+change      输入框的值发生变化
+focus       获得焦点
+select      当select元素的选项发生变化时
+submit      表单被提交时
+
+剪切元素
+.remove()   从DOM树种移除匹配的元素及其所有后代和文本节点
+.detach()   与remove方法相同，不过会在内存中保留副本
+.empty()    移除匹配结果元素中的字节点和后代节点
+.unwrap()   移除匹配结果的父节点，并保留匹配元素
+
+复制元素
+.clone()    创建匹配结果及其后代和文本节点的副本
+
+//把尾部的一段P移动到标题下方
+$(function(){
+    var $p=$('p');                  //获取P内容
+    var $cloneedQuote=$p.clone();   //复制P的内容
+    $p.remove();                    //删除原来的内容
+    $cloneedQuote.insertAfter('h2');    //插入到h2后面
+
+    var $moveItem=$('#one').detach();
+    $moveItem.appendTo('ul');
+})
+
+获取或设置框尺寸
+.height(value)      框的高度（不包含内外边距和边框） 
+.width(value)       框的宽度（不包含内外边距和边框）
+
+仅获取框尺寸
+.innerHeight()      框的高度加上内边距
+.innerWidth()       框的宽度加上内边距
+.outerHeight()      框的高度加上内边距和边框
+.outerWidth()       框的宽度加上内边距和边框
+.outerheight(true)  框的高度加上内外边距和边框
+.outerWidth(true)   框的宽度加上内外边距和边框
+
+窗口和页面的尺寸
+.height()       jquery选取结果的高度
+.width()        jquery选取结果的宽度
+.scrollLeft()   jq选取结果中第一个元素的水平滚动条的位置，或者设置所有匹配节点的水平滚动条位置，可理解为水平滚动条滚动的距离
+.scrollTop()    jq选取结果中第一个元素的垂直滚动条的位置，或者设置所有匹配节点的垂直滚动条的位置，可理解为垂直滚动条滚动的距离
+当滚动条在顶部时，scrollTop=0,  当滚动条在底部时，scrollTop=滚动的距离
+
+
+
+元素在页面中的位置
+.offset()   属性：.top .left  获取或设置元素相对于文档对象左上角的坐标
+            始终返回相对于浏览器文档的距离，它会忽略外层元素
+.position() 获取相对于它最近的具有相对位置(position:relative或position:absolute)的父级元素的距离，如果找不到这样的元素，则返回相对于浏览器的距离。    
+            若所有祖先节点都在普通布局流中，那返回结果与offset相同       
+            这两个方法都包含top和left属性
+
+
+
+创建jquery插件(调用fn对象 ) xxx即方法名
+$.fn.xxx=function(){
+    return this;  //返回jquery选择器来允许链式调用
+}
+
+
+基本选择器（id,class,标签进行选择）
+$('*')  全部元素
+$('div,span,p')     多选
+$('ul.biglist')     选择class属性等于biglist的所有ul元素
+
+属性选择器
+$('[attribute=value]')   选择attribute属性等于value的元素
+$('input[value=0]')      选择value=0的input元素
+$('p[class*=Content]')   class属性包含content的所有P
+
+
+内容选择器
+$(':contains("text")')  内容包含文本text的元素
+$("div:contains('open source')")   包含文本open source的所有div元素
+$(':has(element)')    选择包含特定子元素的元素
+$('div:has(span)')    包含span的所有div
+
+层次选择器
+$('div span')       祖先是div的span元素，不一定要是父元素
+$('div.menu>span')  父元素是div.menu的span元素
+
+表单选择器
+$(':checked')           选择checked属性为true的元素
+$('input:checked')      当前处于checked状态的所有input元素
+$(':selected')          selected属性为true的元素
+$('option:selected')    当前处于selected状态的option元素
+$('input:focus')             获得焦点的表单元素
+
+筛选例子
+$('div').eq(1)
+
+$('option').filter(function(index){
+    return (this.value>5);
+})
+
+$('li').first()
+$('div').has('p')
+$('div:has("p")')
+$('div').find('span')
+$('div').children('p')
+$('p:first').nextAll()
+$('div#menu').parent()
+
+
+$('div').contents()  div的所有子元素
+
+jquery对象字面量创建方法：
+var obj2 = {    
+    name: "小明",    
+    age: 20,    
+    sayHi:function () {        
+        console.log("我是：" + this.name);    
+        },    
+    eat:function () {        
+        console.log('吃了');    
+        }}；
+        
+obj2.sayHi();
+obj2.eat();
+
+var $button=$('#buttons');
+//字面量方法创建button
+$('<button>',{
+    text:'show all',   //元素文本值
+    class:'active',    //类名
+    click:function(){  //点击时调用的函数
+
+    }
+}).appendTo($button)

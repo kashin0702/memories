@@ -1,0 +1,56 @@
+json对象中的属性必须用双引号
+
+JSON.stringify()        //把JS对象序列化为JSON对象，不包含空格和缩进
+该方法除了入参对象外，还有2个可选参数，1：过滤器，可以是数组或函数。2：一个选项，表示是否保留缩进
+例：
+var book = {
+    "title" : 'Professional JavaScript',
+    "authors" : ['Nicholas C. Zakas'],
+    edition : 3,
+    year : 2011
+};
+
+//第二个参数是一个数组，筛选了title和edition
+var jsontext = JSON.stringify(book,["title","edition"]);    //{"title":"Professional JavaScript","edition":3}
+
+//第二个参数是一个函数
+var jsontext = JSON.stringify(book,function(key,value){
+    switch(key){
+        case "authors":
+        return value.join(',');
+        
+        case "year":
+        return 5000;
+
+        case "edition":
+        return undefined;
+
+        default:
+        return value;
+    }
+});
+
+//第三个参数,控制缩进和空格，若是一个数值则控制每个级别缩进的空格数
+var jsontext = JSON.stringify(book,null,4)   //表示缩进4个空格
+
+
+JSON.parse()    //也接收第二参数，是一个函数，称为还原函数
+例子：  
+var book = {
+    "title" : "Professional JavaScript",
+    "authors" : [
+        "Nicholas C.Zakas"
+    ],
+    edition : 3,
+    year : 2011,
+    releaseDate : new Date(2011,11,1)
+};
+var jsontext = JSON.stringify(book);   //转换成JSON对象
+var bookCopy = JSON.parse(jsontext,function(key,value){  //还原为JS对象
+    if(key == 'releaseDate'){   //如果入参是releaseDate
+        return new Date(value); //则创建一个新的date对象
+    }else{
+        return value;
+    }
+});
+alert(bookCopy.releaseDate.getFullYear());  //基于新的Date对象，调用getFullYear()方法

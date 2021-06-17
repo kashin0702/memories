@@ -1,0 +1,177 @@
+什么是webpack?
+webpack是一个现代的javascript应用的静态模块打包工具，核心功能：模块和打包
+
+浏览器无法直接识别commonJS代码，需要webpack进行打包转化才行
+
+Gulp和webpack的区别：
+gulp强调前端流程自动化，模块化不是他的核心。webpack更强调模块化开发管理，而文件压缩合并，预处理功能，是他的附带功能。
+
+
+------------------------------------------
+***webpack安装：
+先安装node环境，webpack运行必须依赖node环境，而node环境本身也包含很多依赖包，node自带的npm(node packege manager)工具就是管理node环境中的依赖包
+
+1.先安装node   
+使用node -v  查看当前版本
+
+2.通过npm安装webpack(全局安装)
+npm install webpack@3.6.0 -g    //使用npm全局安装webpack
+
+2.1 webpack(局部安装)
+cd xxx进入对应目录下：
+npm install webpack@3.6.0 --save-dev  //开发时依赖  全局安装后再局部安装
+
+webpack打包方法1：
+cd到对应目录下，在终端使用webpack命令,webpack4.0以上打包需要选择生产环境或开发环境，并在打包文件前输出-o： 
+webpack --mode development ./src/main.js -o ./dist/bundle.js   (选择环境，入口文件main.js打包，-o 输出bundle.js文件)
+使用打包文件:
+在index.html内引入bundle.js即可
+
+打包方法2(推荐)：
+根目录创建一个webpack.confing.js文件 
+格式：
+const path = require('path')    //依赖Node环境的path模块
+module.exports = {
+    entry:__dirname + '/src/main.js',  //入口文件
+    output:{       //output是对象形式，需要path和filename两个属性
+        path:path.resolve(__dirname,'dist'),  //依赖path模块的resolve函数，对路径进行拼接。 '__dirname'是Node环境的一个全局变量，拼接后面的dist
+        filename:'bundle.js'
+    },
+}
+
+要使用node环境，先进行node初始化命令: npm init
+初始化完成后会生成一个文件: packege.json
+packege.json通过npm init生成，里面放各种依赖包，你的程序依赖Node环境时，必须要建一个package.json文件
+
+webpack映射打包命令：
+在package.json文件的scripts属性内新建一个"build":"webpack"，之后运行npm run build 即可
+scripts属性内的东西表示可执行的脚本 
+
+在终端运行webpack 使用的都是全局webpack, 而映射打包命令npm run xxx使用的是局部webpack
+
+使用国内镜像cnpm (比国外的npm安装东西会快一点)
+1.安装cnpm: npm install cnpm -g --registry=https://registry.npm.taobao.org
+2.运行： cnpm install xxx
+
+loader的使用：
+webpack可以使用各种loader模块将css,sass,less,jpg,png等格式文件一起打包到一个bundle中
+
+1.主文件内依赖：
+先在main.js中直接require('xxx.css')文件进行依赖
+
+
+2.使用npm安装css-loader,style-loader:
+npm install css-loader --save-dev  //--save-dev表示开发时依赖，保存在devDependencies中
+
+2.webpack.config.js中配置loader:
+module:{
+    rules:[
+        {
+            test:/\.css$/,
+            //从右向左加载，先加载css后加载style
+            use:['style-loader','css-loader']  //css-loader只负责import加载，style-loader负责添加样式到DOM中
+        }
+    ]
+}
+
+样式中加载图片时(url-loader file-loader)：
+1.安装url-loader:   npm install url-loader --save-dev
+
+样式图片大于limit时，安装file-loader
+1.安装:npm install file-loader --save-dev
+
+ {
+    test:/\.(jpg|png|gif)$/,   
+        use:[
+            {
+                loader:['url-loader','file-loader'],    //背景图片加载器
+                options:{
+                    limit:8196,     //8kb限制,当加载图片小于Limit时使用url-loader,大于limit时使用file-loader
+                    name:'img/[name].[hash:8].[ext]'   //定义图片名称防止命名冲突，放在img文件夹下.  [name]图片名，[hash:8]只截取8位哈希值，[ext]图片扩展名
+                    },
+                }
+             ]
+            }
+
+
+3.ES6打包成ES5 使用babel-loader
+3.1 npm install babel-loader babel-core babel-preset-es2015 --save-dev
+3.2 配置babel:
+{
+    test:'/\.m?js$/',
+    exclude:/(node_modules|bower_components)/,
+    use:{
+        loader:'babel-loader',
+        options:{
+            presets:['es2015']
+        }
+    }
+}
+
+
+4.通过npm安装vue, 直接把vue当成一个node模块使用
+4.1安装vue
+npm install vue --save   //不要加-dev  -dev表示开发时依赖，vue在运行时也有依赖，所以不加
+在main.js中使用： 
+import Vue from 'vue'
+
+vue打包错误解释：
+打包vue时webpack会构建2个版本
+1.runtime-only      代码中不可以用任何template
+2.runtime-compiler  代码中可以有template,因为compiler可以编译template
+
+
+5.创建.vue格式文件
+包含template，script,style  3种类型的一个组件,是分离式写法的关键
+
+5.1 配置:
+对包含.vue文件打包时，要安装vue-loader和vue-template-compiler 2个loader和一个vueLoaderPlugin 
+webpack.config.js配置plugin
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
+plugins:[
+    new VueLoaderPlugin()
+]
+
+插件和加载器：
+loader:用于转换各种类型文件，是一个转换器
+plugin:插件就是对webpack本身的扩展
+插件的使用：
+1.通过npm安装，webpack自带的一些插件不需要安装
+2.在webpack.config.js中配置plugins
+
+
+打包html的plugin：
+html-webpack-plugin的作用： 正常情况Index.html在src文件夹下，所以发布没有意义，这个插件可以把index.html打包放到dist文件下进行发布
+
+压缩js文件的plugin:
+//
+
+
+
+-------------------
+搭建本地服务器:  (热更新，无需经常npm run build)
+1.安装：npm install webpack-dev-server --save-dev   
+2.配置：
+devServer:{
+    contentBase:'./dist',   //服务哪个文件夹
+    inline:true        //是否实时监听
+}
+
+3.配置执行命令： 
+packege.json中配置 "dev": "webpack-dev-server --open"   之后执行npm run dev 即可
+
+4.点击生成的localhost:8080链接即可，实时观察代码情况，无需重复打包
+退出服务器: ctrl+c 
+
+分离webpack.config.js中的各种配置(开发环境配置，生产环境配置，基本配置)
+例:
+创建3个配置文件:prod.js   dev.js   baseConfig.js
+prod文件内配置:(生产环境)
+const uglifyWebpackPlugin = require('uglify-webpack-plugin')  //代码压缩插件(去掉缩进和空格)
+const webpackMerge = require('webpack-merge')  //代码合并模块
+const baseConfig = require('./base.config')   //导入baseConfig文件
+module.exports = webpackMerge(baseConfig,{   //把baseConfig文件和代码简化插件合并后导出
+    plugins:[
+        new uglifyWebpackPlugin()
+    ]
+})

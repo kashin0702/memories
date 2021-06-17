@@ -1,0 +1,36 @@
+Nginx部署相关：
+官网：https://nginx.org
+stable version: 稳定版
+mainline version: 目前在做的版本，也可以说是开发版本
+legacy version: 老版本的稳定版
+
+最佳选择：stable version
+
+windows安装nginx 并且在本地部署:
+1.下载nginx-windows稳定版，解压包路径不要有中文
+2.双击nginx.exe
+3.在浏览器中输入localhost,弹出欢迎界面表示安装成功
+方法1：
+4.nginx读取的是html-index文件，把打包好的dist文件夹内的所有文件放到nginx-html目录下进行替换
+
+方法2：修改配置文件中loaction  root html 修改成root dist
+
+
+远程部署： windows环境搭配2个软件:secureCRT(命令行形式)和winSCP(文件形式) 
+1.通过终端远程登录自己的服务器  (windows环境连接远程主机可以用secureCRT)
+2.安装并启动nginx:
+  yum install nginx    //yum是linux自带包管理工具
+  systemctl start nginx.service   #开启nginx服务
+  systemctl enable nginx.service  #跟随系统启动
+
+3.修改nginx.conf配置文件
+方法1：
+使用winSCP远程连接主机，在线编辑该文件
+方法2：
+在secureCRT中，使用命令:
+1. vim nginx.conf (进入该文件) 
+2. i (insert)
+3. 先按esc  然后:wq (保存并退出)
+
+4.部署dist文件
+使用winSCP把dist文件拷贝到root/dist路径下 

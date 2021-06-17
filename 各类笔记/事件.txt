@@ -1,0 +1,67 @@
+ui事件
+load        页面加载完成时触发  通常用在window或body上
+unload      web页面卸载时触发（通常是请求了一个新页面）
+error       遇到js错误或不存在的资源
+resize      窗口大小发生变化
+scroll      用户用滚动条滚动了页面
+
+
+键盘事件
+keydown     按下一个键，按住会反复触发
+keyup       松开一个键
+keypress    输入一个字符，按住这个键会反复触发
+
+鼠标事件
+click        在同一个元素上按下并松开一个按键
+dblclick     在同一个元素上双击并松开一个键
+mousedown    在一个元素上按下鼠标按键
+mouseup      在一个元素上松开鼠标按键
+mousemove    用户移动鼠标，不会发生在触摸屏上
+mouseover    鼠标移动到一个元素上，不会发生在触屏上
+mouseout     鼠标从一个元素上移开，不会发生在触屏上
+
+焦点事件
+focus/focusin   元素得到焦点      
+blur/focusout   元素失去焦点
+
+表单事件
+input       input或textarea元素中的值发生变化时立即触发
+change      复选框，单选框，单选按钮 select/textarea 的值发生变化，change也可用于input输入框，但在焦点在别处点一下才会触发
+submit      用户提交了表单
+reset       用户点击了表单上的重置按钮
+cut         从表单域剪切了内容
+copy        从表单域赋值了内容
+paste       从表单域黏贴了内容
+select      在一个表单域中选中了一些文本
+
+变动事件 脚本修改了DOM结构后发生
+DOMSubtreeModified              文档发生了变化
+DOMNodeInserted                 一个节点被插入为另一个节点的直接子节点，例如appendChild(),replaceChild(),insertBefore()
+DOMNodeRemoved                  一个节点被从另一个节点中删除，例如removeChild(),replaceChild()
+DOMNodeInsertedIntoDocument     一个节点被插入为另一个节点的后代
+DOMNodeRemovedFromDocument      一个节点被从其祖先节点上移除
+
+事件触发步骤
+1.选中需要响应的元素节点
+2.声明需要在选中节点上响应的触发的事件， 将事件绑定到DOM节点
+3.指定事件发生时运行的代码，触发函数
+
+事件对象event
+属性：
+target      事件的目标 与用户进行交互的最具体的元素
+type        发生的事件类型
+cancelable  是否可以撤销事件在这个元素上的默认行为
+which       返回键盘或鼠标的键值
+timeStamp   返回事件触发时的时间戳
+pageX,pageY      返回事件发生时鼠标相对于当前窗口的坐标（包括自身控件和滚动条）
+clientX,clientY  返回事件发生时鼠标相对于浏览器页面的坐标（不包括自身控件和滚动条，即可见区域）
+screenX,screenY  返回鼠标指针相对于屏幕的水平坐标和垂直坐标
+
+方法：
+preventDefult()     撤销这个事件的默认行为
+stopPropagation()   停止事件继续冒泡或向下捕获的过程
+
+jquery手工触发事件
+trigger()   在触发事件时指定事件对象的值
+$('input.bigText').trigger({'type':'keypress','charCode':13});
+

@@ -1,0 +1,357 @@
+jqueryUI就是jquery库的扩展:
+一些新方法：
+$('div').uniqueId();   //添加独一无二的ID
+$('div).removeUniqueId()  //删除独一无二的ID,只删除uniqueId()创建的ID
+
+.scrollParent()   //获取可滚动的祖先元素 只对单个元素的jq对象有效
+.zIndex()         //若元素有z-index值，就返回它，否则查找最近有z-index的祖先元素，快速定位元素在网页中的堆叠顺序
+
+.focus(delay[.callback])  //异步获得焦点
+$('#xxx').focus(500,function(){   //等待0.5秒后获得焦点
+    $(this).val('enter text now');
+})
+
+新选择器：
+:data            //根据jQuery.data()方法添加的数据筛选
+$(span).data('color','red')
+$(p).data('color',blue)
+$(':data(color)').each(function(){  //用:data选择器筛选拥有color值的对象，再给他们设置css color
+    $(this).css({
+        color:$(this).data('color');
+    })
+})
+
+:focusable   //筛选出获得焦点的元素
+:tableable   //筛选出可使用tab键切换到的表单元素
+
+.position()     //指定jq对象相对于其他元素或事件对象的位置
+my   //指定方向：包括left ritht center   top bottom center
+at   //指定将目标元素的哪个点与要定位的元素对齐  设置与my相同
+collision
+using
+within       
+$('#div1').position('my:'left',at:'right',of:'#div2'); //把div1放到div2的右边
+
+添加效果语法 effect:效果名  options:效果的具体选项  duration:持续时间  complete:结束时执行的处理程序(可选参数)
+.effect(effect[,options][,duration][,complete])  
+
+$('img').effect(     //执行size效果的完整语法
+    'size',{to:{height:100,width:100},origin:['right','top'],scale:'box'},
+    3000,
+    function(){
+        alert('effect complete');
+    }
+)
+
+
+
+jqueryUI交互部件都有的事件和方法
+create          //每次创建部件时都会触发的事件
+destroy()           将部件功能完全删除
+disable()           保留部件功能，但禁用
+enable()            启用部件功能
+option([optionName],[value])       option()返回一个对象，包含所有选项键值对 
+widget(name,[,base],prototype)     创建自定义部件 name:访问部件的字符串，base:指定继承哪个既有部件的功能，prototype:定义部件的对象
+
+cancel
+撤销item1中class=label的元素的鼠标交互
+$('#item1').mouse('option','cancel','.label')
+
+delay
+添加1秒的鼠标交互延迟
+$('#item2').mouse('option','delay',1000)
+
+distance
+鼠标移动10像素后开始交互
+$('#item3').mouse('option','distance',10)
+
+
+
+draggable  拖曳插件
+draggable常用选项
+axis            可设置为x,y,false  x表示水平拖曳，y表示垂直拖曳，false表示任意拖曳
+containment     指定一个容器，拖曳只能在容器内进行，可能取值为'parent' 'document'  'window'
+cursor          拖曳时的鼠标形状
+helper          指定拖曳时显示的元素，可以为'original''clone'或返回一个DOM对象的函数
+opacity         拖曳时不透明度
+revert          可以为布尔值，指定停止拖曳后是否回到原来位置 valid：元素被成功放下时回到原来位置 invalid:元素没有成功放下时回到原来位置
+stack           可设置为false或选择器，设置为选择器时，被拖曳的元素将放在选择器指定的元素前面
+zIndex          拖曳时使用的z-index值
+拖曳事件
+drag(event,ui)      
+拖曳时触发，ui包含3个对象：helper：被拖曳元素的辅助元素（helper选项）  
+                        position:一个{top,left}对象，包含元素的当前css属性position 
+                        offset:一个{top,left}对象，包含元素的当前css属性offset
+dragstart(event,ui)   拖曳开始时触发
+dragstop(event,ui)    拖曳结束时触发
+例子
+$('#drag1').draggable({cursor:'move',opacity:0.5}); //将拖曳部件绑定到元素
+$('#drag1').on('dragstop',function(){  //元素被放下时触发bounce效果
+    $(this).effect('bounce',1000)
+})
+$('#drag1').on('drag',function(e){  //拖曳时触发，显示实时页面坐标
+    $(this).children('p').html(e.pageX+','+e.pageY)
+})
+
+droppable  可放入插件
+选项
+accept          指定一个选择器，用于筛选可放入其中的可拖曳元素
+activeClass     指定一个类，用户拖曳有效的元素时，将对这个可放入元素应用这个类
+greedy          一个布尔值，默认false,表示所有可放入的祖先元素都将接收可拖曳元素。将其设置为true时只有当前可放入元素接收拖曳元素
+hoverClass      指定一个类，当可拖曳元素位于当前可放入元素上时，将对这个可放入元素应用这个类
+tolerance       指定一种方法，用于判断可拖曳元素是否位于当前可放入元素上面。接受值如下：
+                fit:可拖曳元素和可放入元素完全重叠
+                intersect:在水平和垂直方向上，可拖曳元素至少有50%与放入元素重叠
+                pointer: 鼠标位于可放入元素内
+                touch:可拖曳元素和可放入元素至少有一点重叠在一起
+放入事件
+dropactivete(event,ui) 拖曳可拖曳对象时触发，ui包含:draggable当前被拖曳元素,helper,position,offset 同上
+drop(event,ui)          放入元素时触发
+dropout(event,ui)       不在可放入元素上面触发（根据tolerance判断）
+dropover(event,ui)      移动到可放入元素上面触发（根据tolerance判断）
+例子
+$('#drag1,#drag2,#drag3').draggable({   //设置可拖曳元素
+    helper:'clone',cursor:'move',opacity:0.5,zIndex:99  //helper:'clone' 效果：让图像待在原地
+});
+$('#drop1').droppable({       //设置可放入元素
+    accept:'img',tolerance:'fit',hoverClass:'drop-hover'  //只接受img元素，tolerance条件设置为完全重叠
+})                               //当元素hover时，指定的类drop-hover的效果将应用到这个元素上
+$('#drop1').on('dropover',function(e,ui){  //移动到放入元素上方触发，对可放入元素增加pulsate效果
+    $(this).effect('pulsate');
+})
+$('#drop1').on('drop',function(e,ui){   //放下时触发，对可放入元素添加一个img元素，src与拖曳元素一样
+    $(this).html($('<img>').attr('src',ui.draggable.attr('src')));
+    $(this).effect('bounce');
+})
+
+
+resizable  调整大小插件
+选项
+alsoResize      选择器，指定将于当前可调整大小元素一起调整大小的元素
+aspectRatio     true时，保持长宽比不变，数字时，指定特定的长宽比
+autoHide        布尔值，true时，没有被鼠标指向时手柄将消失
+containment     将调整大小限制在一个对象内，可以设置为选择器或DOM对象，或字符串'parent','document'
+ghost           布尔值，true时，调整时显示一个半透明元素
+handles         指定一个用逗号分隔的方位列表，如{handles:'n,e,s,w,sw,se'}
+helper          同上
+调整大小事件
+resize(event,ui)    正在调整时触发
+ui包含: element:jq对象，当前被调整的元素 
+        originalElement:jq对象，调整大小前的原始元素
+        helper:jq对象，调整元素的辅助元素
+        originalPosition:原始位置{top,left}对象
+        originalSize:原始大小{width,height}对象
+        position:当前位置的{top,left}对象
+        size:当前大小{width,height}对象
+
+resizestart(event,ui)   开始调整时触发
+resizestop(event,ui)    结束调整时触发（松开鼠标）
+例子
+$('#resize1').resizable({
+    aspectRatio:'true',alsoResize:'#resize1 img'     //保持长宽比不变，选中元素内的Img元素跟着一起调整大小
+})
+$('#resize3').resizable({
+    alsoResize:'#risize3 #list',handles:'n,s,e,w'  //只能通过拖曳上下左右边缘来调整大小，而不能通过拖曳各个角调整
+})
+
+
+selectable  可选择插件 (用户使用鼠标绘制选框或套索选择元素)
+选项   
+appendTo       选择器，指定要将套索关联到哪个元素，默认为body
+filter         选择器，指定哪些子元素可以被选择
+tolerance      可设置为'fit'：子元素完全位于套索内，'touch':子元素一部分在套索内即可
+事件
+selectableselected(event,ui)      有元素被选择时触发
+selectableselecting     元素即将被选择时触发
+selectablestart         开始选择时触发
+selectableunselected    结束选择时触发
+selectableunselecting   即将被取消选择时触发
+例子
+$('#list1').selectable();
+$('#list1').on('selectableselected',function(e,ui){
+    ui.selected.effect('shake')
+})
+
+$('#set1').selectable({filter:'p'});
+$('#set1').on('selectablestart',function(e,ui){
+    $('span').html('selecting')
+})
+$('#set1').on('selectableselecting',function(e,ui){
+    $('span').append(ui.selecting.innerHTML+', ');
+})
+$('#set1').on('selectablestop',function(e,ui){
+    $('span').html('selection complete')
+})
+
+sortable  可排序插件
+选项
+axis            指定沿哪个方向拖曳子元素，x水平，y垂直 false任意
+connectWith     选择器，指定当前容器内的元素拖放到哪个可排序容器
+cursor          指定重新排序时显示的鼠标形状
+helper          指定重新排序时显示的辅助元素，取值original,clone,DOM对象的函数
+items           选择器，指定哪些子元素可重新排序
+opacity         指定辅助元素的不透明度
+placeholder     指定一个类，重新排序时将把这个类应用于占位符
+scroll          布尔值，true时在用户拖到边缘时将滚动网页
+tolerance       intersect:至少50%在目标元素内，pointer:鼠标在目标元素内
+zIndex          重新排序时，被拖曳元素的z-index值
+事件
+sortactivate    仅适用于关联到了其他容器的可排序容器，开始重新排序时触发
+sortbeforeStop  排序即将停止时触发，此时占位符依然可用
+sortchange      排序时DOM位置发生变化时触发
+sortout         元素离开容器
+sortover        元素进入容器
+sortreceive     从其他容器移到当前容器
+sortremove      从当前容器移到其他容器
+sort            排序期间触发
+sortstart       开始时
+sortstop        结束后
+sortupdate      结束排序后，DOM位置发生变化后触发
+例子
+$('#sorter1').sortable({
+    cursor:'move',connectWith:'#sorter2'    //设置sorter1可排序，并关联到sorter2
+})
+$('#sorter2').sortable({
+    cursor:'move',connectWith:'#sorter1'
+})
+$('#sorter2').on('sortreceive',function(e,ui){
+    ui.sender.effect('pulsate');
+    $(this).effect('pulsate');
+})
+$('#sortTable').sortable({
+    axis:'y',cursor:'n-resize'  //垂直方向上排序
+})
+$('#sortTable').on('sortupdate',function(e,ui){  //sortupdate事件
+    ui.item.effect('pulsate')    //元素被移到新位置时应用pulsate效果
+})
+
+accordion() 折叠插件
+header:指定一个选择器，用于确定用作标题的元素
+collapsible:布尔值，true时所有内容都可以折叠
+语法
+$('#xxx').accordion({
+    header:'p',collapsible:true   //p元素作为标题，其他元素作为折叠内容
+})
+
+autocomplete()  自动完成插件
+$('input').autocomplete({
+    source:['monday','tuesday','wednesday'...]    //自动完成输入内容
+})
+
+按钮样式插件
+button()     格式单个按钮样式
+buttonset()  格式化一组按钮样式
+$('#button1').button({
+    icons:{primary:'ui-icon-gear'},text:true  //设置一个带图标的按钮，text:true表示显示原来的文本
+})
+$('#button2').button()
+$('#format').buttonset()
+
+datepicker      日历插件
+选项
+onSelect:           指定每当用户选择新日期都将调用的函数
+showOn:             被设置为button,表示用户点击图标时显示日历
+buttonImage:        指定要使用的图像文件的位置
+buttonImageOnly     若为true,则仅当用户单击按钮图标时才会显示日历，而用户单击<input>时不会显示
+numberOfMonths      指定显示多少个月份
+showButtonPanel     若为true,则在日历底部显示按钮today和done
+dateFormat          一个字符串，指定在input元素中输入的日期格式
+例子
+$('#months').datepicker({
+    onSelect:dateChanged,
+    showOn:'button',buttonImage:'pic/xxx.jpg',buttonImageOnly:true,
+    numberOfMonths:2,
+    showButtonPanel:true,
+    dateFormat:'yy-mm-dd'   
+})
+
+progressbar() 进度条插件
+通过修改value属性实现 value取值范围0~100
+进度条元素属于类ui-progressbar-value
+实例
+<html>
+<p></p>
+<div id='progressbar'></div>
+</html>
+CSS
+#progressbar{
+    display:inline-block;
+    height:20px;
+    width300px;
+    border:2px ridge
+}
+#progressbar.ui-progressbar-value{
+    background:-moz-linear-gradient(center top,#0000FF,#88BBFF);
+}
+function inc(){  //逐步更新进度条
+    var value=$('#progressbar').progressbar('value')+5; //步进5
+    if(value<=100){
+        $('p').html('progress:'+value+'%');
+        $('#progressbar').progressbar('value',value);
+        setTimeOut(inc,100);  //循环该函数
+    }
+}
+$(document).ready(function(){
+    $('#progressbar').progressbar({value:0}); //0开始
+    inc(); //调用该方法进行更新
+})
+
+
+slider  滑动条插件
+两部分组成，滑动条样式由ui-slider-range类设置，手柄样式由ui-slider-handle类设置
+选项
+orientation     可设置为'horizontal','vertical'
+range           定义范围，可设置为true,min,max,min表示从滑块最小取值到手柄的范围，max表示从手柄到滑块最大取值的范围
+max             指定最大取值
+value           指定当前值
+slide           用户滑动滑块时调用的事件处理程序
+change          滑块发生变化时调用的程序
+实例
+function cValue(selector){
+    var v=$(selector).slider('value').toString(16);
+    if(v.length===1){
+        v='0'+v;
+    }
+    return v;
+}
+function refreshSwatch(){
+    $('#mix').css(
+        'background-color','#'+cValue('#red')+cValue('#green')+cValue('#blue')
+        )
+    $('#mix').html($('#mix').css('background-color'))
+}
+$(document).ready(function(){
+    $('#red,#green,#blue').slider({
+        orientation:'horizontal',
+        range:'min',
+        max:255,
+        value:127,
+        slide:refreshSwatch,
+        change:refreshSwatch
+    })
+    $('#red').slider('value',128);
+    $('#green').slider('value',128);
+    $('#blue').slider('value',128)
+})
+CSS
+#mix{
+    width:160px;
+    height:100px;
+    text-align:center;
+    font-size:18px;
+}
+#red.ui-slider-range{
+    background:red;
+}
+#red.ui-slider-handle{
+    border-color:red;
+}
+...
+
+
+.tabs() 选项卡插件
+$('#tabs').tabs({
+    event:'mouserover',  //指定发生什么事件时显示选项卡内容 如click或mouserover
+    collapsible:true,   //布尔值，指定是否可通过单击或将active设为false来将活动选项卡折叠
+    active:'false'      //false时，活动选项卡也将折叠起来，但前提是collapsible:true
+})

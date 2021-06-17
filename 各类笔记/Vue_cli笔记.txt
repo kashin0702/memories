@@ -1,0 +1,265 @@
+什么是vue脚手架？
+Cli: command-line interface  命令行界面，俗称脚手架
+使用vue-cli可以快速搭建vue开发环境以及对应的webpack配置(直接生成webpack很多配置)
+
+安装vue脚手架：（依赖node和webpack）
+1.安装node和node npm (自带)
+2.全局安装webpack: npm install webpack -g 
+3.安装vue脚手架3以上的版本: npm install @vue/cli -g     //安装脚手架3.x版本的命令,而npm install vue-cli命令会安装2.x的版本
+
+卸载vue-cli2: npm uninstall vue-cli -g
+
+使用脚手架2的命令需要安装： npm install @vue/cli-init -g 
+
+vue-cli2初始化项目: vue init webpack my-project
+vue-cli3初始化项目: vue create my-project  
+
+vue全家桶：vueCore + vue-router + vuex  (vue核心+vue路由+vuex)
+
+es-lint：检查代码是否规范，不规范则在编译打包时直接报错
+e2e test: end to end 端到端测试
+
+什么是Node?
+node是可以直接执行js文件的一个环境
+传统js执行方式：放在html文件中，在浏览器中才能执行
+node执行js方式：在终端输入node xxx.js即可
+
+初始化vue-cli项目时选择runtime-compiler和runtime-only区别:
+runtime-compiler编译过程： 
+template -> ast -> render -> vdom -> UI
+
+runtime-only编译过程:(1.性能更高 2.代码量更少)
+render -> vdom -> UI  
+
+
+runtime-only使用了render函数
+
+render函数:
+const cpn = {
+    template:'<div>{{message}}</div>',
+    data:function(){
+        return {
+            message:'xxx'
+        }
+    }
+}
+new Vue({
+    el:'#app',
+
+    //es6写法（箭头函数）:
+    render:h => h(cpn)
+
+    render: function(h){   //使用render函数 
+        return h(App)
+    }
+    // h实际是createElement这个函数简写,其实等于下面:
+    render: function(createElement){
+        //用法1：createElement('标签',{标签的属性},['标签的内容'])
+        return createElement('h2',{class: 'box'},['hello world'])   //创建一个<h2>标签，替换了app挂载的内容
+       
+        //用法2：传入一个组件对象
+        render:function(createElement){
+            return createElement(cpn)  //传入一个组件
+        }
+    }
+})
+
+使用vue-cli3创建项目
+初始化：vue create 项目名称
+配置选项：manually select feature (手动选择配置项)
+选择vuex,取消es linter(代码规范检测)， 使用空格选择或取消
+选择单独的配置文件: in dedicated config files         //保存在单独配置文件中
+
+cli3和cli2目录结构的区别：
+取消了build和config文件夹，增加了一个public文件夹，存放之前的static文件，static文件中的文件会原封不动保存
+
+因为cli3相比cli2隐藏了很多配置文件，cli3进入配置界面需要运行：
+命令：vue ui 
+
+-------------------------------------
+Vue-Router(前端路由):
+什么是路由器的核心 => 映射表    保存ip地址和mac地址的映射关系
+
+而前端路由就是管理一套前端页面的映射关系：
+url1: xxx/home
+url2: xxx/about
+url3: xxx/me
+
+修改URL,并且不刷新页面的方法
+1.location.hash 
+2.history.pushState({data},'title',url)   //前2个参数可选，最主要是url参数  修改后url：xxx/aaa
+
+栈结构：先进后出，push到栈的东西在最底层，最后push的在最上层，拿出来从最上层拿
+history.pushState({},'','home')
+history.pushState({},'','about')
+history.pushState({},'','me')      //此时'me'在栈顶，home在栈底 ，浏览器可以返回
+history.back()   //返回上一个url,从xxx/me 返回到 xxx/about
+history.go('正数向前，负数向后')     //跳到指定url
+history.forward() 等价于 history.go(1)
+ 
+3.history.replaceState({},'','home')  //和push的区别：没有push进栈结构，而是直接替换url，浏览器也不能返回
+
+安装vue-router:
+2种方法：
+1.项目初始化时，选择安装vue-router
+2.npm install vue-router --save     //运行时依赖
+
+项目内会生成一个router文件夹
+1.router文件夹下创建一个index.js文件  用于配置路由相关设置
+格式:
+import vue from 'Vue'
+import Router from 'vue-router'
+import home from '../components/home'   //导入路径对应的页面
+import about from '../components/about'  
+
+Vue.use(Router)     //安装路由插件
+
+export default new Router({   
+    routes:[  //关键配置：页面路径和组件的映射关系
+        {
+            path:'/home',     //文件所在路径
+            component:home    //引用上面导入的组件
+        },
+        {
+            path:'/about',
+            component:about  
+        },
+        {
+            path:'',
+            redirect:'/home'   //当path为空时，重定向到home，即用户打开首页时直接显示home
+        }
+    ],
+    mode:'history'     //把url中的#去掉，直接以xxx/home的方式显示，而不是xxx/#/home 
+})
+
+App.vue内代码
+<template>
+    <div id='#app'>
+        <router-link to='/home'>首页</router-link>
+        <router-link to='/about'>关于</router-link>
+        <router-view></router-view>     //组件渲染的位置
+    </div>
+</template>
+
+router-link的其他属性
+<router-link to='xxx/home' tag='button' replace>     //tag:把渲染标签改为Button,  replace: 浏览器无法返回
+
+路由懒加载：
+将不同的路由对应的组件分割成不同的代码块，当路由被访问时才加载，就能提高页面访问效率
+
+普通加载:
+import Home from '../components/home'
+import About from '../components/about'
+
+Vue.use(VueRouter)
+
+export default new VueRouter({
+    routes:[
+        {
+            path:'',
+            component:Home
+        },
+        {
+            path:'',
+            component:About
+        }
+    ]
+})
+
+路由懒加载:
+//前面不需要import
+const Home = () => import('../component/home')     //es6箭头函数导入
+const About = () => import('../component/about')
+
+export default new VueRouter({
+    routes:[
+        {
+            path:'/home',
+            component: Home   //此处直接引用上面保存的变量
+        },
+        {
+            path: '/about',
+            component: About
+        }
+    ]
+})
+
+
+嵌套路由(嵌套在某个组件内的子组件)
+1.创建子组件  即.vue文件
+2.在路由配置文件index.js内配置懒加载： const xxx = () => import('../components/xxx')
+3.在对应的父组件vue内配置router-link和router-view标签 
+
+
+动态路由传递参数的方式：
+1.params的类型：
+1)配置路由格式为:/router/:id
+2)传递方式：在Path后面跟上对应的值
+3)传递后形成的路径：/router/abc,/router/xxx
+
+2.query类型：
+1)配置路由格式/router  也就是普通配置
+2)传递的方式：对象中使用query的key作为传递方式
+3)传递后形成的路径：/router?id=abc,/router?id=xxx
+
+备注：URL完整格式=> 协议类型://服务器地址[:端口号][/资源路径]文件名[?查询][#片段ID]
+
+
+$router/$route的区别
+1.$router是VueRouter的实例，想要导航到不同的URL，则使用$router.push()方法
+2.$route为当前router跳转对象，里面可以获取name,path,query,params等
+
+
+全局导航守卫
+---------------------
+监听页面的跳转
+
+
+
+keep-alive组件：
+keep-alive是Vue内部定义的一个组件，可以使被包含的组件保留状态或避免重新渲染
+把<router-view>放入<keep-alive>内，所有路径匹配到的视图组件都会被缓存
+
+keep-alive属性：
+include：字符串或正则表达式，只有匹配的组件会被缓存
+exclude: 字符串或正则表达式，任何匹配的组件都不会被缓存
+
+<keep-alive exclude="Profile">  //排除profile组件 
+    <router-view/>      //没有其他子标签时可以使用单标签符号
+</keep-alive>
+
+
+路径别名设置：
+在webpack.base.conf.js文件下，resolve属性内设置
+
+resolve:{
+    extension: ['.js','.vue','.json'],
+    alias: {
+        '@': resolve('src'),   //src路径下使用'@'作为别名
+        'assets': resolve('src/assets'),
+        'components': resolve('src/components')  
+    }
+}
+
+在对应的template中使用要加波浪符号'~'
+<img src="~assets/img/xxx.jpg">
+
+CLI3.0如何配置别名：
+3.0隐藏了webpack.config.js,所以需在项目目录下新建一个vue.config.js配置文件:
+module.exports = {
+    configureWebpack:{
+        resolve:{
+            extension:[],
+            alias:{  //配置别名路径
+                '@': 'src',   //默认有的一个配置，不需要配置
+                'assets': '@/assets',
+                'components': '@/components',
+                'network': '@/network',
+                'views': '@/views'
+            }
+        }
+    }
+}
+PS:在DOM内的别名路径前要加 '~' 号
+src='~assets/xxx/xxxx'
+

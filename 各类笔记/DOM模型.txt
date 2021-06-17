@@ -1,0 +1,185 @@
+DOM树结构：
+文档节点，元素节点，属性节点，文本节点
+
+Node类型  12个数字表示，有12种
+Node.ELEMENT_NODE(1)            元素节点
+Node.ATTRIBUTE_NODE(2)          属性节点
+Node.TEXT_NODE(3)               文本节点
+Node.CDATA_SECTION_NODE(4)
+...
+
+nodeType     //每个节点都有的属性，表面节点类型
+nodeName     //元素的标签名
+nodeValue    //节点的值
+
+文档的子节点
+docmuent.docmuentElement   //对<html>的引用
+docmuent.body               //对<body>的引用
+docmuent.title              //对<title>的引用
+docmuent.URL                //取得完整url       https://www.baidu.com/xxx/aaa/
+docmuent.domain             //取得域名                  www.baidu.com
+docmuent.referrer           //取得来源页面的URL    
+docmuent.anchors            //所有带name属性的<a>
+docmuent.forms              //所有<form>
+docmuent.links              //所有带href属性的<a>
+docmuent.images             //所有<img>
+
+
+查找元素:
+var img = docmuent.getElementsByTagName('img');
+alert(img.length)           //输出图像的数量
+alert(img.item(0).src)      //输出第一个图像的src属性
+alert(img[0].src)           //输出第一个图想的src属性
+
+
+表单控件:
+docmuent.forms[0]           //取得第一个表单
+docmuent.forms['myForm']    //取得名叫myform的表单
+var myform = docmuent.getElementById('myForm');
+myform.elements[i]            //表单内的所有控件集合
+
+
+option标签选择方法：
+var select1 = docmuent.getElementById('selectLocation');
+select1.options[0].text     //第一个option的文本
+select1.options[0].value    //第一个option的value值
+
+
+访问单个元素节点的方法：3种
+1.getElementById()               返回指定id的第一个对象
+2.querySelector()                CSS选择器，只返回第一个匹配的元素
+3.DOM树遍历                   //3要素：父，左右兄弟，最前最后儿子
+parentNode                       选择当前元素节点的父节点，只返回第一个
+previousSibling/nextSibling      选择DOM树中的前一个或后一个兄弟节点
+firstChild/lastChild             返回当前元素的第一个或最后一个子节点
+childNodes[]                  //子节点数组
+
+
+访问多个元素节点
+getElmentsByClassName()  选择所有class属性一样的元素 返回nodelist
+getElementsByTagName()   选择所有指定标记的元素
+querySelectorAll()       使用CSS选择所有匹配元素
+
+从元素节点中访问文本节点
+使用文本节点唯一的属性:nodeValue        //nodeValue 属性的替代选择是 textContent 属性。
+
+
+操作html内容
+访问子元素和文本内容：innerHTML 包含了文本+标签
+仅访问文本内容：textContent
+
+增加/删除节点:DOM操作 3步
+createElement()                 //创建元素
+createTextNode()                //创建内容
+appendChild()                   //添加节点(末尾)
+removeChild()                   //从节点中删除
+insertBefore(new,old)          //插入节点，接受2个参数，要插入的节点和参照物节点(插入到参照物节点之前)
+replaceChild(new,old)          //替换节点，接受2个参数，要插入的节点和要替换的节点
+
+访问或更新属性值
+方法
+hasAttribute()      检查是否存在
+getAttribute()      获取属性
+setAttribute()      更新属性,两个参数，要更新的属性名和值                                 
+removeAttribute()   移除属性
+属性
+.className           获取或设置class属性的值
+.id                  获取或设置id属性的值
+样式
+.style
+
+
+多个元素使用同样的标签
+因此getElmentsByTagName() 永远返回一个nodelist(节点列表)
+
+从nodelist中选择元素的方法：
+item()方法:
+var elements=docmuent.getElmentsByClassName('jjj');
+var xxx=elements.item(0)  获取nodelist中的第一个元素
+推荐数组法： 速度更快
+var elements=docmuent.getElmentsByClassName('jjj');
+var xxx=elements[0]  数组elements中的第一个元素
+
+
+循环遍历nodelist中的元素
+var hotItem=docmuent.getElmentsByClassName('hot')  //获取class='hot'的节点列表
+for(var i=0;i<hotItem.length;i++){                 //循环遍历节点，循环次数等于该列表的项目数
+    hotItem[i].className='cool'                    //用数组语法获取节点
+}
+
+
+nodeValue只能访问和修改文本节点    //不能操作带有元素的节点，文本节点属于元素节点的字节点，所以对元素使用firstChild/lastChild/childNodes[i]才能访问nodeValue        
+var david=docmuent.getElementById('vvv');
+var el=david.firstChild.nodeValue;      //获取该元素第一个子节点的nodeValue值
+el=el.replace('xxx','yyy');         //使用string对象的replace()方法，把值从xxx改成yyy;
+david.firstChild.nodeValue=el;      //更新该节点值
+
+更新文本和标签  innerHTML方法
+var firstItem=docmuent.getElementById('one');
+var itemContent=firstItem.innerHTML;
+firstItem.innerHTML='<a href=\"http://xxxx.com\">'+itemContent+'</a>'     //引号内如果还有引号要加\转义
+
+
+DOM操作 创建节点和内容
+var newEl=docmuent.createElement('li')      //创建新的li元素
+var newNode=docmuent.createTextNode('billy')     设置元素内容
+newEl.appendChild(newNode);     //内容被添加到newEl元素中
+var position=docmuent.getElementsByTagName('ul')[0];    //找到页面中第一个ul元素
+position.appendChild(newEl);  //把newEl添加进列表
+
+
+//合并相邻文本节点的方法，对父节点使用
+nomalize()     
+var parentNode=docmuent.getElementById('div');
+parentNode.normalize()
+
+//splitText()  分割文本节点，参数是一个数字，指定从第几位开始分割
+
+移除节点
+var removeEl=docmuent.getElementsByTagName('li')[3];         //找到页面中第四个li元素
+var containerEl=removeEl.parentNode;      //该元素的父元素保存到变量中
+containerEl.removeChild(removeEl);        //移除该元素
+
+修改属性 
+var firstItem=docmuent.getElementById('one');           //找到id=one的元素
+firstItem.className='complete';                         //直接给one的class属性赋值
+
+var fourthItem=docmuent.getElementsByTagName('li')[3];  //找到第4个li标签的元素
+fourthItem.setAttribute('class','cool');            //修改属性
+
+移除属性
+var firstItem=docmuent.getElementById('one');
+if(firstItem.hasAttribute('class')){        //检查是否有class属性
+    firstChild.removeAttribute('class');    //删除该属性
+}
+
+
+
+HTMLCollection 接口表示一个包含了元素（元素顺序为文档流中的顺序）的通用集合（generic collection）
+还提供了用来从该集合中选择元素的方法和属性。
+方法:
+HTMLCollection.item()   //返回具体节点
+
+哪些是HTMLCollection,如:
+特殊集合docmuent.forms  docmuent.images
+getElementsByTagName()
+获取元素的childNodes属性，attributes属性
+
+
+
+DocumentFragments 是DOM节点。它们不是主DOM树的一部分,存在于内存中，并不在DOM树中，使用文档片段通常会带来更好的性能。
+通常的用例是创建文档片段，将元素附加到文档片段，然后将文档片段附加到DOM树。在DOM树中，文档片段被其所有的子元素所代替。
+
+实例:
+var element  = document.getElementById('ul');       // assuming ul exists
+var fragment = document.createDocumentFragment();
+var browsers = ['Firefox', 'Chrome', 'Opera', 
+    'Safari', 'Internet Explorer'];
+
+browsers.forEach(function(browser) {
+    var li = document.createElement('li');
+    li.textContent = browser;
+    fragment.appendChild(li);
+});
+
+element.appendChild(fragment);

@@ -1,0 +1,576 @@
+vue安装3种方式:
+1.下载后引用
+2.cdn引用
+3.npm安装
+
+
+VUE的核心功能：数据的双向绑定
+数据驱动DOM是VUE的核心理念，不到万不得已不主动操作DOM，只要维护好数据，DOM的事交给vue
+
+插值：
+{{}},双大括号是最基本的插值方法，会实时显示双向绑定的数据
+
+VUE创建：通过构造函数Vue就可以创建一个Vue实例
+var app = new Vue({
+    el:document.getElementById('app')   //或者'#app' , el就是页面已存在的DOM元素用来挂载VUE实例
+})
+
+可通过app.$el  访问该元素
+
+VUE生命周期：
+created: 实例创建完成后调用，此阶段尚未挂载，无法使用$el, 需要初始化处理一些数据时比较有用
+mounted: el挂载到实例上后调用，一般业务逻辑在这里开始
+beforeDestroy:  实例销毁之前调用，主要解绑一些事件监听器
+例：
+var app = new Vue({
+    el:'#app',
+    data:{
+        a:2
+    },
+    created:function(){
+        console.log(this.a);   //2
+    },
+    mounted:function(){
+        console.log(this.$el);  //<div id='app'></div>
+    }
+})
+
+vue不能使用控制流，只能使用三元运算
+如
+{{ if(ok){...} }} 不行        
+不能自定义变量，不能使用语句如
+{{ var x='xxxsssaaa' }}
+
+过滤器:
+在{{}}插值的尾部添加一个'|'管道符对数据过滤
+
+过滤器串联
+{{message|filterA|filterB}}
+接收参数
+{{message|filterA('arg1','arg2')}}  //arg1,arg2分别传给过滤器的第二，第三3个参数，因为第一个是数据本身
+
+
+Vue指令
+带有前缀v-,  v-if,v-html,v-pre,v-on,v-bind
+当其表达式值改变时，相应的将某些行为应用到DOM上
+例子:
+<div id='app'>
+<p v-if='show'>显示这段文本</p>
+</div>
+<script>
+    var app = new Vue({
+        el:'#app',
+        data:{
+            show:true   //当show值为true时，p元素会被插入,false则会移除
+        }
+    })
+</script>
+
+
+v-bind: 绑定属性
+<a v-bind:href='url'>
+<img v-bind:src='xxx/img.png'>
+
+
+v-on:绑定事件
+<button v-on:click='handler'>
+事件写在vue的methods属性内
+
+v-on修饰符：
+@绑定事件后，使用.修饰符
+.stop
+.prevent
+.capture
+.self
+.once
+例子：
+<a @click.stop='handle'></a>  //阻止事件冒泡
+<form @submit.prevent='handle'></form>   //提交事件不重载页面
+<form @submit.stop.prevent='handle'</form>  //串联修饰符
+<form @submit.prevent></form>       //仅修饰符
+<div @click.self='handle'></div>    //只当事件在该元素本身触发时触发回调
+<div @click.once='handler'></div>   //只触发一次
+
+在表单元素上监听键盘事件：
+<input @keyup.13='submit'>  //keycode=13时触发submit
+键盘事件快捷键：.enter .tab .delete .esc  .space .up .down .left .right  .ctrl .alt .shift .meta
+<input @keyup.shift.83='handleSave'>   //组合使用按键修饰符
+
+监听组件修饰符native
+<my-cpn @click.native="myClick"></my-cpn>   //正常情况组件是不能被事件监听的，加了native可以对组件进行监听
+
+语法糖：（即缩写）
+v-bind缩写： ':'  
+<a :href='url'>
+<img :src='xx/xx.png'>
+
+v-on缩写： '@'
+<button @click='handler'>
+----------------------------------
+
+计算属性
+//反转数值例子
+div id='app'
+    {{reversedText}}    //和computed.reversedText对应
+
+var app = new Vue({
+    el:'#app',
+    data:{
+        text:'123,456'
+    },
+    computed:{    //所有的计算属性都写在vue的computed属性内
+        reversedText:function(){
+            return this.text.split(',').reverse().join(',');
+        }
+    }
+})
+
+每个计算属性都包含一个getter和一个setter,**计算属性一般只设置get方法，不设置set方法
+
+
+vue实例之间可以互相依赖:
+var app1 = new Vue({
+    el:'#app1',
+    data:{
+        text:'123,456'
+    }
+});
+var app2 = new Vue({
+    el:'#app2',
+    computed:{
+        reversedText:function(){
+            return app1.text.split(',').reverse().join(',');  //依赖app1的数据
+        }
+    }
+})
+
+methods可以实现和computed同样的功能
+不同之处在于，computed有属性缓存，只有值发生变化才会重新调用，methods每次都是新的调用
+computed属性性能更高
+不同点2：
+methods在页面调用 {{getFullName()}}   需要加括号
+computed在页面调用{{fullName}}   不需要加括号
+
+------------------------------
+v-bind绑定class：
+<div id='app'>
+    <div :class='{"active":isActive}'></div>  //类名active依赖数据isActive,所以isActive为true时 class='active'
+</div>
+    var app=new Vue({
+        el:'#app',
+        data:{
+            isActive:true
+        }
+    })
+
+和普通class共存:
+div class='static' :class="{ 'active':isActive,'error':isError }"
+var app = new Vue({
+    el:'#app',
+    data:{
+        isActive:true,
+        isError:false
+    }
+})
+:class类内项为真时，对应类名就会加载
+渲染后div class='static active'
+
+
+=========================
+条件渲染指令
+v-if,v-else-if,v-else
+
+v-show  改变元素的css属性display,当v-show=false时，元素隐藏
+*v-show不能在template上使用
+例子：
+<p v-show="status===1">显示该行</p>
+var app=new Vue({
+    el:'#app',
+    data:{
+        status:2        //因为值不等，v-show=false  最终样式是<p style='display:none'>
+    }
+})
+
+列表渲染指令
+v-for 遍历数组或枚举一个对象时使用，结合item in items使用
+<ul>
+    <li v-for="book in books">{{book.name}}</li>   //books是数据，book是当前数组元素的别名
+</ul>
+var app = new Vue({
+    el:'#app',
+    data:{
+        books:[
+            {name:'vue实战'},
+            {name:'xxxx'},
+            {name:'aaaaa'}
+        ]
+    }
+})
+
+v-for支持一个可选参数作为当前项的索引
+<li v-for="(book,index) in books">{{index}} - {{book.name}}</li>
+渲染后书名前会出现"0 - 《xxx》 1 -《aaa》"的索引序号
+
+v-for遍历属性时有2个可选参数，键和索引
+<li v-for="(value,key,index) in user">{{index}} - {{key}}:{{value}}</li>
+
+v-for迭代整数
+<span v-for="n in 10">{{n}}</span>   //1 2 3 4 5 6 7 8 9 10
+
+------------------
+数组更新
+修改数组时，vue检测到数据更新，所以用v-for渲染的视图也会立即更新
+以下方法改变数组时会立即触发视图更新：
+push()
+pop()
+shift()
+unshift()
+splice()
+sort()
+reverse()
+
+不会改变原数组的方法：
+filter()
+concat()
+slice()
+
+----------------------
+v-model : 双向绑定
+一般用于绑定表单输入的内容,限制在<input>、<select>、<textarea>、components中使用
+
+v-model其实是语法糖:
+<input v-model="test">本质上是
+<input :value="test" @input="test = $event.target.value">   //绑定输入框的value值，@input是对输入事件的监听，再把监听到的值放入value
+
+例:
+<input tpye='text' v-model='message'>
+<p>输入的内容是:{{message}}</p>
+vue部分:
+data:{
+    message:''
+}
+
+v-model修饰符:
+.lazy
+实例：
+<input type='text' v-model.lazy='message'>   //这时v-model非实时更新，而是失焦或回车才会更新
+
+.number
+<input type='number' v-model.number='message'>  //将输入转换为number类型
+
+.trim 
+<input type='text' v-model.trim='message'>      //自动过滤首尾空格
+
+-------------------------------------------------------------------------
+
+vue组件:VUE最核心的功能
+自定义标签就是组件，组件需要注册，分全局注册和局部注册
+
+什么是父组件:
+需要明确一点，父组件会使用子组件，所以才可以控制子组件的数据。
+所以这里的父组件，是你看不到的这个环境本身。child是子组件，调用它的地方就是父组件。
+
+全局注册语法：
+<div id='app'>
+    <my-component></my-component>
+</div>
+<script>
+Vue.component('my-component',{   //my-component就是注册组件的自定义标签名称，推荐小写加减号分割的形式命名
+    //选项                       //注册组件要在声明实例之前
+});
+var app = new Vue({
+    el:'#app',
+})
+</script>
+之后就可以使用<my-component></my-component>
+
+给组件添加内容:
+Vue.component('my-component',{
+    template:'<div>这里是组件的内容</div>'   //组件内容必须被一个元素包含，如<div></div>  否则无法显示
+});
+
+
+//组件的另外写法   使用<template>标签直接写组件
+<template id='mycomponent'>   
+    组件内容
+</template>
+
+Vue.component('my-component'{
+    template:'#mycomponent'       //根据id直接指向组件
+})
+
+
+局部注册:
+使用components属性局部注册，局部注册只在该实例的作用域有效
+<div id='app'>
+    <my-component></my-component>
+</div>
+<script>
+    var Child = {
+        template:'<div>局部注册组件的内容</div>'
+    }
+    var app = new Vue({
+        el:'#app',
+        components:{
+            'my-component':Child
+        }
+    })
+
+组件内也可以使用data,methods,computed等选项
+使用data选项:  组件内使用data必须是函数形式，然后将数据return出去
+组件是共享的，但data是私有的，所以每个组件都要return一个新的data对象
+Vue.component('my-component',{
+    template:'<div>{{message}}</div>',
+    data:function(){
+        return {
+            message:'组件内容'     //data的return 返回数据
+        }
+    }
+})
+
+props:  声明从需要从父级接收的数据，  可以是2种值，字符串数组和对象
+Vue.component('xxx',{
+    props:['message']   //传递一个字符串数组
+})
+
+*data和props数据的区别：props数据来自父级，data是组件自己的数据,两种数据都可以在template,computed,methods中使用
+
+组件通信可分为：父子组件通信，兄弟组件通信，跨级组件通信
+$emit:  子组件触发事件
+$on :   父组件监听事件
+
+
+父组件--->子组件：props
+子组件--->父组件: $emit
+父组件监听:$on 
+
+分发内容：
+混合使用组件时，会用到slot，这个过程叫内容分发
+props传递数据，events触发事件，slot内容分发，构成了Vue组件的3个API来源，再复杂的组件也是由这3部分组成
+
+<slot>：
+概念:
+具名插槽：父组件指定的slot插入到子组件的slot name对应位置
+匿名插槽：父组件内容直接插入匿名slot
+
+除非子组件包含至少一个slot，否则父组件的内容将被抛弃
+当子组件模板只有一个没有属性的 slot 时，父组件整个内容片段将插入到 slot 所在的 DOM 位置，并替换掉 slot 标签本身。
+最初在标签内的任何内容被视为备用内容
+
+<child-component>
+    {{message}}         //这个message就是一个slot，绑定的是父组件的数据，不是child-component的数据
+</child-component>
+
+在子组件内使用特殊元素<slot>可以为该组件开启一个slot(插槽)
+在父组件模板里，插入在子组件标签内的所有内容将替代子组件的slot标签和他的内容
+
+普通slot:  <slot></slot>   一个组件只有一个
+具名slot:  <slot name='xxx'></slot>    一个组件可以有多个 ，具名slot将绑定slot属性等于其name的标签
+
+--------------------------------
+Vue是异步更新队列的机制
+$nextTick： 用来知道什么时候DOM更新完成
+例子:
+methods:{
+    getText:function(){
+        this.$nextTick(function(){   //更新数据后，使用该方法获取DOM
+            var text = document.getElementById('xx').innerHTML;
+            console.log(text)
+        })
+    }
+}
+
+Vue.extend()   基础构造器，创建一个子类，参数是一个包含组件选项的对象
+$mount手动挂载Vue实例
+
+
+-------------------------------------------------------
+自定义指令：分全局注册和局部注册，和注册组件很像
+div id='app'
+    <input type="text" v-focus>   //v-focus就是自定义指令
+
+全局注册：
+Vue.directive('focus',{         //注册focus自定义指令
+    inserted:function(el){      //指令选项
+        el.focus()  //聚焦元素  el就是指令所绑定的元素
+    }                           
+});
+
+//局部注册
+var app = new Vue({
+    el:'#app',
+    directives:{
+        focus:{
+            //指令选项
+        }
+    }
+})
+
+指令选项：
+bind:   指令第一次绑定到元素时调用，只调用一次，可以定义一个在绑定时执行一次的初始化动作
+inserted:  被绑定元素插入父节点时调用
+update: 被绑定元素所在模板更新时调用
+componentUpdate:  被绑定元素所在模板完成一次更新周期时调用
+unbind:  指令与元素解绑时调用，只调用一次
+
+指令选项函数的可用参数:
+el :指令绑定的元素
+binding: 一个对象，包含以下属性：
+    name：指令名，
+    value：指令的绑定值，
+    oldValue：绑定的前一个值，仅在update和componentUpdate可用
+    expression：绑定值的字符串形式
+    arg：传给指令的参数    例：v-my-directive:foo  arg=foo
+    modifiers :一个包含修饰符的对象   v-my-directive.foo.bar  修饰符对象modifer={foo:true,bar:true}
+    vnode:虚拟节点
+    oldVnode:上一个虚拟节点，仅在update和componentUpdate可用
+
+
+* 注册组件和注册指令的代码都要放在实例之前！！
+
+*v-bind也可以直接绑定函数
+
+$event    //访问原生事件dom
+$refs     //子组件设置属性ref='xx'  父组件就可以通过this.$refs访问
+$parent   //访问父组件并修改数据    this.$parent 访问父组件    
+$slots    //访问插槽               this.$slots.default访问所有匿名slot
+                                  this.$slots.header  访问具名slot
+
+
+======================================================================
+进阶篇：
+Virtual Dom虚拟节点: 不是真正的DOM，其实是一个轻量级的JS对象
+正常DOM：
+<div id="main">
+    <p>xxx</p>
+    <p>xxx</p>
+</div>
+对应创建的虚拟节点：
+var vNode = {
+    tag:'div',
+    attributes:{
+        id:'main'
+    },
+    children:[
+        // p 节点
+    ]
+}
+每个dom元素或组件都对应一个vNode对象
+vnode类型:
+EmptyVNode:没有内容的注释节点
+TextVNode：文本节点
+ComponentVNode：组件节点
+ElementVNode：元素节点
+CloneVNode：克隆节点，可以是以上任意节点，唯一区别是isCloned=true
+
+
+render函数,createElement用法
+createElement构成了虚拟节点模板，有3个参数:
+createElement(
+    //{String|Object|function}
+    //一个HTML标签，组件选项，或一个函数
+    //必须return上述其中一个
+    'div',
+    //{Object}
+    //一个对应属性的数据对象，可选
+    //可以在template中使用
+    {
+        //
+    },
+    //{String|Array}
+    //子节点(VNodes),可选
+    [
+        createElement('h1','hello world'),
+        createElement(mycomponent,{
+            props:{
+                someProp:'foo'
+            }
+        }),
+        'bar'
+    ]
+)
+
+一个vue组件包含哪些东西：
+1.template组件模板
+2.js代码1.动态绑定
+3.css样式   
+
+
+
+vue绑定class的几种方式：
+1.动态绑定
+<template>
+    <div :class="{'active': isActive,' error': isError}"
+    </div>
+</template>
+
+<script>
+    export default {
+        name: 'app',
+        data(){
+            return {
+                isActive: true,
+                isError: false
+            }
+        }
+    }
+</script>
+
+2.通过计算属性computed绑定
+<template>
+    <div :class="classes">
+    </div>
+</template>
+
+<script>
+    export default {
+        name: 'xxx',
+        data(){
+            return {
+                isActive: true,
+                isError: null
+            }
+        },
+        computed:{
+            classes(){
+                return {
+                    active: this.isActive && !this.isError,
+                    'text-fail': this.isError &&t this.isError.type === 'fail'
+                }
+            }
+        }
+    }
+</script>
+
+3.绑定数组
+<template>
+    <div :class="[activeCls,errCls]">
+    </div>
+</template>
+
+<script>
+    export default {
+        name: 'app',
+        data(){
+            return {
+                activeCls: 'active',
+                errCls: 'error'
+            }
+        }
+    }
+</script>
+
+4.条件绑定
+<template>
+    <div :class="[isBetter ? 'high' : 'low']">
+    </div>
+</template>
+
+<script>
+    export default {
+        name: 'xxx',
+        data(){
+            isBetter: null   //传过来的数据 true或者false
+        }
+    }
+</script>

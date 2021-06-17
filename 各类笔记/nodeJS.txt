@@ -1,0 +1,174 @@
+node.js
+简单说就是运行在服务端的javascript
+在安装路径下运行node -v 检测是否安装成功
+
+NPM是随同NodeJS一起安装的包管理工具，能解决NodeJS代码部署上的很多问题，常见的使用场景有以下几种：
+
+允许用户从NPM服务器下载别人编写的第三方包到本地使用。
+允许用户从NPM服务器下载并安装别人编写的命令行程序到本地使用。
+允许用户将自己编写的包或命令行程序上传到NPM服务器供别人使用。
+npm -v 检测是否安装成功
+npm install xxx -g   全局安装  (一定要注意路径，跟项目在同一路径)
+npm list xxx -g      全局查看安装包的位置
+npm init             创建模块 生成package.json文件
+npm publish          发布模块
+
+运行: 
+npm run XXX          xxx是package.json里scripts属性中添加的脚本属性
+
+例如:'dev':'webpack-dev-server --open '    //启动webpack-dev-server服务脚本,--open会自动打开浏览器页面
+终端输入 npm run dev 就可以运行了
+
+一次性安装多个依赖包:
+npm i xxx xxx xxx xxx   //用空格分开
+
+
+npm目录内的package.json   用于定义包的属性
+创建模块，package.json 文件是必不可少的。我们可以使用 NPM 生成 package.json 文件，生成的文件包含了基本的结果。
+
+=================================================================================
+
+安装webpack
+核心：1.一切皆模块   2.按需加载
+① 入口(entry)
+② 输出(output)
+③ loader
+④ 插件(plugins)
+
+Webpack的工作方式是：
+把你的项目当做一个整体，通过一个给定的主文件（如：index.js），Webpack将从这个文件开始找到你的项目的所有依赖文件.
+使用loaders处理它们，最后打包为一个（或多个）浏览器可识别的JavaScript文件。
+
+安装npm淘宝镜像
+npm install -g cnpm --registry=https://registry.npm.taobao.org
+
+webpack打包的几种方法:   标准语法:webpack {entry file} {output file}
+1.webpack /main.js /dist/bundle.js    //指定入口文件路径和打包文件路径
+2.在webpack.config.js 文件中设置好所有选项后，直接输入webpack命令会自动引用该配置文件
+3.在package.json中修改scripts-start选项：'start':'webpack' ,然后输入npm start 运行打包命令
+
+项目安装步骤：
+1.npm init     //创建模块 生成package.json文件  这是第一步！ 之后才能安装webpack依赖
+
+2.本地安装:   npm install webpack --save-dev   //--save-dev  表示保存在package.json的script属性的dev字段内
+  全局安装:   npm install webpack -g
+
+
+本地安装webpack-dev-server    //构建本地服务器，让浏览器监听代码修改，提供启动服务器，热更新，接口代理等服务
+
+npm install webpack-dev-server --save-dev    
+
+devserver的配置选项:
+contentBase
+默认webpack-dev-server会为根文件夹提供本地服务器，如果想为另外一个目录下的文件提供本地服务器，应该在这里设置其所在目录（本例设置到“public"目录）
+port
+设置默认监听端口，如果省略，默认为”8080“
+
+inline
+设置为true，当源文件改变时会自动刷新页面
+
+historyApiFallback
+在开发单页应用时非常有用，它依赖于HTML5 history API，如果设置为true，所有的跳转将指向index.html
+
+
+
+本地安装css和style加载器
+npm install css-loader --save-dev         //编译css的加载器
+npm install style-loader --save-dev       //提取css生成<style>样式的加载器
+
+--save-dev 和--save 区别：
+--save-dev: 将保存配置信息到pacjage.json的devDependencies节点中,devDependencies:开发时的依赖。里面的模块是开发时用的，发布时用不到它。
+--save : 将保存配置信息到pacjage.json的dependencies节点中,dependencies：运行时的依赖，发布后，即生产环境下还需要用的模块  
+
+
+安装css抽离插件:extract-text-webpack-plugin     //抽离css样式，并生成一个main.css文件  ,最后在index.html 通过<link>加载
+用法: 
+const extractTextPlugin = require('extract-text-webpack-plugin');
+module:{
+    rules:[
+        test:/\.css$/,
+        use:extractTextPlugin.extract({
+            fallback:'style-loader',    //编译后用什么loader来提取css文件
+            use:'css-loader'            //指定需要什么样的loader去编译文件
+        })
+    ]
+}
+//new一个提取后的css实例
+plugins:[
+    new extractTextPlugin({filename:'main.css'})
+]
+
+*这个插件一开始构建报错是版本过低，默认安装了3.0.x版本，webpack4.x需要这个插件4.x版本才行
+安装最新版本命令:npm i pluginName@next
+
+html-webpack-plugin插件:   生成html文件 
+语法:
+plugins:[
+    new htmlWebpackPlugin({
+        filename:'../index.html',
+        template:'html/index.html',
+        inject:'body'
+    })
+]
+
+
+webpack.config.js   webpack根目录的配置文件
+配置方法：
+所有模块通过require方法加载
+
+一个完整的配置文件：
+module.exports = {
+    //js执行入口文件
+    entry:{
+        main:'./main.js'
+    },
+
+    //指定输出文件名和目录
+    output:{
+        filename:'boundle.js',     //自定义输出文件名
+
+        //__dirname是node.js中的一个全局变量，它指向当前执行脚本所在的目录
+        path:__dirname+'/dist'  //自定义输出文件所在目录
+    },
+
+    //module对象有一个rules属性,可指定一系列loaders
+    module:{           
+        rules:[        //每个loader都必须包含test和use两个选项
+            {
+                test:   /\.xxx$/ ,          //利用正则找到各个类型的文件，然后使用loader处理转换成浏览器支持的文件
+                use: 'xxx-loader',       //或直接loader:'xxx-loader'
+                exclude:{排除的路径} ,          
+                include:{包含的路径},          
+                options:{loader的配置}  
+            }
+        ]
+    },
+
+    plugin:[
+        //插件
+    ],
+
+    mode:'development',
+    devtool:...
+    devserver:{...}
+    resolve:{...}
+}
+
+path.join(path1，path2，path3.......)
+作用：将路径片段使用特定的分隔符（window：\）连接起来形成路径，并规范化生成的路径。若任意一个路径片段类型错误，会报错。
+
+path.resolve([from...],to)
+作用：把一个路径或路径片段的序列解析为一个绝对路径。相当于执行cd操作。
+/被解析为根目录。
+
+
+========================================================================
+.vue就是单文件组件  ，使用webpack构建vue项目时可以使用
+vue-loader   //对.vue格式的文件进行处理
+
+.vue一般包含3部分：
+<template>    //该组件的模板html
+<script>       
+<style>       //该组件的样式
+
+<style scoped>   表示只对当前组件的app.vue有效

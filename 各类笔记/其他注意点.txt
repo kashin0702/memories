@@ -1,0 +1,978 @@
+*JS中，对象和数组属于引用类型，指向同一内存空间
+
+写代码的一些思路：
+分解每一步步骤很关键
+往页面插入元素
+用html(),text(),append等方法
+遍历，循环，事件里，活用this对象
+表单对象值用val()
+
+em 和 px 的关系
+px是绝对大小，浏览器默认字体大小是16px
+em是相对大小，默认情况1em=16px， 若设置0.7em  就等于16px*70%   弹性布局的关键
+
+
+
+！函数返回的对象不是同一个对象，函数每次返回都会创建一个新的对象（即内存地址）
+1.返回不同对象：
+function abc(){
+    return {      //这里每次返回其实是创建了一个新的对象
+        name:'david',
+        age:24
+    }
+}
+var a = abc()
+var b = abc()     //返回的不是同一个对象，a和b变量指向不同的内存地址
+
+2.返回相同对象
+var obj = {name:'david',age:24} 
+function abc(){
+    return obj;
+}
+
+var a = abc(); var b = abc()   这种情况返回的是相同对象，因为obj已经产生一个固定的内存地址     
+
+
+
+返回数组的函数：  操作获取单个值
+function getSize(xx,xx){
+    return [aa,bb];   //返回一个数组
+}
+var a = getSize(11,22)[0]     //获取数组中的第一个值
+var b = getSize(33,44)[1]      //获取数组中的第二个值
+
+for循环的注意点
+for(语句1;语句2;语句3){
+    //语句1：代码块开始前执行 语句2：运行循环的条件  语句3：在循环执行后执行
+}
+
+for/in循环    遍历的是数组索引或者对象的属性，不是对象本身
+for(index in arr){
+    
+}
+
+
+JS的垃圾回收机制:
+    JS的垃圾回收机制是为了以防内存泄漏，
+    内存泄漏的含义就是当已经不需要某块内存时这块内存还存在着，
+    垃圾回收机制就是间歇的不定期的寻找到不再使用的变量，并释放掉它们所指向的内存。
+变量的生命周期：
+    当一个变量的生命周期结束之后它所指向的内存就应该被释放。JS有两种变量，全局变量和在函数中产生的局部变量。
+    局部变量的生命周期在函数执行过后就结束了，此时便可将它引用的内存释放（即垃圾回收），但全局变量生命周期会持续到浏览器关闭页面。
+回收方式：
+    JS执行环境中的垃圾回收器怎样才能检测哪块内存可以被回收有两种方式：标记清除（mark and sweep）、引用计数(reference counting)。
+实参(argument)：
+  全称为"实际参数"是在调用时传递给函数的参数. 实参可以是常量、变量、表达式、函数等， 无论实参是何种类型的量，
+  在进行函数调用时，它们都必须具有确定的值， 以便把这些值传送给形参。 因此应预先用赋值，输入等办法使实参获得确定值。      
+
+形参(parameter)：
+    全称为"形式参数" 由于它不是实际存在变量，所以又称虚拟变量。
+    是在定义函数名和函数体的时候使用的参数,目的是用来接收调用该函数时传入的参数.在调用函数时，实参将赋值给形参。
+    因而，必须注意实参的个数，类型应与形参一一对应，并且实参必须要有确定的值。
+
+return false 相当于终止符 等效于preventDefault() 阻止事件默认行为
+return true  相当于执行符
+
+访问对象属性的几种方法：
+obj = {xxx:'111',zzz:'222'};
+
+obj.xxx
+obj['xxx']     //该方法访问属性要加引号  属性要加引号，变量不加
+
+
+尽量用空格缩进（4个空格）
+变量名尽量用名词如car,person易于理解
+函数名应以动词开始如getName()
+返回布尔值的函数以is开头，如isEnable()
+
+保持代码的弱耦合，html和js应分开编写
+css和js也应尽量分开
+element.style.color='red'  //紧密耦合
+element.className='edit'    //弱耦合
+
+命名空间   优点：加强代码可维护性，不会污染全局变量
+var Wrox={}             //创建全局变量
+Wrox.ProJS={}           //为proJS创建命名空间
+Wrox.ProJS.EventUtil={} //继续添加对象    
+
+
+提取常量     //重复用到的值，用户界面字符串，URL等建议提取出来作为一个常量，而不是直接在函数中写
+var constants={
+    INVALID_VALUE_MSG:'invalid url!',
+    INVALID_VALUE_URL:'xxx/ss.php'
+};
+调用常量
+function validate(value){
+    if(!value){
+        alert(constants.INVALID_VALUE_MSG);
+        location.href=constants.INVALID_VALUE_URL;
+    }
+}
+
+避免全局查找，提升性能  
+function updateUI(){       //全局对象储存为局部对象
+    var doc=document;     //把document对象保存在本地，后面的代码全部替换为doc只用了一次全局查找
+    var imgs=doc.getElementsByTagName('img');
+    for(var i=0,len=imgs.length;i<len;i++){
+        imgs[i].title=doc.title+'image'+i;
+    }
+    var msg=doc.geteElementById('msg');
+    msg.innerHTML='Update complete!';
+}
+
+查找影响性能
+var value=5,sum=10+value   
+alert(sum)                //常量查找，获取常量值是高效查找
+
+var values=[..];
+var sum=values[0]+values[2];
+alert(sum)                //数组内的查找也属于高效查找
+
+var values={first:5,second:10};   
+var sum=values.first+values.second  //属性查找，比常量查找更花时间  
+
+最小化语句:  
+var count=5,
+    color='blue',
+    values=[1,2,3],
+    now=new Date();
+
+匈牙利标记法：  第一个字符表示数据类型
+var bFound      //布尔型
+var iCount      //整数
+var sName       //字符串
+var oPerson     //对象
+
+js 6种数据类型 ：null undefined boolean string number object
+
+所有函数的默认原型都是Object的实例，默认原型都包含一个内部指针指向Object.prototype
+这也是所有自定义类型都会继承toString(),valueOf()的根本原因
+
+!   //布尔值类型取反，非布尔值转换后取反
+!!  //双非，将取反后的布尔型再取反,相当于将非布尔型值转换为布尔型值
+
+
+函数声明:function sum(){}
+函数表达式:var xx=function(){};
+区别：函数声明会提升，可以在任意位置声明，函数表达式仅在代码运行到该行才执行
+
+块级作用域: 把函数表达式包含在一对括号中，并()表示立即调用
+(function(){
+    //块级作用域
+})();
+大型程序，多人开发的程序中，块级作用域匿名函数可以避免向全局作用域内添加过多的变量和函数，避免命名冲突
+
+完整静态私有变量：
+(function(){
+    var privateVariable = 10;   //私有变量
+    function privateFunction(){  //私有函数
+        return false;
+    }
+//构造函数
+MyObject = function(){   //函数声明只能创建局部函数，初始化未经声明的变量会创建全局变量，所以没有用var声明
+};
+//公有特权方法,访问私有变量和函数
+MyObject.prototype.publickMethod = function(){  
+    privateVariable++;
+    return privateFunction();
+}
+})();
+
+
+函数内部的两个特殊对象：arguments,this
+arguments包含传入函数中的所有参数，除了length属性，这个对象还有一个callee属性
+callee:是一个指针，指向拥有这个arguments对象的函数
+arguments.callee(xx)   指向正在执行的函数的指针
+
+所有函数都有2个属性，length和prototype
+length表示函数希望接收的命名参数的个数
+prototype是保存所有实例方法的真正所在
+
+每个函数都有的非继承方法：apply()  call()  在特定作用域中调用函数，等于设置函数体内this对象的值,两个方法类似，设置参数不同
+B.apply(A,arguments)    //A对象调用B对象的方法
+B.call(A,args1,args2)   //A对象调用B对象的方法
+
+apply()接收2个参数，1.在其中运行函数的作用域，2.可以是array实例，也可是arguments对象
+例：
+function sum(num1,num2){
+    return num1+num2;
+}
+function callSum1(num1,num2){
+    return sum.apply(this,arguments);   //传入arguments对象
+}
+function callSum2(num1,num2){
+    return sum.apply(this,[num1,num2]) //传入数组
+}
+function callSum3(num1,num2){
+    return sum.call(this,num1,num2)  //call方法需要逐个例举参数
+}
+
+apply,call方法最大用途是扩充函数作用域
+window.color='red';
+o={color:'blue'};
+function sayColor(){
+    return this.color;
+}
+sayColor();
+sayColor.call(this)   //red
+sayColor.call(window) //red
+sayColor.call(o)      //blue
+
+ES5原生支持bind()，支持直接在函数上调用该方法,入参是作为this值的对象
+bind()  创建一个函数实例，其this值会绑定到传给bind()函数的值
+window.color='red';
+var o={color:'blue'};
+function sayColor(){
+    return this.color;
+}
+var obj=sayColor.bind(o);   //绑定this值给o    
+obj();     //blue
+
+bind()语法:
+function bind(fn,context){  //接收一个函数和一个环境,返回一个在给定环境中调用给定函数的函数
+    return function(){
+        return fn.apply(context,arguments);
+    };
+}
+
+对象的内部属性：
+1.数据属性    
+configurable    能否通过delete删除属性从而重新定义属性，默认true
+Enumerable      能否通过for-in循环属性，默认true
+writable        能否修改属性
+value           包含属性的数据值，默认undefined
+例子：
+var person={
+    name:'david'
+};
+Object.defineProperty()方法修改对象的数据属性,接受3个参数：对象，属性名，描述符对象
+Object.defineProperty(person,'name',{
+    writable:false,         //修改属性为只读
+    value:'Nicolas'         //修改属性值：名字改为nicolas
+});
+
+2.访问器属性
+configurable
+Enumerable
+get         读取属性时调用的函数，默认undefined
+set         写入属性时调用的函数，默认undefined
+Object.defineProperty(person,'name',{
+    get:function(){
+        xxxx
+    },
+    set:function(){
+        xxx
+    }
+})
+
+读取属性方法:Object.getOwnPropertyDescriptor()   接受2个参数，对象和属性名
+var descriptor=Object.getOwnPropertyDescriptor(book,'year');
+alert(descriptor.value)         //2004
+alert(descriptor.configurable)  //false
+
+//工厂模式（把普通构造函数封装在一个函数内,和多对象构造函数类似，但不如多对象构造函数）
+function createHotel(name,rooms,booked){
+    var hotel = new Object();
+    hotel.name = name;
+    hotel.rooms = rooms;
+    hotel.booked = booked;
+    hotel.checkAvailability = function(){
+        return this.romms - this.booked;
+    };
+    return hotel; //记得返回这个对象
+}
+var hotel1 = createHotel('homeInn',100,25);
+var hotel2 = createHotel('hanTing',50,30);
+
+//原型模式,把所有属性和方法添加到函数的prototype属性中
+//这个方法和构造函数不同的是所有实例共享这个函数
+function Hotel(){
+    //构造函数变成了空函数，但仍可以调用
+}
+Hotel.prototype.name = 'homeInn';
+Hotel.prototype.rooms = 100;
+Hotel.prototype.booked = 25;
+Hotel.prototype.checkAvailability = function(){
+    return this.rooms - this.booked;
+};
+var hotel1 = new Hotel();
+hotel1.checkAvailability();    //75
+var hotel2 = new Hotel();
+hotel2.checkAvailability();    //75
+alert(hotel1.checkAvailability == hotel2.checkAvailability); 
+//任何函数只要通过new 操作符调用，就可以称为构造函数
+
+prototype的isProtoTypeOf()方法，判断对象之间是否存在关系
+alert(hotel.prototype.isProtoTypeOf(hotel1));   //true
+alert(hotel.prototype.isProtoTypeOf(hotel2));   //true
+
+Object.getPrototypeOf()   //返回prototype的值
+alert(Object.getPrototypeOf(hotel1)==hotel.prototype)  //true
+alert(Object.getPrototypeOf(hotel1).name);   //'homeInn'
+
+hasOwnProperty()   //检测一个属性存在于实例中还是原型中，只有属性存在于实例中才返回true
+
+//定义函数
+function Person(){
+}
+Person.prototype.name='Nicolas';   //原型属性赋值
+Person.prototype.age=24;
+Person.prototype.sayName=function(){
+    alert(this.name);
+}
+var person1=new Person();
+alert(person1.hasOwnProperty('name'));  //name属性存在于原型中，返回false  
+person1.name='david';  //重写name属性
+alert(person1.name)     //'david'  来自实例
+alert(person1.hasOwnProperty('name'));  //name属性来自实例，返回true
+
+Object.keys()        //枚举原型属性的方法
+var keys=Object.keys(Person.prototype);
+alert(keys)        //'name,age'
+
+--------------------------------------------------------------------------
+
+boolean(xx)   可把任何数据类型转换成布尔值 
+例：
+非空字符串=true ,空字符串=false
+
+if(xxx)  //if语句中的条件会被自动转换成布尔值
+
+number型，科学计数法
+var floatNum=3.125e7   //等于31250000  3.125*10^7方
+
+3种方法将非数值转换为数值:
+Number()                //任何数据类型
+Number('hello')   //NaN
+Number('')         //0
+Number(true)       //1
+
+parseFloat(), parseInt()  //专用于字符串  
+
+JS中string型的值是不可改变的，一旦创建就不能改变，要创建新值只能对原来值进行填充
+var lang='java';
+lang=lang+'script';
+
+object类型
+var o=new Object();   //是所有它的实例的基础
+每个object实例的属性和方法:
+constructor:    保存用于创建当前对象的函数。对于o而言，构造函数就是object()
+
+o.hasOwnProperty(propertyName): 用于检查给定的属性在当前对象实例中是否存在，参数必须是字符串形式
+
+isProtoTypeOf(object): 用于检查传入的对象是否是传入对象的原型
+
+proPertyIsEnumerable(propertyName):  检查给定的属性是否能用for-in语句枚举
+
+toLocalString()  :返回对象的字符串表示,该字符串与执行环境的地区对应
+toString()      返回对象的字符串表示
+valueOf()       返回对象的字符串，数值或布尔值表示。通常与toString()的返回值相同.
+
+++num  前置递增，先执行递增后进行求值
+num++  后置递增，包含他们的语句被求值之后才执行
+
+===  严格等于  
+!==  严格不等于
+'55'==55    //true
+'55'===55   //false
+
+'55'!=55   //false
+'55'!==55   //true
+
+后测试语句
+do{
+    statement         //至少执行一次
+}while(expression)
+
+后测试语句
+while(expression){
+    statement       
+} 
+
+with语句  将代码的作用域设置到一个特定的对象中
+语法：with (expression) statement
+
+var qs=location.search.substring(1);  //提取url ?号后的查询字符串
+var hostname=location.hostname;
+var url=location.href;
+等效于这段:
+with (location){
+    var qs=search.substring(1);
+    var hostname=hostname;
+    var url=href;
+}
+
+
+
+switch(expression){
+    case value1: 
+    statement;
+    break;
+
+    case value2: 
+    statement;
+    break;
+
+    //合并2种情况
+    case value3:
+    case value4:
+    statement;
+    break;
+
+}
+
+嵌套for循环执行顺序:
+for(i=0;i<10;i++){      //先执行外部循环i=0，i<10,满足条件进入内部循环
+    for(j=0;j<10;j++){   //内部循环全部执行完毕后，即循环10次不满足条件后，返回执行外部循环, 外部满足条件，再执行10次内部循环，以此类推
+           //顺序：外1，内10，外1，内10...  总共执行100次             
+    }
+}
+
+function xxx(arguments1,arguments2){  //js中传递的参数个数，是否使用参数都是随意的
+    arguments[0],arguments[1]  //访问参数
+    arguments.length    //参数个数
+}
+
+//参数个数
+function howmanyArgs(){
+    alert(arguments.length);
+}
+howmanyArgs()      //0
+howmanyArgs(10)    //1
+howmanyArgs(10,20) //2
+howmanyArgs('string',45)  //2
+
+返回类型
+typeof xx    //string||number||boolean..
+
+返回引用类型的值:instanceof  返回true||false  
+注意是引用类型, new object(),new Array(),new string()这种构造函数才算引用类型
+var xx=25, var xx='hello'  这种属于基本类型
+语法:result=variable instanceof constructor
+person instanceof object    //变量person是object吗
+colors instanceof array     //变量color是array吗
+
+函数内部作用域是块级作用域
+function xxx(){
+    块级作用域范围，外部访问不到
+}
+
+JS这些语句的花括号内没有块级作用域
+if(){没有块级作用域}
+for(var i=...){没有块级作用域}
+执行完后i依然存在于外部环境中
+
+结论：在js中，函数有作用域，if,for语句的花括号没有块级作用域. （其他语句待验证）
+
+转义符
+\'单引号   \"双引号  \\反斜杠   \n换行   \r回车 
+
+prototype 原型对象
+所有js对象都从原型对象中继承属性和方法
+
+使用prototype对构造函数添加name属性：
+myFunction.prototype.name='xxx'
+
+
+es6新增2个关键词let/const:
+
+let:let声明的变量只在let命令所在的代码块有效
+const:声明一个只读的常量，且常量的值不能改变  ，声明时必须初始化赋值
+const x=3.14
+x=4.14  //报错
+x=x+33  //报错
+
+ES6新定义:块级作用域 
+{
+    let x=2;
+}
+// x只在块级内有效，这里不能使用x变量
+
+在函数内或全局使用var/let 效果比较相似
+
+
+函数闭包：
+父作用域访问子作用域变量的方法，外部访问内部，称为闭包，需要函数内声明一个返回函数
+特点
+占用更多内存
+不容易被释放
+何时使用？
+变量既想反复使用，又想避免全局污染
+如何使用？
+定义外层函数，封装被保护的局部变量。
+定义内层函数，执行对外部函数变量的操作。
+外层函数返回内层函数的对象，并且外层函数被调用，结果保存在一个全局的变量中。
+
+
+变量提升：函数声明和变量声明总是会被解释器悄悄地被"提升"到方法体的最顶部。
+JavaScript 只有声明的变量会提升，初始化的不会。
+var x     //变量提升 
+var x=10  //初始化
+
+arguments对象： js函数自带的一个内置对象，包含了函数调用的参数数组
+function myFunction(a,b){
+    return arguments.length;  //返回函数参数的个数
+}
+
+
+
+
+break    跳出循环
+continue 结束当前循环，直接进入下一次循环
+
+三元操作符，即条件运算符
+variablename=(condition)?value1:value2 
+
+
+h5的数据缓存方法
+html5 data-xx属性:
+设置方法:
+<div id='a' data-name='zhangsan' data-hobby_list='swim' data-config-options='{"type":"a"}'>
+原生访问：
+document.getElemntById('a').dataset.name
+document.getElemntById('a').dataset.hobby_list
+document.getElemntById('a').dataset.configOptions       // '-'连字符转换成驼峰式，命名data时不建议使用连字符
+
+jquery访问h5的data-xx
+$(selector).attr('data-xx')  //获取原始值
+$(selector).data('xx')      //获取的值会进行类型转换
+$(selector).data(name,value)  //向元素附加数据 ,必须设置数据名称和数据值
+$(selector).data(name)    //从元素中获取附加数据
+
+jquery缓存数据
+.data()    $.hasData()  $.cache()  $.removeData()   $.expando()
+全局创建    
+$.data(obj,'name','zhangsan');
+$.hasData(obj);         //true ，判断是否有data值
+$.removeData(obj,'name')  //删除附加数据
+
+
+
+jQuery.animate({width:xxx},1000,function(){})    animate方法可以设置回调函数
+
+jQuery.css()   不可以设置回调函数
+
+jquery prop/attr 区别   prop适用 checked selected disabled 等可以返回布尔值的属性
+$('xx').prop('checked')  // true||false
+$('xx').attr('checked')  // checked||undefined
+
+
+
+函数后带不带括号的区别：
+function abc(){
+    return 123;
+}
+var a=abc;   //函数本身    就是把函数看做一个对象
+var b=abc(); //123        函数会立即运算并返回结果
+
+
+$('p').has('span')  //返回拥有span的p元素，不是span元素
+
+
+forEach: js遍历数组的方法，回调有3个参数：值，索引，数组本身
+forEach(function(value,index,array){
+
+})
+
+
+$.each() 
+$.each(data,function(key,value){
+    //jquery遍历对象方法：回调有2个参数：键和值
+})
+$(selector).each()  jquery方法，回调也是2个参数,键值对，为每个选中的元素执行某个函数
+$(selector).each(function(index,element){   //element表示当前元素，可以使用this选择器
+
+})
+
+切换两个class类
+toggleClass('red' 'green')
+
+jquery对象使用dom方法：
+var domObj=jqueryobj.get()
+dom对象使用jquery方法：
+var jqueryobj=$(domObj)
+
+让浏览器将网页渲染成与设备屏幕等宽
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+
+样式问题：
+行内元素的margin-left,margin-right,padding-left,padding-right都是有效的，top/bottom无效
+行内元素设置display:block,float效果后可设置height/width;
+
+表格标签thead,tbody,tfoot对表格内部进行分组，标签内必须是tr
+th表示加粗单元格字体
+
+vertical-align 只对行内元素有效，<span> <img>等
+
+外链css格式
+<link rel='stylesheet' type='text/css' href='/xxx.css'>
+
+
+
+
+为不同浏览器设置rotate样式 1:为不同浏览器指定不同的css属性  2：能够只针对支持的浏览器设置css属性
+-ms-transform:rotate(5deg)      ie9
+-moz-transform:rotate(5deg)     firefox
+-webkit-transform:rotate(5deg)  safari and chrome
+-o-transform:rotate(5deg)       opera
+
+cells集合
+table.cells  //返回表格中所有td,th元素
+table.cells[i] //具体的单元格
+
+textContent  //返回元素节点包括子元素内的文本
+innerText   //只返回文本，如果有文本被css隐藏则不返回，不推荐使用，兼容性差
+innerHTML      //返回文本+标签
+
+confirm() 确认/取消窗口，点击确认会返回true,取消返回false
+
+return false 阻止事件默认行为，类似e.preventDefault();
+
+js-ajax请求
+原生js请求步骤 1.声明 2.open 3.send 4.onload
+var xhr=new XMLhttprequest()
+xhr.onload=function(){
+    if(xhr==200){
+        //处理返回数据
+    }
+}
+xhr.send('null')
+xhr.open('get','xxx.html',true)
+
+
+html返回处理：response=xhr.responseText
+xml返回处理：response=xhr.responseXML
+JSON返回处理:response=JSON.parse(xhr.responseText)
+
+valueOf() 语法：xxx.valueOf()  返回对象的原始值，string number math array都有该方法
+typeof() 语法：typeof(xxx)/typeof xxx 返回对象的数据类型  o小写  返回7种类型：number, boolean, string, undefined, object, function,symbol
+数组,日期返回object 所以无法通过typeof()判断
+null返回object
+NaN返回number
+
+"==" 只比较值是否相等
+"===" 值和类型都要相等
+
+$(xx).serialize()       将表单转换为字符串
+$(xx).serializeArray()  将表单转换为数组
+$.param(obj)            将对象转换为字符串
+
+
+$('*')      所有html元素
+$(document)  浏览器窗口
+
+is() / has()区别： is()返回布尔值，has()返回jquery对象   $('div').has('.box')  返回含有box的div对象
+
+is('.className')与  hasClass('className')  等效 ， 语法里is要加点，hasClass不用，但is更强大 
+
+jquery遍历中 parents('xx') /children('xx') /siblings('xx')  全都可以进行二次筛选
+
+
+class="tab active"   //class添加多属性 空格分隔
+
+removeClass('tab active')  //移除多属性   
+
+.tab,.active{       //css设置多属性  逗号分隔
+    display:block
+}
+
+hasOwnProperty  检查实例对象是否有某个属性
+obj.hasOwnProperty('xx')  //返回true||false
+
+全局方法
+string(obj)      把对象转化成字符串
+对象方法
+obj.tostring()   把对象转化成字符串
+number.tostring(2)  数字对象可选参数数字，代表转换进制
+全局方法
+Number(xxx)      转化为数字
+  
+navigator.userAgent  //返回客户端的user-agent值
+
+window.innerHeight  dom内置对象属性   窗口的高宽
+window.innerWidth
+screen.height       dom内置对象属性   屏幕的高宽
+screen.width
+
+.height()  jquery方法，获取对象的高宽  要和dom区分
+.width()
+
+fixed absolute区别 absolute相对于父元素定位，fixed相对于浏览器窗口固定不变
+有滚动条时，fixed不动，absolute会动
+relative //相对于父级左上角定位，父级padding有影响，不脱离文档流
+absolute //参照浏览器左上角，在没有设定TRBL，默认依据父级的做标原始点为原始点。
+如果设定TRBL并且父级没有设定position属性，那么当前的absolute则以浏览器左上角为原始点进行定位，位置将由TRBL决定。
+
+
+
+DOM访问样式：
+obj.style.color='red';
+
+indexOf()             //string字符串方法，用于匹配字符串，要和index()区分
+
+.index()/.eq()  区别：.index()返回的是一个位置的索引值，.eq()是获取这个位置的对象
+
+.index()              //jquery方法，用于DOM集合，jq对象等,获取索引值
+$('li').index()         //返回li在所有兄弟元素中的索引值
+$('#id').index('li')    //元素相对于选择器的位置，返回li在#id中的索引值
+.eq()                   //jquery方法，使用索引值,必须有入参才能用
+
+mouseover/mouseout  对父元素和子元素都有效，优先级高
+mouseenter/mouseleave  只对绑定的父元素有效，子元素无效 优先级低
+
+设置定时器
+在1秒后执行mytimer()函数
+var timer=setTimeOut(mytimer,1000)
+取消定时器
+clearTimeOut(timer)
+反复触发定时器
+var timer=setInterval(checkStatus,60000)  //每一分钟触发一次checkStatus()函数
+取消
+clearInterval(timer)
+
+
+jQuery.data()方法给选定元素附加数据
+$(selector).data(name,value)
+访问数据
+$(selector).data(name)
+
+attr()/prop()区别：
+具有 true 和 false 两个属性的属性，如 checked, selected 或者 disabled 使用prop()，其他的使用 attr()
+prop()只会返回true false
+
+jquery重置表单写法---(jquery没有reset方法，实际需调用原生js方法)：
+$('form')[0].reset()
+$('form').get(0).reset()
+
+jquery动画特效大多使用.animate()方法实现  该方法只能以动画方式调整数值类属性
+语法：
+.animate(properties[,duration][,easing][,complete])  持续时间，缓动函数，结束函数
+.animate(properties,options)
+例子
+$('img').animate({height:100,width:100},{duration:1000,easing:'linear'})
+
+停止动画,并执行后面的动画 
+stop(stopAll,goToEnd) 可设两个参数，默认都是false  1：停止并删除动画队列的其他动画 2.直接跳到最终动画，后删除动画队列
+不添加会等当前动画完毕后才执行下一条
+$('img').stop(true).animate({opacity:0.5},1000)
+
+延迟动画
+.delay(1000)
+
+.show() .hide() .toggle()等特效都包含3个可选参数(持续时间，线性，回调函数)
+.fadeTo()  //持续时间，透明度，回调函数
+
+转义符
+\'      单引号  例子字符串：'couldn\'t be'   输出couldn't be
+\"      双引号 
+\\      反斜杠
+\n      换行
+\r      回车
+
+错误调试按钮
+暂停/播放按钮：遇到断点时显示，点击时继续执行代码
+跳过按钮：逐句进行到下一行代码（非一口气进行多行）
+
+禁用表单元素
+$('x').attr('disabled','disabled')
+启用
+$('x').removeAttr('disabled')
+
+
+for/in循环  主要用于数组和对象
+var days=['monday','tuesday',''wednesday','thursday','friday'];
+for(var index in days){
+    document.write("it's"+days[index]+"<br />");
+}
+输出：
+it's monday
+it's tuesday
+it's wednesday
+it's thursday
+it's friday
+
+中断循环2个关键字：break,continue
+break结束整个循环
+continue结束当前循环，直接进入下一次循环
+
+创建数组对象多种方式:
+var arr=['111','222','333'];
+var arr2=new Array();
+var arr2[0]='one';
+var arr2[1]='two';
+
+var arr3=new Array();
+arr3.push('one');
+arr3.push('two')
+
+访问数组的最后一个元素可用length-1方法
+var last=arr[arr.length-1]
+
+合并数组
+arr.concat(arr2)
+
+数组转化为字符串
+var arr1=[12,30,40];
+var arr2=arr1.join(':'); //转化为12:30:40的字符串
+
+.map()和.each()区别
+与.each()很像，.each返回它操作的jq对象，.map返回一个新的jq对象，包含每次迭代返回的值
+var list=$('li').map(function(i){
+    return $(this).html();
+})
+
+
+indexOf() 括号内字符串必须完全匹配，返回的是索引位置不是值
+
+js访问css属性  通过DOM对象的style特性访问
+obj.style.color
+obj.style.position='absolute'
+
+background-color要这样访问
+obj.style.['background-color']
+
+static：相当于没有定位，元素会出现在正常的文档流中。
+fixed：元素框的表现类似于absolute，但是fixed是相对于视窗本身，也就是浏览器窗口而定位的。
+       所以，采用该定位的元素在页面下拉的时候，其位置并不会发生变化。
+relative：生成相对定位的元素，相对于元素本身的位置进行定位，它原本所占的空间仍然会保留。
+
+absolute：生成绝对定位的元素，相对于static定位以外的第一个有定位的祖先元素进行定位。脱离文档流
+          由于static定位相当于没有定位，所以absolute定位实际上就是相对于有定位的第一个祖先元素定位，
+          如果所有的祖先元素都没有定位，则相对于初始包含块或者画布，一般就是body元素定位。
+
+
+事件对象event的属性和方法
+currentTarget           事件处理程序正在处理事件的那个元素
+detail                  与事件相关的信息
+target                  事件的目标
+type                    事件的类型
+view                    与事件关联的抽象视图，等同于发生事件的window对象
+preventDefault()        取消事件的默认行为
+stopPropagation()       取消事件进一步捕获或冒泡
+
+*
+this等同于currentTarget，而target包含事件的实际目标
+比如事件绑定在btn的父元素上，this==currentTarget, 而target==btn
+若直接把事件处理程序指定给了目标元素，则this,currentTarget,target包含相同的值
+
+
+定时器注意点：
+setTimeOut()和setInterval()
+
+setTimeOut(handler,1000); //JS是单线程语言，此处的1000毫秒是指1000毫秒后加入执行队列，并不表示1000毫秒后立即执行
+setInterval()  缺点：1.某些间隔会被跳过 2.多个定时器之间的代码执行间隔可能会比预期的小，所以不建议使用该方法
+
+推荐方法：链式调用setTimeOut()
+setTimeOut(function(){
+    //处理中
+    
+    setTimeOut(arguments.callee,interval);
+},interval)
+
+timeoutId就是setTimeOut函数的返回值，所以定时器ID不用var声明，可作为clearTimeOut()的参数使用
+timeOutId = setTimeOut(method,1000);   
+
+
+contains()  原生js方法，不是字符串方法，用于DOM元素之间判断包含关系，包含返回true,否则返回false
+用法：
+var div1=document.getElemntById('div1')
+var div2=document.getElemntById('div2')
+div1.contains(div2)   //div1包含div2
+
+
+es6 export import 用法：
+基本用法：
+//A.JS         A模块提供变量a1和fn供其他模块调用, B模块调用
+var a1 = 111;
+function fn(){
+    //
+}
+export {a1,fn}   //在文件底部统一导出
+
+//B.JS调用A.JS
+import {a1,fn} from './A'     
+
+
+两个模块变量同名的情况:  使用as
+import {a1 as a22,fn} from './A'
+
+export default 一个模块只能用一次，因为default只能输出一个值
+default用法和作用：  1.export时可以不用{}  2.import时可以用任意名字，且不用{}
+//C.JS
+var c2='xxx';
+var c1=222;
+var config={
+    version:'1.0.0';
+}
+function fn(){
+    //
+}
+
+export default {version:'1.0.0'}   //默认导出
+export default c2   //导出c2
+
+import c2 from './C'  //只调用c2
+import c2 {c1,fn} from './c'   //调用C.JS中的所有
+
+
+es6 commonJS 模块规范
+module.exports       暴露模块
+全局方法require()     加载模块
+
+例：
+//math.js            
+module.exports = function(){  //暴露math.js模块
+    //xxxxx
+}
+var math = require('math')      //加载math模块
+math.add(2,3)                   //调用math模块的方法
+
+es6语法提示
+data(){} 等效于 data:function(){}
+
+箭头函数=>
+render:h => h(app) 等效于 
+render:function(h){
+    return h(app)
+    }
+
+/     根目录  所有目录最顶层
+./    当前目录
+../   上层目录
+===========================================================
+
+<template>标签：
+天生不可见，等于display:none,元素是被当做一个不可见的包裹元素，主要用于分组的条件判断和列表渲染。
+可以放在任意<head> <body>
+
+
+逻辑运算符&& || 参与计算:
+&&:   
+var a = check1() && check2()   //check1为真，不考虑&&后的值，a=check2()
+var a = 0 && 1                 //0为假，不考虑&&后的值，a=0
+
+||:
+var a = check1() || check2()   //check1为真，则不考虑check2  a=check1
+var a = check1() || check2()   //check1为假，则a=check2
+
+
+
+
+clientHeight: 元素内容的高度（不含边框）
+offsetHeight: 元素内容的高度（含边框）
+scrollHeight: 当前不可见部分的元素的高度(即网页全文的高度)。
+              而可见部分的高度其实就是clientHeight，也就是scrollHeight >= clientHeight恒成立。
+              在有滚动条时讨论scrollHeight才有意义，在没有滚动条时scrollHeight == clientHeight
+
+scrollTop: 有滚动条时，滚动条向下滚动的距离,在没有滚动条时scrollTop == 0
+offsetTop: 子元素上边框距离父元素顶部的距离 (和滚动条无关)
+
+
+完美的获取scrollTop 赋值短语 ： 
+var scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+**
+documentElement返回文档的根节点
+
+for/in 和for/of循环的区别：
+for/in遍历的是索引   for/in适合遍历对象
+for/of遍历的是value  for/of适合遍历数组

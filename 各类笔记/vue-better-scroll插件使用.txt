@@ -1,0 +1,123 @@
+1.安装
+npm install better-scroll --save   //运行时依赖
+
+
+2.使用
+<template>
+  <div class='wrapper'>  //创建容器，必须
+    <ul> //要滚动的内容，wrapper容器内只能创建一个元素
+      ...
+    </ul>
+</template>
+
+<script>
+import BSscroll from 'better-scroll'   //引入模块
+export default {
+data(){
+  return {
+    scroll: null     //保存scroll  
+  }
+},
+
+//加载时调用 
+mounted(){
+  this.scroll = new BSscroll(document.querySelecor('.wrapper'),{  //传如需要滚动的容器，和一个可选对象，里面可以设置某些特性
+    probeType: 2,       //设置是否实时侦测滚动位置， 0,1不侦测  2实时侦测(手指离开时不侦测)  3手指离开时也侦测
+    click: true,        //是否允许监听click事件
+    pullUpLoad: true    //设置是否上拉加载更多
+  });   
+  
+  this.scroll.on('scroll',(position) => {  //监听scroll事件，获取实时滚动位置
+    console.log(position)
+  })
+
+  this.sroll.on('pullingUp',() => { //监听pullingUp事件，触发上拉加载更多，只能触发第一次
+    console.log('上拉加载更多')
+    //网络请求相关代码..
+
+    setTimeout(() => {
+      this.scroll.finishPullUp();   //调用该事件后，才能多次触发pullingUp事件   
+    },2000)
+  })
+
+  
+}
+}
+
+</script>
+
+<style>
+.wrapper{
+  height: 200px;   //必须给滚动元素固定高度
+  overflow: hidden;
+}
+</style>
+
+
+-----------------------------------------
+封装better-scroll插件，降低对第三方组件的依赖度
+
+1.创建scroll.vue组件:
+
+<template>
+  <div class="wrapper" ref='wrapper'>
+    <div class="content">
+      <slot></slot>    /**不要忘记加插槽*/
+    </div>
+  </div>
+</template>
+
+<script>
+  import BSscroll from 'better-scroll'   //导入bs组件
+
+  export default {
+    name: 'scroll',
+    data(){
+      return {
+        scroll: null
+      }
+    },
+    mounted(){
+      let wrapper = this.$refs.wrapper;   //通过$refs获取到的对象肯定是唯一的，比通过document.querySelecor方法更准确
+      this.scroll = new BSscroll(wrapper,{  //创建滚动对象
+        probeType: 2,     //监听滚动位置
+        pullUpLoad: true  //上拉加载更多
+      })
+
+    }
+  }
+</script>
+
+2.在要使用的父组件内引用该组件:
+<script>
+import scroll from 'components/scroll/scroll'
+</script>
+
+<template>
+  <scroll class='content'>
+    xxxxx滚动的内容
+  </scroll>
+</template>
+
+<style>
+  .content{
+    height: 300px;   //一定要设置高度！！
+  }
+</style>
+
+
+如何实现“回到顶部”按钮的功能？
+思路：
+1.创建一个回到顶部组件，在home组件内直接监听这个组件,需要加上native修饰符才能对组件进行监听
+
+<backTop @click.native="backClick"></backTop>
+
+2.对scroll组件添加ref属性，然后直接在backClick方法内通过$refs调用它
+
+<scroll ref="scroll">
+
+methods:{
+  backClick(){ //两个scroll代表scroll组件中的scroll对象的scrollTo方法  
+    this.$refs.scroll.scroll.scrollTo(0,0)    //调用scroll对象的scrollTo方法，使整个scroll返回顶部
+  }
+}

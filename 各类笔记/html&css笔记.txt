@@ -1,0 +1,552 @@
+伪类使用单冒号
+:hover :visted :active :link
+:first-child
+:checked   :disabled 等等
+
+伪元素 双冒号
+::first-line        //首行   只能用于块级
+::first-letter      //首字母
+::after ::before    //在选中元素前面或后面插入内容,配合content使用
+p::after{
+    content:'xxx'
+}
+
+负外边距的效果：
+负margin-left,margin-top：元素会向反方向移动
+负margin-right,margin-bottom：元素会把相邻的元素往自己拉，使其和自己重叠
+
+
+
+表格对象table的各种属性：
+tableObject.rows            //返回表格中所有的行
+tableObject.rows.length     //返回行的数目
+tableObject.cells           //返回表格中所有<th>和<td>元素
+rows[index].cells           //该行所有单元格组成的数组
+rows[index].cells[index]   //返回具体单元格  
+例子：
+document.getElemnetById('myForm').rows[0].cells.length    //表格第一行的所有单元格数量
+
+
+样式问题：
+行内元素的margin-left,margin-right,padding-left,padding-right都是有效的，top/bottom无效
+行内元素设置display:block,float效果后可设置height/width;
+
+
+onload事件通常用在<body>元素上
+<body onload=function(){}>
+
+
+文本大小写样式
+text-transform:uppercase,lowercase,capitalize(首字母大写)
+
+
+偏移量：
+offsetTop       指元素距离上方或上层控件的位置，整型，单位像素
+offsetLeft      指元素距离左方或上层控件的位置，整型，单位像素
+
+offsetWidth     指元素控件自身的宽度，整型，单位像素。
+offsetHeight    指元素控件自身的高度，整型，单位像素。
+
+客户区大小 
+document.body.clientWidth    网页可见区域宽度
+document.body.clientHeight   网页可见区域高度
+
+document.body.offsetWidth    网页可见区域宽度，包括边线宽度
+document.body.offsetHeight   网页可见区域高度，包括边线宽度
+
+document.body.scrollWidth    网页正文全文宽
+document.body.scrollHeight   网页正文全文高
+
+滚动大小:
+scrollTop       被隐藏的内容区域上方的像素数
+scrollLeft      被隐藏的内容区域左侧的像素数
+
+scrollWidth     没有滚动条下，整个内容区域宽度
+scrollHeight    没有滚动条下，整个内容区域高度
+
+禁用文字换行：
+white-space:nowrap;
+
+p:nth-child(n)      //选择每个P元素是其父级的第n个元素，不论类型，是第n个就行
+p:nth-of-type(n)    //选择每个p元素是其父级的第n个p元素, p里面的位置
+
+字体:
+font-family
+font-size  px,em,百分比 3种
+font-style (斜体等)
+font-weight  粗体细体
+复合声明
+font: xxx xxx xxx xxx
+
+图片
+img  width:100%  会实现响应式功能
+设置max-width:100%      图片永远不会大于原始图片
+
+兄弟元素之间的margin会发生合并；
+
+清除浮动
+父元素设置         在父元素结束标签的前面加一个空类，效果是清除浮动，这样的好处是不用多加一个无用的div标签用来清除浮动
+clearfix::after{
+    content:'';
+    clear:both;
+    display:block;   
+}
+BFC概念，计算BFC块级元素高度时，浮动元素也参与计算
+简单理解：父元素未设置高度的情况下，overflow会包含浮动子元素的高度,所以overflow可清除浮动
+.parent{     //父元素设置这3个方法均能包裹住浮动子元素
+    display:inline-block;
+    position:absolute;
+    overflow:hidden;        
+}
+
+position:absolute脱离文档流，会变成块级，不设置tlbr,文档还在原来的位置,不会偏移,
+
+display:table     父元素设置该样式，子元素设置table-cell,可以使文字垂直居中
+
+CSS3用户界面:
+box-sizing:content-box(默认值)        //标准盒模型  对象实际宽度=width+padding+border
+width=200px;padding=10px;border=5;   实际宽度=200+10*2+5*2=230;
+
+box-sizing:border-box                //怪异盒模型  对象实际宽度=设置的宽度width,包含了padding和border
+width=200px;padding=10px;border=5;  实际宽度=200；元素的content宽度实际只有200-10*2-5*2=170
+
+使用vertical-align垂直居中  要设置line-height和height一致
+
+
+div p   div的所有后代P
+div>p   div中的所有子元素p
+div+p   div后的第一个p
+
+
+css实现下拉菜单
+容器元素设置class='dropdown'
+显示元素设置class='dropdown-content', 且display='none'
+css实现工具栏提示
+
+class='tooltip'  
+显示元素设置class='tooltiptext'
+
+CSS3
+过渡动画
+transition: 属性，持续时间
+transition:width 2s     //给宽度增加过度效果，持续2秒
+transition: width 2s, height 2s, transform 2s;      //宽度，高度，变换都增加过渡效果，持续2秒
+例子:
+div{width:100px;transition:width 2s}  //添加过渡动画属性
+div:hover{width:200px}                //设置hover时的宽度
+
+转换:（移动，缩放，转动，拉伸）
+transform:rotate(xxdeg)             //2d旋转
+transform:translate(10px,50px)      //2d移动元素（left,top）
+transform:scale(2,3)                //2d转换缩放元素大小，元素宽度是原来2倍，高度是原来3倍
+transform:rotateX(xxdeg)            //X轴3d旋转
+transform:rotateY(xxdeg)            //y轴3d旋转
+
+创建动画
+@keyframe  //声明规则 
+例子：
+div{                  
+    width:100px;
+    height:100px;
+    animation:myfirst 5s;    //模块添加动画属性 必须定义动画名称和动画时间
+}
+@keyframe myfirst{           //myfirst捆绑到动画上
+    from {background:red;}    //from,to 等同于0% 100%
+    to {background:yellow;}
+}
+@keyframe myfirst{
+    25% {background:red;left:0;top:50px;}
+    50% {background:yellow;}
+    75% {background:green;}
+    100% {background:black;}
+}
+
+
+媒体查询
+@media mediaType and|not|only (media feature) {
+    CSS 代码...;
+}
+
+mediaType: all：所有设备； print：打印机； screen：电脑屏幕手机平板
+and：将多个媒体特性链接在一起，相当于"且" （使用较多）
+     常用特性:width, max-width,  min-width 
+not：排除某个媒体类型，相当于“非”，可以省略
+only: 指定某个特定的媒体类型，可以省略
+
+
+@media   在同一样式表内为不同媒体设置不同样式
+例：
+@media screen and (max-width:600px)  //小于等于600px宽度时样式
+{
+    p.test{
+        font-family:verdana;font-size:14px;sans-serif;
+    }
+}
+
+@media screen and (min-width: 400px) and (max-width: 800px) { //多重条件
+    //css code
+} 
+
+
+@media print    //打印机样式
+{
+    p.test{
+        font-family:times;font-size:10px;serif;
+    }
+}
+
+多列:
+column-count:number         //列数
+column-gap:40px             //列之间间隙
+column-rule-style:solid     //列之间分割线样式
+column-rule-color:          //分割线颜色
+
+阴影
+box-shadow: 10px 10px 5px #888888;      //水平阴影，垂直阴影，模糊的距离，以及阴影的颜色
+text-shadow:5px 5px 5px #fff;
+背景剪裁
+background-clip:padding-box||content-box
+背景渐变
+background: linear-gradient(direction, color-stop1, color-stop2, ...);  direction可以是:to left ,to right bottom, xxdeg(方向值)
+
+
+
+flex---弹性布局  
+
+父元素(flex-container)的属性：
+display:flex   
+
+direction和wrap的简写形式：
+flex-flow:  <flex-direction> || <flex-wrap>;
+
+指定子元素在父元素中的排列方向
+flex-direction: row(默认值) | row-reverse | column | column-reverse    
+
+子元素在主轴上的方式
+justify-content: flex-start(左对齐) | flex-end(右对齐) | center | space-between(两端对齐) 
+                 space-around(items之间间隔相等) | space-evenly (包括边框所有间隔相等)
+
+子元素在纵轴上的对齐方式
+align-items: flex-start(纵轴顶部对齐) | flex-end(纵轴底部对齐) | center(纵轴中点对齐) 
+             baseline(第一行文字基线对齐) | stretch(默认值，占满整个容器高度)       
+
+子元素换行方式   nowrap(不换行)默认值
+flex-wrap: nowrap|wrap|wrap-reverse|initial|inherit;      
+
+各个行的对齐，子元素堆叠方式 如果只有一根轴线则该属性无效
+align-content: flex-start | flex-end | center | space-between | space-around | space-evenly | stretch    
+
+
+
+子元素(flex-items)的属性:
+margin:auto  可以完全居中
+order:  定义item的排列顺序。数值越小，排列越靠前，默认为0  必须为整数  (用的比较少，一般都是默认排序)
+
+单独设置某个子元素在纵轴上的位置，和align-items设置一样
+align-self: auto | flex-start | flex-end | center | baseline | stretch     
+
+flex包括了flex-grow flex-shrink flex-basis 3个设置,默认值0 1 auto
+flex: auto | initial | none | inherit |  [ flex-grow ] || [ flex-shrink ] || [ flex-basis ]   //指定子元素占据的空间 
+
+这3个属性都可以在flex内设置
+flex-grow:  定义items的放大比例，默认为0，即如果存在剩余空间，也不放大
+            如果所有items的flex-grow属性都为1，则它们将等分剩余空间（如果有的话）。
+            如果一个items的flex-grow属性为2，其他items都为1，则前者占据的剩余空间将比其他项多一倍。
+flex-shrink: 定义了items的缩小比例，默认为1，必须是非负数，即如果空间不足，该items将缩小。
+             当flex-items在main-size方向超过flex-container的size，该属性才有效
+             如果所有items的flex-shrink属性都为1，当空间不足时，都将等比例缩小。
+             如果一个items的flex-shrink属性为0，其他items都为1，则空间不足时，前者不缩小。
+             负值对该属性无效。  
+flex-basis:  定义了在分配多余空间之前，items在主轴(main-size)上的大小。
+             浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为auto，即items的本来大小。
+
+ 
+
+css属性选择器：
+<a href='' title='david'>xxx</a>
+
+[title]或者[title=david]{
+    color:blue;
+}
+
+表单选择器
+input[type=text]{
+
+}
+
+伪类选择器：
+first-child  | last-child | nth-child
+first-of-type | last-of-type | nth-of-type 
+
+li:nth-child(n/odd/even): 选择父元素中的第几个子元素
+nth-child和nth-of-type区别：  child: 选择器匹配属于其父元素的第 N 个子元素，不论元素的类型
+                             type:  选择器匹配属于父元素的特定类型的第 N 个子元素的每个元素
+
+
+:nth-child(n)的使用技巧:
+正方向范围:
+li:nth-child(n+6)   //选中从第6个开始的子元素
+
+负方向范围:
+:nth-child(-n+9)    //选中从第1个到第9个子元素。使用 :nth-child(-n+9) ，就相当让你选中第9个和其之前的所有子元素
+
+
+前后限制范围
+:nth-child(n+4):nth-child(-n+8)  //选中第4-8个子元素。使用 nth-child(n+4):nth-child(-n+8) 我们可以选中某一范围内子元素，上面的例子里是从第4个到第8个子元素
+
+奇数、偶数位
+:nth-child(odd)
+:nth-child(even)
+
+隔选择子元素
+:nth-child(3n+1)     //选择1,4,7,10
+
+
+垂直居中:
+vertical-align只对inline, inline-block, table-cell元素有效  
+块元素div转变为行内元素：
+display:table-cell 
+vertical-align: middle 
+当一个div内为空时，他以自己底部margin边界为基线对齐，当一个div内有文字时，他以文字的baseline为基线对齐
+
+img元素的基线就是图片下边缘
+img和文字居中对齐：对img设置vertical-align: middle 
+
+推荐使用flex 
+对父元素设置 display: flex   align-items: center 
+
+
+
+样式文件中导入另外的样式文件语法：
+@import url('xxxx')  
+
+
+行内元素获得设置宽高的方法：
+1. position: fixed || absolute
+2. float: left || right
+3. display: block || inline-block || flex
+
+
+
+css高级技巧：
+精灵图：把多张图放在一张大图上，避免频繁请求造成负载压力
+一般用在背景图上
+使用方法:
+background: url('xxx.png')         //背景大图
+background-position: xcode, ycode  //利用background-position坐标 显示对应的图片
+
+
+字体图标  iconfont
+展示的是图标 本质是字体 比精灵图小，放大缩小不会失真  
+
+1.下载字体图标  
+http://icomoon.io  国外字体库  
+http://www.iconfont.cn   阿里字体库 推荐
+
+2.使用
+第一步：拷贝项目下面生成的 @font-face
+@font-face {
+  font-family: 'iconfont';
+  src: url('iconfont.eot');
+  src: url('iconfont.eot?#iefix') format('embedded-opentype'),
+      url('iconfont.woff2') format('woff2'),
+      url('iconfont.woff') format('woff'),
+      url('iconfont.ttf') format('truetype'),
+      url('iconfont.svg#iconfont') format('svg');
+}
+第二步：定义使用 iconfont 的样式
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+第三步：挑选相应图标并获取字体编码，应用于页面
+<span class="iconfont">&#x33;</span>
+
+
+
+css实现三角形原理
+盒子设置width height = 0
+设置4个border的长度且一致，color   会变成4个三角形组成的一个正方形 
+
+三角形实现：
+height: 0
+width: 0
+border: 10px solid transparent  //transparent: 3个边框默认值透明
+border-top-color: red  //底部设置颜色，形成向上的三角形
+
+
+
+transition运用：图片hover时放大且有动画过渡的效果:
+img:hover {
+    transform: scale(1.2)   //放大1.2倍， x,y轴一样放大倍数时，写一个参数即可
+}
+img {  
+   transition: all .4s   //给img添加过渡效果
+}
+
+
+
+
+css实现小熊奔跑动画：
+思路：animation使用step() 步长函数 实现关键帧
+代码：
+div{
+    width: 200px;
+    height: 100px;
+    background: url('xxx.png') no-repeat
+    animation: bear 1s steps(8) infinite  //绑定动画，使用步长函数播放,分8步即8张图，无限循环
+}
+@keyframe bear {
+    from {background-position: 0 0;}     //移动X轴 实现动画播放
+    to {background-position: -1600px 0;} //一共8张图，每张图200px宽度
+}
+
+一个元素可以绑定多个动画，直接在animation后面加逗号分隔
+animation: bear 1s steps(8) infinite, move 2s ease forwards  //forward停留在结束状态
+
+
+
+css实现时钟秒针动画：
+原理：
+@keyframe clock {
+    0% {transform: rotate(0deg);}
+    100% {transform: rotate(360deg);}
+}
+
+.item {
+    animation: clock 60s steps(60) infinite
+    transform-origin: center bottom  //旋转基准点
+}
+
+
+CSS 3d属性相关：
+transform: rotateX() / rotateY() / rotateZ() / rotate3D()   //沿X轴旋转，沿Y轴旋转，沿Z轴旋转（平面），复合写法
+
+父元素添加透视属性：
+perspective: 200px  //近大远小
+
+旋转时子元素保留立体空间：
+transform-style: preserve-3d  //写在父级上
+
+有移动和旋转效果的，必须先移动后旋转:
+.box {
+    transfrom: translateY(100px) rotateX(-90deg)  
+}
+
+
+
+视口：
+视口就是浏览器显示页面内容的屏幕区域，视口可分为布局视口，视觉视口，理想视口
+布局视口：web端的页面会压缩显示到手机端，需通过手机缩放页面  不适合移动端开发
+
+视觉视口：只显示手机端屏幕区域的视口，无法显示全部网站内容
+
+理想视口： 设置meta name="viewport" content="width=device-width"  
+
+
+
+----------------------------------------------
+移动端样式初始化: normalize.css  //预设置了很多适合移动端的样式
+
+背景色渐变： 移动端要加-webkit前缀
+background: linear-gradient(方向(to left/to right/to top right..)，起始颜色，终止颜色)
+
+---------------------------------------------------------
+
+rem布局
+rem：相对单位，类似于em,em是相对于父元素字体大小,rem的基准是相对于html元素的字体大小
+比如根元素html设置font-size: 12px 非根元素设置width: 2rem  则换算成px就是24px
+rem优势：
+仅修改html的font-size即可控制整个页面的动态大小
+
+html font-size: 14px
+div 设置height width:10rem  即140px
+
+
+
+媒体查询+rem实现网页动态大小调整：
+@media screen and (max-width: 400px) {
+    html {
+        font-size: 50px
+        
+    }
+}
+@media screen and (min-width: 400px) {
+    html {
+        font-size: 100px
+    }
+}
+.top {
+    font-size: .5rem
+}
+
+
+less编译可以采用vscode内的easy less插件，写完less文件保存后自动生成对应的css文件
+rem布局时注意所有样式都要在less文件内编写，不要在css里写，容易乱
+
+rem技术方案1：
+rem + 媒体查询 + less 
+
+rem技术方案2(推荐)：  和方案1原理是一样的
+flexible.js + rem  
+
+
+方案1：rem + 媒体查询 + less 
+苏宁首页rem布局案例公共样式：common.less文件:
+html {
+    font-size: 50px   //pc端默认大小
+}
+ 
+@no: 15;   //把首页宽度划分15等份 
+
+@media screen and (min-width: 320px) {  //320宽度设备
+    html {
+        font-size: 320px / @no;   //宽度除以15等份
+    }
+}
+@media screen and (min-width: 640px) {
+    html {
+        font-size: 640px / @no;  
+    }
+}
+@media screen and  (min-width: 750px) {
+    html {
+        font-size: 750px / @no;   
+    }
+}
+....以此类推
+
+
+页面元素算法： 页面元素的px / html字体大小
+
+
+index.less
+------------------
+所有测量出的高度宽度值除以@baseFont 得到对应的rem值 即rem布局的原理
+@baseFont: 50;  //标准页面下font-size的值 即1rem 
+div {
+    width: 15rem;              //html font-size:50px  所以width为15rem即750px
+    height: 88rem / @baseFont;  //标准页面下原始高度88px, 88rem表示除完以后的单位，即(88/@baseFont)rem  1.67rem
+}
+
+div {
+    margin: 20rem / @baseFont   //所有数值都转化为rem值
+}
+
+
+
+
+方案2： rem + flexible.js   //手机淘宝团队的js库  将屏幕划分为10份，不需要写媒体查询
+
+flexible地址:
+https://github.com/amfe/lib-flexible   //html内引入该js库
+
+
+
+px自动转rem插件
+vscode搜索： cssrem    默认html字体大小16px  可在设置中修改
+
+

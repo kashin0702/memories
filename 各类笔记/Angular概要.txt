@@ -1,0 +1,160 @@
+获取外部数据：
+function TimeTableCtrl($scope,$http){
+    $http.get('xxx/xx.json');           //获取json数据
+    .success(function(data){            //成功获取数据时，将json的数据传递给$scope对象，这样模板就会显示这些数据了
+        $scope.sessions=data.sessions;
+    })
+    .error(function(data){          //失败就执行error函数，将其输出到控制台
+        $console.log('error')
+    });
+}
+
+json片段：
+{
+    "sessions":[
+        {"time":"9.00","title":"intro to 3d modeling","detail":"come..."}
+        {"time":"10.00","title":"circuit hacking","detail":"head to..."}
+        {....}
+    ]
+}
+
+html模板：
+<table ng-controller="TimeTableCtrl">
+    <tr><th>time</th><th>title</th><th>detail</th></tr>
+    <tr ng-repeat="lecture in sessions">        //ng-repeat指示符：表示表格行被视作循环，为sessions数组中的每一个对象创建一个新的表格行
+    <td>{{lecture.time}}</td>                   //sessions对应json中的对象名称
+    <td>{{lecture.title}}</td>
+    <td>{{lecture.detail}}</td>
+    </tr>
+</table>
+
+概要：
+-------------------------------------------------
+angular表达式可以直接写在html页面中，须放在双花括号中
+angular容错率更高，空值不会报错,js会报错
+angular不支持分支，循环，异常处理
+
+ng-app          // 如<body ng-app>  表示所有angular应用处于body元素内
+ng-model        //执行双向绑定，将html输入的元素值与angular某个变量绑定，绑定后变量随输入值变化而变化
+
+简单的表达式
+<body ng-app>
+{{2*5+200/3}}
+{{'hello'+'fkit.org'}}
+
+
+ng-bind    //将表达式的值绑定到元素上
+<p ng-bind='2*5+200/3'></p>
+
+ng-init     //声明变量，多个变量用分号分隔
+ng-init="name='疯狂软件';domain='fkit.org'"
+
+声明对象:
+ng-init="fkit={name:'疯狂软件'，domain:'fkit.org'}"
+声明数组：
+ng-init="users=[{name:'xxx',age:20},{name:'aaa',age:30},{name:'ccc',age:50}]"
+
+获取对象
+fkit.name  fkit.domain
+获取数组
+{{users[0].name,users[0].age}}
+
+模块和控制器
+模块相当于一个独立的angularJS应用，控制器是模块的下一级程序单元，也表示模块内的重要作用域
+
+匿名模块和命名模块   
+命名模块语法：  angular.module()
+angular.module(name,[requires],[configFn])   //name是模块名，第二个参数是数组，指定该模块要依赖的模块名，第三个参数传入一个配置函数
+
+例子:
+<div ng-app='fkApp' ng-controller='fkCtrl'>  //指定ng-app属性值，表示是命名模块   ng-controller定义控制器
+    <input type='text' ng-model='name'>
+    {{name}}
+</div>
+<script>
+    var app=angular.module('fkApp',[]);
+    app.value('name','xxx');            //为模块设置变量
+    app.constant('max_age','100')       //为模块设置常量
+
+    app.controller('fkCtrl',function(name,max_age){   //使用控制器的controlle()方法
+        console.log(name);
+        console.log(max_age);
+    })
+</script>
+
+启动指定模块的方法： .bootstrap()
+var app=angular.module('name',[])
+angular.bootstrap(dom元素,['name'])
+
+控制器初始化$scope对象
+$scope可以看做控制器对应的作用域
+通过$scope作用域指定的属性，和html中的ng-model是双向绑定的
+
+$rootScope 
+对应整个应用，$rootScope指定的属性可以跨控制器共享
+
+$watch  监听函数
+$watch(watchExpression,listener,[objEquality]) 
+第1参：指定要监听的属性  第2参：指定监听函数(可带2个形参，1：该属性之前的值2：修改后的值)  
+第3参：可选，是否使用angular.equals()来判断2个值是否相等，默认false
+
+
+过滤器      //使用管道符|将过滤器添加到表达式中
+------------------------------------------------
+currency    //将数字转换为货币字符串 ,symbol指定货币符号， fractionSize指定小数的位数
+html中用法: {{currency_expression|currency:symbol:fractionSize}}   
+js中用法: $filter('currency')(amount,symbol,fractionSize)
+
+date     //日期转化为字符串   format指定格式化模板，timezone指定时区
+html:{{date_expression|date:format:timezone}}
+js:$filter('date')(date,format,timezone)
+
+filter     //对集合中的元素过滤，expression过滤条件，该条件可以是字符串，对象，函数; comparator判断相等的比较函数;anyPropertyKey执行比较的属性名
+html: {{filter_expression|filter:expression:comparator:anyPropertyKey}}
+js:$filter('filter')(array,expression,comparator,anyPropertyKey)
+
+json    //js转化为json字符串   object指定转换得到的json的缩进字符数，默认2
+html:  {{json_expression|json:spacing}}
+js: $filter('json')(object,spacing)
+
+limitTo    //截取数组，类数组结构，字符串等数据的中间一段  limit截取的结束点，begin开始点 默认0
+{{limitTo_expression|limitTo:limit:begin}}
+$filter('limitTo')(input,limit,begin)
+
+lowercase     //字符串转化为小写
+{{lowercase_expression|lowercase}}
+$filter('lowercase')(str)
+
+uppercase     //字符串转化为大写
+{{uppercase_expression|uppercase}}
+$filter('uppercase')(str)
+
+number      //数值转化为字符串      fractionSize指定小数部分的位数
+{{number_expression|number:fractionSize}}
+$filter('number')(number,fractionSize)
+
+orderBy     //对数组，类数组进行排序
+{{orderBy_expression|orderBy:expression:reverse:comparator}}
+$filter('orderBy')(collection,expression,reverse,comparator)
+
+
+
+angular内置各种api
+angular.bind(obj,fn,args)    将fn函数绑定为obj的方法
+
+angular.copy(source,[destination])     深拷贝，将source拷贝到destination中,destination原有包含的所有元素会删除
+
+angular.merge(dst,srcs)         深拷贝，将多个srcs拷贝到dst中，srcs对象的值不会改变，dst原有属性会保留
+
+angular.extend(dst,srcs)        浅拷贝，将多个srcs拷贝到dst中，srcs值不会发生改变
+
+angular.equals()                判断2个对象是否相等
+
+
+
+angular.forEach(obj,iterator,[context])   使用iterator函数遍历obj对象
+
+angular.fromJson(json)    json字符串恢复到js对象
+
+angular.identity()      形如一个function(x){return x}的函数， 返回传入参数，主要用于避免空函数异常
+

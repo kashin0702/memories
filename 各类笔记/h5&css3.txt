@@ -1,0 +1,39 @@
+h5新特性
+1.video视频  支持ogg,mp4,webM三种视频格式
+<video src="pic/xxx.ogg" controls="controls"></video>  //control提供播放，暂停，音量控件  video标签之间插入内容是给不支持该标签的浏览器显示的
+属性：autoplay 自动播放
+     width height 设置视频宽高
+     loop 循环播放
+     controls 展示控件
+     preload 在页面加载时加载视频，并预备播放
+
+2.audio音频 支持Ogg,mp3,wav三种音频格式
+<audio src="pic/xxx.ogg" controls="controls"></audio>
+属性：和video一样
+
+3.拖放 drag drop
+
+
+4.canvas 画布 创建供js进行绘制图形的区域 标签之间给不支持的浏览器显示用
+<canvas id="myCanvas" width="200" height="100" ></canvas>
+
+<script type="text/javascript">
+var c=document.getElementById("myCanvas");
+var cxt=c.getContext("2d");
+cxt.fillStyle="#FF0000";
+cxt.fillRect(0,0,150,75);
+</script>
+
+5.svg 可伸缩矢量图形
+
+
+6.
+
+CSS3新特性
+文本效果
+text-shadow
+box-shadow
+text-overflow
+word-wrap 长文本换行，适合长单词或连续数字，有时候连续数字和字母会溢出盒子
+word-break 单词拆分换行
+

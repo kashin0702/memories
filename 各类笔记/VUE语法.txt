@@ -1,0 +1,74 @@
+挂载vue语法:
+var app1 = new Vue({
+    el:'#app',
+    data:{
+        xxx:yyy
+    },
+    methods:{
+        handler:function(){
+
+        }
+    },
+    computed:{
+        add:function(){
+
+        }
+    },
+    mounted:function(){
+
+    }
+})
+
+自定义组件语法:
+Vue.component('my-component',{
+    props:[],    //数组或对象
+    data:{
+        return {
+            xxx:yyy
+        }
+    },
+    template:'
+        <div>\
+        <button @click="increase">xxxx</button>\
+        <button @click="reduce">xxx</button>\
+        </div>',
+    methods:{
+        increase:function(){
+            this.value++
+        },
+        reduce:function(){
+            if(this.value>0){
+                this.value--;
+            }
+        }
+    }
+})
+
+自定义指令语法
+<div v-xxx=""></div>
+ 
+Vue.directive('xxx',{
+    bind:function(el,binding){
+
+    },
+    unbind:function(el){
+
+    }
+})
+
+
+<div :class="{'active':isActive,'error'=isError}"    //class='active'
+
+var app = new Vue({
+    el:'#app1',
+    data:{
+        isActive:true,
+        isError:false
+    }
+})
+
+<template v-for="option in options">
+    <tr>
+        <td>{{option.name}}</td><td>{{option.value}}</td>
+    </tr>
+</template>
