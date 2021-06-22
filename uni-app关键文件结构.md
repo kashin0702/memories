@@ -1083,3 +1083,872 @@ export default {
 }
 ```
 
+
+
+## 27 -原生小程序配置文件和全局方法
+
+### siteInfo.js
+
+```js
+//上线后修改 这个ENV的值就行了 一般为dev（本地调试） 或test（测试环境） 或 prod（生产环境）
+//上线之前 修改下面三个常量 其他不用修改
+const ENV = "test";
+const VERSION = '1.1.0';
+const UPTATE_TIME = '2020-09-24';
+const UNIACID = '10001' //集团id
+const WXAPP_ID = '10001' //具体门店id 
+// 10001 wxa8d3ec604f01906a   27
+// 20001 wx09e94933c9b6efd7   金泰兰
+const NAME = 'Hello27用户端'
+const WSS_URL = 'wss://mp3wss.minstech.cn/wss'
+// const WSS_URL = 'ws://127.0.0.1:7001'
+let siteinfo = {}
+if (ENV == 'prod') {
+  siteinfo = {
+    'api_root': 'https://mp3.minstech.cn/ex/php/web/',
+    'version': VERSION,
+  }
+} else if (ENV == 'test') {
+  siteinfo = {
+    'api_root': 'https://mp3test.minstech.cn/ex/php/web/',
+    'version': "测试环境" + VERSION,
+  }
+} else {
+  siteinfo = {
+    'api_root': 'http://ex.cn/',
+    'version': "开发环境" + VERSION,
+  }
+}
+siteinfo.wss_url = WSS_URL
+siteinfo.update_time = UPTATE_TIME
+siteinfo.uniacid = UNIACID
+siteinfo.imageUrl ='https://minstech-catering.oss-cn-hangzhou.aliyuncs.com/10002/img/'
+siteinfo.wxapp_id=WXAPP_ID;
+module.exports = siteinfo;
+
+```
+
+### app.js
+
+```js
+
+/**
+ * tabBar页面路径列表 (用于链接跳转时判断)
+ * tabBarLinks为常量, 无需修改
+ */
+
+const tabBarLinks = [
+  'pages/index/index',
+  'pages/category/index',
+  'pages/flow/index',
+  'pages/user/index'
+];
+
+// 站点配置文件
+import siteinfo from './siteinfo.js';
+var wss_url = siteinfo.wss_url
+// 工具类
+import util from './utils/util.js';
+let lastRequestInfo = {
+  lastClickTime: 0,
+  lastUrl: ''
+}
+const log = require('./utils/log.js');
+App({
+  log: log,
+
+  /**
+   * 全局变量
+   */
+  util,
+  globalData: {
+    user_id: null,
+  },
+
+  // api地址
+  api_root: siteinfo.api_root + 'index.php?s=/api/',
+
+  /**
+   * 生命周期函数--监听小程序初始化
+   */
+  onLaunch(e) {
+    let _this = this;
+    // 小程序主动更新
+    _this.updateManager();
+    // 小程序启动场景
+    _this.onStartupScene(e.query);
+    _this.setNavBar();
+
+  },
+  getShopId(){
+    return wx.getStorageSync('shop_id')
+  },
+    //贝塞尔曲线动画
+    bezier: function (points, times) {
+      console.log(points)
+      // 0、以3个控制点为例，点A,B,C,AB上设置点D,BC上设置点E,DE连线上设置点F,则最终的贝塞尔曲线是点F的坐标轨迹。
+      // 1、计算相邻控制点间距。
+      // 2、根据完成时间,计算每次执行时D在AB方向上移动的距离，E在BC方向上移动的距离。
+      // 3、时间每递增100ms，则D,E在指定方向上发生位移, F在DE上的位移则可通过AD/AB = DF/DE得出。
+      // 4、根据DE的正余弦值和DE的值计算出F的坐标。
+      // 邻控制AB点间距
+      var bezier_points = [];
+      var points_D = [];
+      var points_E = [];
+      const DIST_AB = Math.sqrt(Math.pow(points[1]['x'] - points[0]['x'], 2) + Math.pow(points[1]['y'] - points[0]['y'], 2));
+      // 邻控制BC点间距
+      const DIST_BC = Math.sqrt(Math.pow(points[2]['x'] - points[1]['x'], 2) + Math.pow(points[2]['y'] - points[1]['y'], 2));
+      // D每次在AB方向上移动的距离
+      const EACH_MOVE_AD = DIST_AB / times;
+      // E每次在BC方向上移动的距离 
+      const EACH_MOVE_BE = DIST_BC / times;
+      // 点AB的正切
+      const TAN_AB = (points[1]['y'] - points[0]['y']) / (points[1]['x'] - points[0]['x']);
+      // 点BC的正切
+      const TAN_BC = (points[2]['y'] - points[1]['y']) / (points[2]['x'] - points[1]['x']);
+      // 点AB的弧度值
+      const RADIUS_AB = Math.atan(TAN_AB);
+      // 点BC的弧度值
+      const RADIUS_BC = Math.atan(TAN_BC);
+      // 每次执行
+      for (var i = 1; i <= times; i++) {
+        // AD的距离
+        var dist_AD = EACH_MOVE_AD * i;
+        // BE的距离
+        var dist_BE = EACH_MOVE_BE * i;
+        // D点的坐标
+        var point_D = {};
+        point_D['x'] = dist_AD * Math.cos(RADIUS_AB) + points[0]['x'];
+        point_D['y'] = dist_AD * Math.sin(RADIUS_AB) + points[0]['y'];
+        points_D.push(point_D);
+        // E点的坐标
+        var point_E = {};
+        point_E['x'] = dist_BE * Math.cos(RADIUS_BC) + points[1]['x'];
+        point_E['y'] = dist_BE * Math.sin(RADIUS_BC) + points[1]['y'];
+        points_E.push(point_E);
+        // 此时线段DE的正切值
+        var tan_DE = (point_E['y'] - point_D['y']) / (point_E['x'] - point_D['x']);
+        // tan_DE的弧度值
+        var radius_DE = Math.atan(tan_DE);
+        // 地市DE的间距
+        var dist_DE = Math.sqrt(Math.pow((point_E['x'] - point_D['x']), 2) + Math.pow((point_E['y'] - point_D['y']), 2));
+        // 此时DF的距离
+        var dist_DF = (dist_AD / DIST_AB) * dist_DE;
+        // 此时DF点的坐标
+        var point_F = {};
+        point_F['x'] = dist_DF * Math.cos(radius_DE) + point_D['x'];
+        point_F['y'] = dist_DF * Math.sin(radius_DE) + point_D['y'];
+        bezier_points.push(point_F);
+      }
+      return {
+        'bezier_points': bezier_points
+      };
+    },
+  /**
+   * 小程序启动场景
+   */
+  onStartupScene(query) {
+    // 获取场景值
+    let scene = this.getSceneData(query);
+    // 记录推荐人id
+    let refereeId = query.referee_id ? query.referee_id : scene.uid;
+    refereeId > 0 && (this.saveRefereeId(refereeId));
+  },
+
+  /**
+   * 获取商城ID
+   */
+  getWxappId() {
+    return wx.getStorageSync('wxapp_id') || siteinfo.wxapp_id;
+  },
+  
+  sockectReConnect(currentSocket) {
+    console.info("进入了重连");
+    console.info(currentSocket);
+    if (!currentSocket) {
+      this.sockectInitConnect();
+      return;
+    }
+    if (currentSocket.readyState !== 0 && currentSocket.readyState !== 1) {
+      this.sockectInitConnect();
+    }
+  },
+  sockectInitConnect() {
+    let currentSocket;
+    const _this = this;
+    currentSocket = wx.connectSocket({
+      url: wss_url,
+      success: function (res) {
+        console.log(res, 'successInit')
+      },
+      fail: function (err) {
+        console.log(err, 'failInit')
+      }
+    })
+    wx.onSocketMessage(function (res) {
+      console.log(res, 'socketInfo')
+      let data = JSON.parse(res.data)
+      if(data.client_id){
+        _this._get('user/bindClient', {
+          client_id:data.client_id
+        }, function (result) {
+          console.log(result, 'bindClient')
+        })
+      }
+    },)
+    this.globalData.currentSocket = currentSocket
+  },
+  socketAddGroup() {
+    let _this = this;
+    var send = {
+      type: 'group',
+      group_id: 'ex_' + _this.getWxappId() + '_' + _this.getShopId() + '_seat_' + wx.getStorageSync("seat_id"),
+      msg: 'add group'
+    }
+    send = JSON.stringify(send)
+    wx.sendSocketMessage({
+      data: send,
+      complete: function (data) {
+        console.log('加入分组', data)
+      }
+    })
+  },
+  socketSendGroupMsg() {
+    let _this = this;
+    var send = {
+      type: 'message',
+      group_id: 'ex_' + _this.getWxappId() + '_' + _this.getShopId() + '_seat_' + wx.getStorageSync("seat_id"),
+      msg: 'change shopCar'
+    }
+    send = JSON.stringify(send)
+    wx.sendSocketMessage({
+      data: send,
+      complete: function (data) {
+        console.log(data)
+      }
+    })
+  },
+  socketSendServerGroup() {
+    let _this = this;
+    var send = {
+      type: 'message',
+      group_id:  'ex_' + 'server_11',
+      msg: 'change order'
+    }
+    send = JSON.stringify(send)
+    wx.sendSocketMessage({
+      data: send,
+      complete: function (data) {
+        console.log(data)
+      }
+    })
+  },
+  setNavBar: function () {
+    wx.getSystemInfo({
+      success: (res) => {
+        console.log(res, wx.getMenuButtonBoundingClientRect())
+        let totalTopHeight = wx.getMenuButtonBoundingClientRect().bottom + wx.getMenuButtonBoundingClientRect().top;
+        this.globalData.statusBarHeight = res.statusBarHeight;
+        this.globalData.titleBarHeight = totalTopHeight - res.statusBarHeight * 2;
+      },
+      fail: () => {
+        this.globalData.statusBarHeight = 20
+        this.globalData.titleBarHeight = 44
+      }
+    })
+  },
+  /**
+   * 记录推荐人id
+   */
+  saveRefereeId(refereeId) {
+    if (!wx.getStorageSync('referee_id'))
+      wx.setStorageSync('referee_id', refereeId);
+  },
+
+  /**
+   * 获取场景值(scene)
+   */
+  getSceneData(query) {
+    return query.scene ? util.scene_decode(query.scene) : {};
+  },
+
+  /**
+   * 当小程序启动，或从后台进入前台显示，会触发 onShow
+   */
+  onShow(options) {
+    // 获取小程序基础信息
+    // this.getWxappBase();
+  },
+
+  /**
+   * 执行用户登录
+   */
+  doLogin(delta) {
+    // 保存当前页面
+    let pages = getCurrentPages();
+    if (pages.length) {
+      let currentPage = pages[pages.length - 1];
+      "pages/login/login" != currentPage.route &&
+        wx.setStorageSync("currentPage", currentPage);
+    }
+    // 跳转授权页面
+    wx.navigateTo({
+      url: "/pages/login/login?delta=" + (delta || 1)
+    });
+  },
+
+  /**
+   * 当前用户id
+   */
+  getUserId() {
+    return wx.getStorageSync('user_id');
+  },
+
+  /**
+   * 显示成功提示框
+   */
+  showSuccess(msg, callback) {
+    wx.showToast({
+      title: msg,
+      icon: 'success',
+      mask: true,
+      duration: 1500,
+      success() {
+        callback && (setTimeout(function() {
+          callback();
+        }, 1500));
+      }
+    });
+  },
+
+  /**
+   * 显示失败提示框
+   */
+  showError(msg, callback) {
+    wx.showModal({
+      title: '友情提示',
+      content: msg,
+      showCancel: false,
+      success(res) {
+        // callback && (setTimeout(function() {
+        //   callback();
+        // }, 1500));
+        callback && callback();
+      }
+    });
+  },
+
+  /**
+   * get请求
+   */
+  _get(url, data, success, fail, complete, check_login) {
+    wx.showNavigationBarLoading();
+    let _this = this;
+    // 构造请求参数
+    data = data || {};
+    data.wxapp_id = _this.getWxappId();
+
+    // if (typeof check_login === 'undefined')
+    //   check_login = true;
+
+    // 构造get请求
+    let request = function() {
+      data.token = wx.getStorageSync('token');
+      wx.request({
+        url: _this.api_root + url,
+        header: {
+          'content-type': 'application/json'
+        },
+        data: data,
+        success(res) {
+          if (res.statusCode !== 200 || typeof res.data !== 'object') {
+            console.log(res);
+            if(url == 'user/bindClient'){
+              _this.showError('服务器异常，请联系管理员');
+            }else{
+              _this.showError('网络请求出错');
+            }
+           
+            return false;
+          }
+          if (res.data.code === -1) {
+            // 登录态失效, 重新登录
+            wx.hideNavigationBarLoading();
+            _this.doLogin(2);
+            //排除用户不存在的弹窗提示
+          } else if (res.data.code === 0 && res.data.msg.indexOf('用户不存在') == -1) {
+            _this.showError(res.data.msg, function() {
+              fail && fail(res);
+            });
+            return false;
+          } else {
+            console.log(res)
+            success && success(res.data);
+          }
+        },
+        fail(res) {
+          _this.showError(res.errMsg, function() {
+            fail && fail(res);
+          });
+        },
+        complete(res) {
+          wx.hideNavigationBarLoading();
+          complete && complete(res);
+        },
+      });
+    };
+    // 判断是否需要验证登录
+    check_login ? _this.doLogin(request) : request();
+  },
+
+  /**
+   * post提交
+   */
+  _post_form(url, data, success, fail, complete, isShowNavBarLoading) {
+    let _this = this;
+
+    isShowNavBarLoading || true;
+    data.wxapp_id = _this.getWxappId();
+    data.token = wx.getStorageSync('token');
+
+    // 在当前页面显示导航条加载动画
+    if (isShowNavBarLoading == true) {
+      wx.showNavigationBarLoading();
+    }
+    wx.request({
+      url: _this.api_root + url,
+      header: {
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      method: 'POST',
+      data: data,
+      success(res) {
+        if (res.statusCode !== 200 || typeof res.data !== 'object') {
+          _this.showError('网络请求出错');
+          return false;
+        }
+        if (res.data.code === -1) {
+          // 登录态失效, 重新登录
+          wx.hideNavigationBarLoading();
+          _this.doLogin(1);
+          return false;
+        } else if (res.data.code === 0) {
+          _this.showError(res.data.msg, function() {
+            fail && fail(res);
+          });
+          return false;
+        }
+        success && success(res.data);
+      },
+      fail(res) {
+        // console.log(res);
+        _this.showError(res.errMsg, function() {
+          fail && fail(res);
+        });
+      },
+      complete(res) {
+        wx.hideNavigationBarLoading();
+        // wx.hideLoading();
+        complete && complete(res);
+      }
+    });
+  },
+
+  /**
+   * 验证是否存在user_info
+   */
+  validateUserInfo() {
+    let user_info = wx.getStorageSync('user_info');
+    return !!wx.getStorageSync('user_info');
+  },
+
+  /**
+   * 小程序主动更新
+   */
+  updateManager() {
+    if (!wx.canIUse('getUpdateManager')) {
+      return false;
+    }
+    const updateManager = wx.getUpdateManager();
+    updateManager.onCheckForUpdate(function(res) {
+      // 请求完新版本信息的回调
+      // console.log(res.hasUpdate)
+    });
+    updateManager.onUpdateReady(function() {
+      wx.showModal({
+        title: '更新提示',
+        content: '新版本已经准备好，即将重启应用',
+        showCancel: false,
+        success(res) {
+          if (res.confirm) {
+            // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
+            updateManager.applyUpdate()
+          }
+        }
+      });
+    });
+    updateManager.onUpdateFailed(function() {
+      // 新的版本下载失败
+      wx.showModal({
+        title: '更新提示',
+        content: '新版本下载失败',
+        showCancel: false
+      })
+    });
+  },
+
+  /**
+   * 获取tabBar页面路径列表
+   */
+  getTabBarLinks() {
+    return tabBarLinks;
+  },
+
+  /**
+   * 跳转到指定页面
+   * 支持tabBar页面
+   */
+  navigationTo(url) {
+    console.log(url)
+    if (!url || url.length == 0) {
+      return false;
+    }
+    let tabBarLinks = this.getTabBarLinks();
+    // tabBar页面
+    if (tabBarLinks.indexOf(url) > -1) {
+      wx.switchTab({
+        url: '/' + url
+      });
+    } else {
+      // 普通页面
+      wx.navigateTo({
+        url: '/' + url
+      });
+    }
+  },
+
+  /**
+   * 记录formId
+   * (因微信模板消息已下线，所以formId取消不再收集)
+   */
+  saveFormId(formId) {
+    return true;
+    // let _this = this;
+    // console.log('saveFormId');
+    // if (formId === 'the formId is a mock one') {
+    //   return false;
+    // }
+    // _this._post_form('wxapp.formId/save', {
+    //   formId: formId
+    // }, null, null, null, false);
+  },
+
+  /**
+   * 生成转发的url参数
+   */
+  getShareUrlParams(params) {
+    let _this = this;
+    return util.urlEncode(Object.assign({
+      referee_id: _this.getUserId()
+    }, params));
+  },
+
+  /**
+   * 发起微信支付
+   */
+  wxPayment(option) {
+    let options = Object.assign({
+      payment: {},
+      success: () => {},
+      fail: () => {},
+      complete: () => {},
+    }, option);
+    wx.requestPayment({
+      timeStamp: options.payment.timeStamp,
+      nonceStr: options.payment.nonceStr,
+      package: 'prepay_id=' + options.payment.prepay_id,
+      signType: 'MD5',
+      paySign: options.payment.paySign,
+      success(res) {
+        options.success(res);
+      },
+      fail(res) {
+        options.fail(res);
+      },
+      complete(res) {
+        options.complete(res);
+      }
+    });
+  },
+
+  /**
+   * 验证登录
+   */
+  checkIsLogin() {
+    return wx.getStorageSync('token') != '' && wx.getStorageSync('user_id') != '';
+  },
+
+  /**
+   * 授权登录
+   */
+  getUserInfo(e, callback) {
+    let App = this;
+    if (e.detail.errMsg !== 'getUserInfo:ok') {
+      return false;
+    }
+    console.log(e)
+    wx.showLoading({
+      title: "正在登录",
+      mask: true
+    });
+    // 执行微信登录
+    wx.login({
+      success(res) {
+        // 发送用户信息
+        App._post_form('user/login', {
+          code: res.code,
+          user_info: e.detail.rawData,
+          encrypted_data: e.detail.encryptedData,
+          iv: e.detail.iv,
+          signature: e.detail.signature,
+          referee_id: wx.getStorageSync('referee_id')
+        }, result => {
+          // 记录token user_id
+          wx.setStorageSync('token', result.data.token);
+          wx.setStorageSync('user_id', result.data.user_id);
+          // 执行回调函数
+          callback && callback(result);
+        }, false, () => {
+          wx.hideLoading();
+        });
+      }
+    });
+  },
+ /**
+   * 上传文件
+   */
+  _upFile(url, data,formData, success, fail, complete, isShowNavBarLoading) {
+    let _this = this;
+    let header;
+    isShowNavBarLoading || true;
+    let authKey = wx.getStorageSync('authKey');
+    let sessionId = wx.getStorageSync('sessionId');
+    header = {
+      'content-type': 'application/x-www-form-urlencoded',
+      'authKey': authKey,
+      'sessionId': sessionId,
+    }
+    // 在当前页面显示导航条加载动画
+    if (isShowNavBarLoading == true) {
+      wx.showNavigationBarLoading();
+    }
+    wx.uploadFile({
+      url: _this.api_root + url,
+      header: header,
+      filePath: data,
+      name: 'iFile',
+      formData:formData,
+      success(res) {
+        res.data = JSON.parse(res.data);
+        if (res.statusCode !== 200 || typeof res.data !== 'object') {
+          console.log(res, '网络请求出错')
+          _this.showError('网络请求出错');
+          return false;
+        }
+        if (res.data.code === -1) {
+          // 登录态失效, 重新登录
+          wx.hideNavigationBarLoading();
+          _this.doLogin();
+          return false;
+        } else if (res.data.code === 0) {
+          _this.showError(res.data.msg, function () {
+            fail && fail(res);
+          });
+          return false;
+        }
+        success && success(res.data);
+      },
+      fail(res) {
+        // console.log(res);
+        _this.showError(res.errMsg, function () {
+          fail && fail(res);
+        });
+      },
+      complete(res) {
+        wx.hideNavigationBarLoading();
+        // wx.hideLoading();
+        complete && complete(res);
+      }
+    });
+  },
+  replaceDetail (details) {
+
+    var texts = '';//待拼接的内容
+
+    while (details.indexOf('<img') != -1) {//寻找img 循环
+
+      texts += details.substring('0', details.indexOf('<img') + 4);//截取到<img前面的内容
+
+      details = details.substring(details.indexOf('<img') + 4);//<img 后面的内容
+
+      if (details.indexOf('style=') != -1 && details.indexOf('style=') < details.indexOf('>')) {
+
+        texts += details.substring(0, details.indexOf('style="') + 7) + "max-width:100%;height:auto;margin:0 auto;";//从 <img 后面的内容 截取到style= 加上自己要加的内容
+
+        details = details.substring(details.indexOf('style="') + 7); //style后面的内容拼接
+
+      } else {
+
+        texts += ' style="max-width:100%;height:auto;margin:0 auto;" ';
+
+      }
+
+
+
+    }
+
+    texts += details;//最后拼接的内容
+
+    return texts
+
+  },
+      //时分
+      timestampToTime: function (timestamp) {
+        var date = new Date(timestamp * 1000); //时间戳为10位需*1000，时间戳为13位的话不需乘1000
+  
+        var Y = date.getFullYear() + '-';
+        var M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+        var D = date.getDate() < 10 ? '0' + date.getDate() + ' ' : date.getDate() + ' '; // var h = date.getHours() + ':';
+  
+        var h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'; // var m = date.getMinutes() + ':';
+  
+        var m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':';
+        var s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+        return Y + M + D + h + m + s;
+      },
+      isFastClick: function(url, interval = 5000) {
+        let time = new Date().getTime();
+        let flag = false;
+        if (lastRequestInfo.lastClickTime + interval <= time) { //时间没到
+          flag = false;
+        } else if (url != lastRequestInfo.lastUrl) {
+          flag = false;
+        } else {
+          flag = true;
+        }
+        lastRequestInfo.lastClickTime = time;
+        lastRequestInfo.lastUrl = url;
+        return flag;
+      },
+});
+```
+
+### utils.js
+
+```js
+/**
+ * 工具类
+ */
+module.exports = {
+
+  /**
+   * scene解码
+   */
+  scene_decode(e) {
+    if (e === undefined)
+      return {};
+    let scene = decodeURIComponent(e),
+      params = scene.split(','),
+      data = {};
+    for (let i in params) {
+      var val = params[i].split(':');
+      val.length > 0 && val[0] && (data[val[0]] = val[1] || null)
+    }
+    return data;
+  },
+
+  /**
+   * 格式化日期格式 (用于兼容ios Date对象)
+   */
+  format_date(time) {
+    // 将xxxx-xx-xx的时间格式，转换为 xxxx/xx/xx的格式 
+    return time.replace(/\-/g, "/");
+  },
+
+  /**
+   * 对象转URL
+   */
+  urlEncode(data) {
+    var _result = [];
+    for (var key in data) {
+      var value = data[key];
+      if (value.constructor == Array) {
+        value.forEach(_value => {
+          _result.push(key + "=" + _value);
+        });
+      } else {
+        _result.push(key + '=' + value);
+      }
+    }
+    return _result.join('&');
+  },
+
+  /**
+   * 遍历对象
+   */
+  objForEach(obj, callback) {
+    Object.keys(obj).forEach((key) => {
+      callback(obj[key], key);
+    });
+  },
+
+  /**
+   * 是否在数组内
+   */
+  inArray(search, array) {
+    for (var i in array) {
+      if (array[i] == search) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  /**
+   * 判断是否为正整数
+   */
+  isPositiveInteger(value) {
+    return /(^[0-9]\d*$)/.test(value);
+  },
+
+  /**
+   * 对Date的扩展，将 Date 转化为指定格式的String
+   * 月(Y)、月(m)、日(d)、小时(H)、分(M)、秒(S) 可以用 1-2 个占位符，
+   * 例子：
+   * dateFormat('YYYY-mm-dd HH:MM:SS', new Date()) ==> 2020-01-01 08:00:00
+   */
+  dateFormat(fmt, date) {
+    const opt = {
+      "Y+": date.getFullYear().toString(), // 年
+      "m+": (date.getMonth() + 1).toString(), // 月
+      "d+": date.getDate().toString(), // 日
+      "H+": date.getHours().toString(), // 时
+      "M+": date.getMinutes().toString(), // 分
+      "S+": date.getSeconds().toString() // 秒
+      // 有其他格式化字符需求可以继续添加，必须转化成字符串
+    };
+    let ret;
+    for (let k in opt) {
+      ret = new RegExp("(" + k + ")").exec(fmt);
+      if (ret) {
+        fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
+      };
+    };
+    return fmt;
+  },
+
+};
+```
+
+
+
