@@ -9,7 +9,7 @@ git checkout -b login
 git checkout master 
 2.合并login分支到主干
 git merge login
-
+3. git push
 
 git push    推送到远程仓库,此时远程仓库只有master，并没有Login
 若想记录login分支,先切换回login，再运行
