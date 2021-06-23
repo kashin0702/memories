@@ -1,0 +1,45 @@
+安装git环境
+https://git-scm.com/download/win
+
+git仓库分为工作区，暂存区，提交区
+文件夹即为工作区
+git add 命令就是把文件提交到暂存区
+
+
+如何托管代码？
+1.Github项目页面下，点击code,复制页面url
+2.在终端下输入命令:
+git clone http://github.com/kashin0702/my-project   //创建克隆仓库:克隆仓库就是和远程仓库存在连接的一个仓库
+3.拷贝文件
+手动将本地项目下的代码拷贝到git克隆仓库下，(node_modules和.git这2个文件不要拷贝)
+
+4.提交，上传同步
+***工作中最常用的3个命令***
+git add .                   //把所有有变化的文件提交到暂存区
+git commit -m '初始化项目'   //提交文件到本地仓库  -m命令表示后面可以直接输入message内容，不加m会调用一个编辑器输入message 
+git push                    //本地仓库文件提交到github服务器
+
+git的一些命令:
+git config user.name   //添加用户名
+git config user.email  //添加邮箱
+git status   查看仓库文件缓存git状态
+git log 一些提交记录
+git tag xxx  给当前代码打标签
+
+方法2：
+直接提交到远程github(免去手动拷贝文件这步)
+git init      //初始化仓库
+git add .
+git commit -m 'xxx'   
+git remote add origin https://github.com/kashin0702/my-project.git   //连接远程仓库
+git push -u origin main    //本地代码推到远程仓库 origin表示默认主机   main表示github默认主分支
+
+远程仓库有license或者readme.md文件时，添加allow命令
+git pull origin main --allow-unrelated-histories
+
+PS:对托管代码仓库记得执行npm install   //因为拷贝代码不含node_modules,所以要重新安装npm
+
+拉取远程仓库代码：
+git pull origin main 
+
+
