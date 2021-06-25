@@ -1853,15 +1853,18 @@ module.exports = {
 
   /**
    * scene解码
+   //{scene: "aid%3A10013%2Cwxapp_id%3A10001"}
    */
   scene_decode(e) {
     if (e === undefined)
       return {};
     let scene = decodeURIComponent(e),
-      params = scene.split(','),
+      params = scene.split(','), //["aid:10013", "wxapp_id:10001"]
       data = {};
     for (let i in params) {
-      var val = params[i].split(':');
+      var val = params[i].split(':'); 
+        //val[0] = ['aid', 10013] 
+        //val[1] = ['wxapp',10001]
       val.length > 0 && val[0] && (data[val[0]] = val[1] || null)
     }
     return data;
