@@ -14,3 +14,8 @@ git merge login
 git push    推送到远程仓库,此时远程仓库只有master，并没有Login
 若想记录login分支,先切换回login，再运行
 git push -u origin login   //创建远程分支的名字，也取login
+
+连接远程仓库
+git remote add origin https://github.com/kashin0702/my-project.git   
+拉取远程仓库主干
+git pull origin main
