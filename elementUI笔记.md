@@ -386,7 +386,7 @@ async handleChange(){ //在级联选择器选中商品后即发起请求
         return 
     }
     //selectOptions数组的最后一项就是要传的商品id,传参动态绑定v-model的activeName
-    const {data:res} = await this.$http.get('categories/'+ this.selectOptions[2] + '/attributes',		{params: {sel: this.activeName}}) 
+    const {data:res} = await this.$http.get('categories/'+ this.selectOptions[2] + '/attributes',{params: {sel: this.activeName}}) 
     //根据点击的tab标签分别保存2个页面的数据，使页面能分别渲染不同的数据源
     if(this.activeName === 'many'){
         this.manyDataList = res.data
