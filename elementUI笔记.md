@@ -1,3 +1,39 @@
+### el-container布局容器
+
+`<el-container>`：外层容器。
+
+当子元素中包含 `<el-header>` 或 `<el-footer>` 时，全部子元素会**垂直上下排列**，否则会**水平左右排列**。
+
+`<el-container>` 的子元素只能是下面4个，下面4个的父元素也只能是 `<el-container>`。
+
+`<el-header>`：顶栏容器。
+
+`<el-aside>`：侧边栏容器。
+
+`<el-main>`：主要区域容器。
+
+`<el-footer>`：底栏容器。
+
+```html
+<!-- 侧边区域 让宽度根据折叠状态动态改变-->
+<el-aside :width="isCollapse ? '60px' : '200px'">
+<!-- 展开折叠的按钮 -->
+<div class="toggle-button" @click="toggleCollapse">|||</div>
+```
+
+```js
+//展开收拢左侧菜单
+toggleCollapse(){
+  this.isCollapse = !this.isCollapse
+}
+```
+
+
+
+
+
+
+
 ### el-form 主表单
 
 主表单需要绑定属性  **:model="form"**绑定form对象的数据
@@ -124,6 +160,121 @@ data(){
 
 
 
+
+
+### el-radio
+
+使用 Radio 组件，只需要设置`v-model`绑定变量，选中意味着变量的值为相应 Radio `label`属性的值，`label`可以是`String`、`Number`或`Boolean`。
+
+```vue
+<!--选中的变量的值为对应的radio label属性的值-->
+<template>
+  <el-radio v-model="radio" label="1">备选项</el-radio>
+  <el-radio v-model="radio" label="2">备选项</el-radio>
+</template>
+
+<script>
+  export default {
+    data () {
+      return {
+        radio: '1'
+      };
+    }
+  }
+</script>
+
+<!-- 单选组 el-radio-group -->
+<template>
+  <el-radio-group v-model="radio">
+    <el-radio :label="3">备选项</el-radio>
+    <el-radio :label="6">备选项</el-radio>
+    <el-radio :label="9">备选项</el-radio>
+  </el-radio-group>
+</template>
+
+<script>
+  export default {
+    data () {
+      return {
+        radio: 3
+      };
+    }
+  }
+</script>
+
+
+<!-- el-radio事件触发实例 -->
+<el-radio-group v-model="radioTreaty" @change="agreeChange">
+    <el-radio label="1" border>不同意</el-radio>
+    <el-radio label="2" border>同意</el-radio>
+</el-radio-group>
+ 
+<el-button type="primary"  :disabled="btnstatus" @click="orderSubmit" style="width: 180px;">提交订单</el-button>
+ 
+<script>
+export default {
+    data() {
+        return {
+          radioTreaty: '1',
+          btnstatus:true,
+        }
+    },
+    methods: {
+        agreeChange:function(val){
+          let that = this 
+          that.btnstatus = (val==='1') ? true : false;
+        }
+    }
+}
+</script>
+```
+
+
+
+### el-checkbox
+
+`indeterminate` 属性用以表示 checkbox 的不确定状态，一般用于实现全选的效果
+
+![image-20210722104330304](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20210722104330304.png)
+
+```vue
+<template>
+  <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
+  <div style="margin: 15px 0;"></div>
+  <el-checkbox-group v-model="checkedCities" @change="handleCheckedCitiesChange">
+    <el-checkbox v-for="city in cities" :label="city" :key="city">{{city}}</el-checkbox>
+  </el-checkbox-group>
+</template>
+<script>
+  const cityOptions = ['上海', '北京', '广州', '深圳'];
+  export default {
+    data() {
+      return {
+        checkAll: false,
+        checkedCities: ['上海', '北京'],
+        cities: cityOptions,
+        isIndeterminate: true
+      };
+    },
+    methods: {
+      handleCheckAllChange(val) {
+        this.checkedCities = val ? cityOptions : [];
+        this.isIndeterminate = false;
+      },
+      handleCheckedCitiesChange(value) {
+        let checkedCount = value.length;
+        this.checkAll = checkedCount === this.cities.length;
+        this.isIndeterminate = checkedCount > 0 && checkedCount < this.cities.length;
+      }
+    }
+  };
+</script>
+```
+
+
+
+
+
 ### 路由导航守卫
 
 #### 控制访问权限
@@ -228,11 +379,24 @@ el-menu 展开收拢效果 :collapse="boolean"
 
 
 
-### Layout 栅格布局
+### Layout 栅格布局 el-row el-col
 
-el-row  一行默认是24   :gutter 两个col的间距
+el-row  一行默认是24   gutter 属性来指定每一栏之间的间隔，默认间隔为 0
 
-​	el-col :span="6" 占据一行的1/4 根据col设置的数字进行一行的排列
+**span默认是24**  :span="6"表示4等分
+
+el-col :span="6" 占据一行的1/4 根据col设置的数字进行一行的排列
+
+![image-20210722095747979](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20210722095747979.png)
+
+```vue
+<el-row :gutter="20">
+  <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
+  <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
+  <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
+  <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
+</el-row>
+```
 
 
 
