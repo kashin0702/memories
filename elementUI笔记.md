@@ -158,6 +158,23 @@ data(){
 
 ### 登录预验证validate()
 
+```js
+login () {
+  this.$refs.form.validate(async valid => {
+    if (!valid) {
+      return false
+    }
+    const { data } = await ApiCommon.login(this.params)
+    this.$message.success('登录成功！')
+    // 设置登录用户
+    sessionstorage.set(enums.LOGIN_USER, data)
+    // 设置ACCESS_TOKEN
+    sessionstorage.set(enums.ACCESS_TOKEN, data.token)
+    this.$router.push('/home')
+  })
+}
+```
+
 
 
 
@@ -530,7 +547,7 @@ handleCascaderChange(){
 
 ```html
 <!--v-model绑定的是el-tab-pane的name属性-->
-<el-tabs @click="tabClick" v-model="activeName">
+<el-tabs @tab-click="tabClick" v-model="activeName">
 	<el-tab-pane label="用户管理" name="many">动态参数</el-tab-pane>
     <el-tab-pane label="角色管理" name="only">静态参数</el-tab-pane>
 </el-tabs>
@@ -558,6 +575,24 @@ async handleChange(){ //在级联选择器选中商品后即发起请求
         this.onlyDataList = res.data
     }
 }
+```
+
+#### el-tabs绑定路由页面(重要)
+
+```vue
+<el-tabs class="ai-main-tabs" 
+         v-model="activeTab" closable 
+         @tab-click="tabClick" 
+         @tab-remove="tabRemove">
+  <el-tab-pane v-for="item in tabs" 
+               :key="item.routeName" 
+               :label="item.label" 
+               :name="item.routeName" 
+               style="height:100%;">
+     <!--把路由页面绑定在el-tab-pane下面--> 
+    <router-view class="router-view" :name="item.routeName"></router-view>
+  </el-tab-pane>
+</el-tabs>
 ```
 
 
@@ -869,6 +904,90 @@ treeProps: {
     children: 'children' //父子嵌套对应的属性
 }
 ```
+
+
+
+### tree搜索过滤
+
+```vue
+<el-input
+  placeholder="输入关键字进行过滤"
+  v-model="filterText">
+</el-input>
+<!--注意要设置filter-node-method  属性值是过滤函数-->
+<el-tree
+  class="filter-tree"
+  :data="data"
+  :props="defaultProps"
+  default-expand-all
+  :filter-node-method="filterNode"
+  ref="tree">
+</el-tree>
+
+<script>
+export default {
+    watch: {
+      filterText(val) {
+          //调用tree组件提供的filter方法 入参是关键词
+        this.$refs.tree.filter(val);
+      }
+    },
+
+    methods: {
+        // 该方法会过滤掉el-tree不渲染的节点 value是关键词，data是树节点的所有数据
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      }
+    },
+	data() {
+      return {
+        filterText: '',
+        data: [{
+          id: 1,
+          label: '一级 1',
+          children: [{
+            id: 4,
+            label: '二级 1-1',
+            children: [{
+              id: 9,
+              label: '三级 1-1-1'
+            }, {
+              id: 10,
+              label: '三级 1-1-2'
+            }]
+          }]
+        }, {
+          id: 2,
+          label: '一级 2',
+          children: [{
+            id: 5,
+            label: '二级 2-1'
+          }, {
+            id: 6,
+            label: '二级 2-2'
+          }]
+        }, {
+          id: 3,
+          label: '一级 3',
+          children: [{
+            id: 7,
+            label: '二级 3-1'
+          }, {
+            id: 8,
+            label: '二级 3-2'
+          }]
+        }],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        }
+      };
+    }
+</script>
+```
+
+
 
 
 
