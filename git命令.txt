@@ -19,3 +19,6 @@ git push -u origin login   //创建远程分支的名字，也取login
 git remote add origin https://github.com/kashin0702/my-project.git   
 拉取远程仓库主干
 git pull origin main
+
+推送远程仓库主干
+git push origin main
