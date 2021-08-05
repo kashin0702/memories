@@ -1,4 +1,4 @@
-*JS中，对象和数组属于引用类型，指向同一内存空间
+﻿*JS中，对象和数组属于引用类型，指向同一内存空间
 
 写代码的一些思路：
 分解每一步步骤很关键
@@ -974,5 +974,5 @@ var scrollTop = document.documentElement.scrollTop || window.pageYOffset || docu
 documentElement返回文档的根节点
 
 for/in 和for/of循环的区别：
-for/in遍历的是索引   for/in适合遍历对象
+for/in遍历数组时i是索引值index，遍历对象时i是key  
 for/of遍历的是value  for/of适合遍历数组
