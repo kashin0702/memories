@@ -2,6 +2,8 @@
 
 #### setup
 
+setup内不可使用**this**
+
 使用组合式API的位置被称为setup 
 
 ```js
@@ -311,4 +313,116 @@ export default {
 ```
 
 
+
+### reactive() API
+
+vue2 data中的所有数据其实也是交给了reactive()做了响应式处理
+
+reactiveAPI缺点: **必须传一个对象或数组**，若传基本类型会报警告
+
+```vue
+<template>
+	<div>{{state.counter}}</div>
+</template>
+<script>
+export default {
+	setup(){
+		const state = reactive({
+            counter: 100
+        })
+        const increment = () => {
+            state.counter++
+        }
+        return {
+            counter,
+            increment
+        }
+	}
+}
+</script>
+```
+
+
+
+### ref() API和解包
+
+vue3 新api
+
+```vue
+<template>
+	<!--此处不用写counter.value也能渲染  模板中 ref会自动解包-->
+	<div>{{counter}}</div>
+	<!--ref对象嵌套到其他对象中，counter不会自动解包-->
+	<div>{{info.counter}}</div>
+</template>
+<script>
+export default {
+	setup(){
+		const counter = ref(100)
+        console.log(counter)  //{value: 100}
+        const increment = () => {
+            // 逻辑代码中ref不会自动解包，需要.value
+            counter.value++
+        }
+        const info = {counter}
+        return {
+            counter,
+            increment
+        }
+	}
+}
+</script>
+```
+
+
+
+### readOnly()
+
+```vue
+<script>
+    import {reactive, readonly} from 'vue'
+	export default {
+    	setup(){
+    		const info = reactive({
+                name: 'david'
+            })
+            // 创建一个只读对象，无法被修改
+            const readonlyObj = readonly(info)
+            
+            //执行该方法时报警告，无法修改
+            const update = () => {
+                info.name = 'xxx'
+            }
+            return {
+                update
+            }
+    }
+}
+</script>
+```
+
+### 
+
+### toRefs() / toRef()
+
+作用: 将reactive对象中的所有属性都转换成ref
+
+```js
+import {reactive,toRefs} from 'vue'
+export default {
+    setup(){
+        const info = reactive({name: 'david',age: 19})
+        //  let {name,age} = info 直接解构对象会失去响应式效果
+        // 1.toRefs() 把reactive对象内所有属性变成响应式ref对象
+        let {name, age} = toRefs(info)
+        // 2.toRef() 2个参数，一个reactive对象，一个要转换的属性 
+        // 只转换一个指定属性为ref对象
+        let name = toRef(info,'name')
+    }
+    return {
+    	name,
+    	age
+	}
+}
+```
 
