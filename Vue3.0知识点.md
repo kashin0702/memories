@@ -426,3 +426,22 @@ export default {
 }
 ```
 
+### watchEffect / watch
+
+watchEffect : 自动收集响应式依赖 会自动执行1次  
+
+watch:  指定要监听的依赖
+
+```js
+watchEffect(() => {
+    console.log(info.name)
+})
+// 根据条件停止侦听  watchEffect有一个返回值
+const stop = watchEffect(() => {
+    console.log(age.value)
+})
+if(age.value > 25) {
+    stop() //当age>25 调用stop() 停止侦听
+}
+```
+
