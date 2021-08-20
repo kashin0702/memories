@@ -430,7 +430,11 @@ export default {
 
 watchEffect : 自动收集响应式依赖 会自动执行1次  
 
+watchEffect有2个参数：1.处理副作用的回调函数  2. flush侦听时机参数
+
 watch:  指定要监听的依赖
+
+watch可以侦听的范围:  data/props/computed
 
 ```js
 watchEffect(() => {
@@ -442,11 +446,6 @@ const stop = watchEffect(() => {
 })
 if(age.value > 25) {
     stop() //当age>25 调用stop() 停止侦听
-
-
-//watch可以侦听的范围:  data/props/computed
-
-//watchEffect有2个参数：1.处理副作用的回调函数  2. flush侦听时机参数
 
 
 //watchEffect可以传入一个参数，该参数也是一个回调函数，用于清除监听副作用
