@@ -412,7 +412,7 @@ import {reactive,toRefs} from 'vue'
 export default {
     setup(){
         const info = reactive({name: 'david',age: 19})
-        //  let {name,age} = info 直接解构对象会失去响应式效果
+        //  let {name,age} = info 直接解构对象的属性会失去响应式效果
         // 1.toRefs() 把reactive对象内所有属性变成响应式ref对象
         let {name, age} = toRefs(info)
         // 2.toRef() 2个参数，一个reactive对象，一个要转换的属性 
@@ -442,6 +442,156 @@ const stop = watchEffect(() => {
 })
 if(age.value > 25) {
     stop() //当age>25 调用stop() 停止侦听
+### watch() / watchEffect()
+
+watch可以侦听的范围:  data/props/computed
+
+watchEffect有2个参数：1.处理副作用的回调函数  2. flush侦听时机参数
+
+```js
+//watchEffect可以传入一个参数，该参数也是一个回调函数，用于清除监听副作用
+const stop = watchEffect((onInvalidate) => {
+    onInvalidate(() => {
+        //在这个函数内清除额外副作用 如清除网络请求伪代码：request.cancel()
+        console.log('onInvalidate'执行)
+    })
+    console.log(name.value)
+})
+```
+
+#### watchEffect监听dom中的ref
+
+```vue
+<template>
+	<div ref="title">哈哈哈</div>
+</template>
+
+<script>
+	import {ref, watchEffect} from 'vue'
+    export default {
+        setup(){
+            // 定义一个ref(null) 会把ref='title'赋值过来
+            const title = ref(null)
+            // watchEffect会默认先执行一次，第一次还没挂载title肯定等于null
+            // 第二次才会获得值 总共执行2次
+            watchEffect(() => {
+                console.log(title.value)  // 拿到整个dom: <div>哈哈哈</div>
+            },{    
+                //此处传入第二个参数post, 侦听会在DOM挂载后执行
+                // flush有3个值 'pre'默认值, 'post', 'sync'强制同步很少用
+                flush: 'post'  
+            })
+            
+            return {
+                title
+            }
+        }
+    }
+</script>
+```
+
+
+
+#### watch()
+
+```js
+const info = reactive({name: 'david',age: 18})
+// 情况1 侦听reactive对象，传入一个getter函数 返回的是普通的值
+watch(() => info.name, (newVal,oldVal) => {
+    console.log(newVal,newVal)  
+})
+const changeData = () {
+    info.name = 'yyy'  
+}
+// 
+//情况2 侦听reactive对象并传入该对象，获取到的newVal和oldVal也是reactive对象
+watch(info, (newVal,oldVal) => {
+    console.log(newVal,newVal) //Proxy{name: ,age:}对象
+})
+const changeData = () {
+    info.name = 'yyy'  
+}
+
+//情况3 侦听ref对象并传入该对象，获取到的newVal和OldVal是一个普通的值
+const name = ref('gyf')
+watch(name,(newVal,oldVal) => {
+    console.log(newVal,newVal)
+})
+
+const changeData = () => {
+    name.value = 'xxx'
+}
+// 重点：将reactive对象解构后可，此时侦听返回的就是普通对象
+// 通过返回一个解构的info 此时内部值都为普通值
+watch(() => ({...info}), (newVal,oldVal) => {
+    console.log(newVal,oldVal)
+})
+
+//其他知识点
+const info = reactive({name: 'david', age: 20})
+const name = ref('gyf')
+
+// watch第一个参数也可以传数组, 返回的newVal oldVal也变成数组,也可以解构
+watch([info,name],([newInfo,newName],[oldInfo,oldName]) => {
+    console.log(newInfo,newName,oldInfo,oldName)
+})
+```
+
+
+
+### computed本质
+
+```js
+//vue2中computed可以配置成一个函数getter或者设置get/set (源码中会判断)
+computed: {
+    FullName() { //写成函数时默认就是一个get
+        //return xxx
+    }
+}
+
+computed: {
+    fullName:{  //写成对象时，配置get/set方法
+        get: function(){
+            
+        },
+        set: function(){
+            
+        }
+    }
+}
+
+// vue3中以函数形式,写在setup内
+import {ref,computed} from 'vue'
+setup(){
+    const firstName = ref('david')
+    const lastName = ref('billy')
+    const fullName = computed(() => firstName.value + lastName.value)
+    
+    return {
+        fullName //此时计算属性也是响应式对象(ref对象)
+    }
+}
+// 通过计算属性修改值
+setup(){
+    const firstName = ref('david')
+    const lastName = ref('billy')
+    const fullName = computed({
+        // 计算属性的对象形式，传入set,get方法
+        get: () => firstName.value + lastName.value,
+        // 通过set修改其他值
+        set(newVal){
+            const names = newVal.split(' ')
+            firstName.value = names[0]
+            lastName.value = names[1]
+        }
+    })
+    
+    const changeName = () => {
+        fullName.value = 'kobe brant'
+    }
+    return {
+        fullName //此时计算属性也是响应式对象(ref对象)
+    }
 }
 ```
 
