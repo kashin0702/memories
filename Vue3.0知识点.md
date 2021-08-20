@@ -442,13 +442,13 @@ const stop = watchEffect(() => {
 })
 if(age.value > 25) {
     stop() //当age>25 调用stop() 停止侦听
-### watch() / watchEffect()
 
-watch可以侦听的范围:  data/props/computed
 
-watchEffect有2个参数：1.处理副作用的回调函数  2. flush侦听时机参数
+//watch可以侦听的范围:  data/props/computed
 
-```js
+//watchEffect有2个参数：1.处理副作用的回调函数  2. flush侦听时机参数
+
+
 //watchEffect可以传入一个参数，该参数也是一个回调函数，用于清除监听副作用
 const stop = watchEffect((onInvalidate) => {
     onInvalidate(() => {
