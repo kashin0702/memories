@@ -1,4 +1,4 @@
-安装git环境
+﻿安装git环境
 https://git-scm.com/download/win
 
 git仓库分为工作区，暂存区，提交区
@@ -42,4 +42,6 @@ PS:对托管代码仓库记得执行npm install   //因为拷贝代码不含node
 拉取远程仓库代码：
 git pull origin main 
 
+重新配置用户名密码
+git config --global credential.helper store
 
