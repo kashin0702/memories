@@ -701,7 +701,7 @@ setup(){
 
 
 
-### 抽取案例：动态修改title
+### 案例：动态修改title
 
 ```js
 // useTitle.js
@@ -729,9 +729,10 @@ setup(){
 }
 ```
 
-案例：封装localStorage
+### 案例：封装localStorage
 
 ```js
+// useLocalStorage.js
 import {ref, watch} from 'vue'
 export default function(key,value){
     const data = ref(value)
