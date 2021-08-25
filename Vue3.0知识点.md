@@ -693,7 +693,7 @@ export default {
 // 更简洁写法
 setup(){
     return {
-        ...useCounter() //直接执行函数, 并解构 这种写法阅读性很差
+        ...useCounter() //直接执行函数并解构， 但这种写法阅读性很差
     }
 }
 
