@@ -450,6 +450,41 @@ watch:  指定要监听的依赖
 
 watch可以侦听的范围:  data/props/computed
 
+watch只能侦听数据本身的改变，不能侦听数据内部属性的改变(**要使用深度侦听**)
+
+```js
+watch: {
+    //语法糖写法
+    person(newValue,oldValue){
+        console.log(newValue,oldValue)
+    },
+    //配置型写法, 可配置deep immediate
+    person: {
+        handler: function(newValue,oldValue){
+            console.log(newValue,oldValue)
+        },
+        deep: true,     //深度侦听配置 可监听对象中属性改变
+        immediate: true //立即执行
+    }
+}
+
+// $watch写法 写在生命周期内
+created() {
+    //$watch有一个返回值，可用于取消侦听
+   const unwatch =  this.$watch("person",(newVal,oldVal) => {
+        console.log(newVal,oldVal)
+    },{
+        deep: true,
+        immediate: true
+    })
+   
+   // unwatch() 执行就可以取消侦听
+}
+
+```
+
+
+
 ```js
 const name = ref('david')
 const changeName = () => name.value = 'kashin'
@@ -478,6 +513,8 @@ const stop = watchEffect((onInvalidate) => {
 ```
 
 #### watchEffect监听dom中的ref
+
+
 
 ```vue
 <template>
