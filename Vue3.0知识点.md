@@ -314,6 +314,23 @@ export default {
 
 
 
+## Teleport
+
+vue内置组件，有2个属性
+
+to: 指定将其中的内容移动到的目标元素，可以使用选择器
+
+disabled: 是否禁用teleport功能
+
+ ```html
+<!--把button挂载到id='david'的对象上-->
+<teleport to="#david">
+    <button>按钮</button>
+</teleport>
+ ```
+
+
+
 ## 笔记
 
 ### defineComponent作用
