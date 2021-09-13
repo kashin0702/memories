@@ -45,3 +45,5 @@ git pull origin main
 重新配置用户名密码
 git config --global credential.helper store
 
+token方式配置验证
+git remote set-url origin https://<token值>@github.com/kashin0702/memories.git
