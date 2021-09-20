@@ -720,6 +720,23 @@ export default {
 
 
 
+### setup内获取route/router
+
+setup内不能使用this去获取当前路由，要用**useRoute**, **userRouter**获取
+
+```js
+import { useRoute, useRouter } from 'vue-router'
+setup(){
+    const route = useRoute()
+    const router = useRouter()
+    const jumpTo = () => {
+        router.push('/about')
+    }
+}
+```
+
+
+
 ### setup抽取概念
 
 ```js
@@ -819,6 +836,24 @@ setup(){
     return {
         data
     }
+}
+```
+
+### 封装useState
+
+```js
+import { mapState, createNamespacedHelpers } from 'vuex'
+import { useMapper } from './useMapper'
+
+export function useState(moduleName, mapper) {
+    let mapperFn = mapState
+    if (typeof moduleName === 'string' && moduleName.length > 0) {
+        // createNamespacedHelpers()是store命名空间辅助函数
+        mapperFn = createNamespacedHelpers(moduleName).mapState
+    } else {
+        mapper = moduleName
+    }
+    return useMapper(mapper, mapperFn)
 }
 ```
 
