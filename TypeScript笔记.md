@@ -226,7 +226,7 @@ p.name2 //kashin
 
 
 
-### class类实现接口
+### class类实现接口implements
 
 ```typescript
 class Animal {
@@ -444,7 +444,7 @@ function sum<Type>(num: Type): Type {
 }
 
 //调用方式1：明确传入类型
-//调用的时候传入参数类型是number
+//调用的时候传入参数类型
 sum<number>(100)
 //对象类型
 sum<{name: string}>({name: 'david'})
@@ -461,7 +461,7 @@ function sum2<T, E>(num1: T, num2: E){
 sum2<number, string>(10,'abc')
 ```
 
-### 泛型接口
+### 接口泛型
 
 ```typescript
 interface Person<T1, T2> {
@@ -480,6 +480,35 @@ interface Person<T1 = string, T2 = number> {
     age: T2
 }
 ```
+
+
+
+### 类泛型
+
+person 类实现了 GenericInterface<T>，而此时 T 表示 Number 类型，因此等价于该类实现了 GenericInterface<Number> 接口；
+而对于 GenericInterface<U> 接口来说，类型变量 U 也变成了 Number。这里我有意使用不同的变量名，以表明类型值沿链向上传播，且与变量名无关
+
+```typescript
+interface GenericInterface<U> {
+    value: U
+    genericFn: () => U
+}
+class Person<T> implements GenericInterface<T> {
+    value: T
+    constructor(value: T){
+        this.value = value
+    }
+    
+    genericFn(): T {
+        return this.value
+    }
+}
+
+const p = new Person<number>(33)
+const p2 = new Person<string>('david')
+```
+
+
 
 ### 类型约束
 
@@ -501,7 +530,7 @@ getLength({length: '100'}) //ok 对象中也有length属性
 
 
 
-### 类型断言 
+### 类型断言 as
 
 类型断言的意义：有时候TS无法获取具体的类型信息，就要使用断言
 
@@ -532,8 +561,6 @@ function sayHello(p: Person) {
 const stu = new Student()
 sayHello(stu) //student继承了person，所以stu也能传入该函数
 ```
-
-
 
 ```js
 类型断言的2种方式
@@ -795,4 +822,62 @@ import { defineComponent, PropType } from 'vue'
 - vue中**PropType**的用法：
   - 接受一个泛型，可以将一个array的构造函数返回传入的泛型类型
   - 可以把一个构造函数断言成一个类型
+
+
+
+### element-plus按需引入
+
+```typescript
+// global/register-element.ts 按需导入的执行文件
+import {App} from 'vue'
+import 'element-plus/lib/theme-chalk/base.css'
+import {
+    ElButton,
+    ElForm,
+    ElInput,
+    ElRadio
+} from 'element-plus'
+
+const components = [
+    ElButton,
+    ElForm,
+    ElInput,
+    ElRadio
+]
+// 遍历所有导入的组件，进行组件注册
+export default function(app: App): void {
+    for(const component of components){
+        app.component(component.name, component)
+    }
+}
+
+
+
+// global/index.ts
+import { App } from 'vue'
+import registerElement from './register-element'
+
+export function registerApp(app: App): void {
+    registerElement(app)
+}
+
+
+//main.ts 入口文件
+import {registerElement} from './global'
+import {App} from './App.vue'
+import {createApp} from 'vue'
+const app = createApp(App)
+// 这里注册引入的element组件
+registerElement(app)
+```
+
+
+
+### 拥有构造函数实例的类型
+
+```typescript
+// typeof Person先获取构造函数的类型，再通过InstanceType获取拥有构造函数的实例
+type Bar = InstanceType<typeof Person>
+const p = ref<Bar>()
+```
 

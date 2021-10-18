@@ -857,3 +857,50 @@ export function useState(moduleName, mapper) {
 }
 ```
 
+
+
+### vue3 axios封装
+
+```typescript
+
+```
+
+###  axios请求失败
+
+两种失败
+
+1.http请求失败
+
+2xx->成功
+
+4xx->失败
+
+5xx->失败
+
+httpErrorCode一般都在responseCatch：err
+
+2.失败(请求成功，但是返回错误码)
+
+请求status:200 但是returnCode返回具体的错误码 如 -10000
+
+{data: [],  returnCode: -1001}
+
+
+
+### ts获取组件对象的类型
+
+```typescript
+setup(){
+    //这样写其实是any类型，有安全隐患
+    const accountRef = ref() 
+    //标准写法，属于ts语法，对象实例的typeof 组件类型
+    const accountRef = ref<InstanceType<typeof LoginAccount>>()
+    
+    const handler = () => {
+        //这样调accountRef组件的方法就不会报错
+        accountRef.value?.loginAction() 
+    }                                    
+                                        
+}
+```
+
