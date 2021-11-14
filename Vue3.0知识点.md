@@ -904,3 +904,34 @@ setup(){
 }
 ```
 
+
+
+### script标签内直接使用setup特性
+
+新特性内props传参写法
+
+```vue
+<template>
+	<div>
+        <!--接收props传来的width, height-->
+        <div :style="{width: width, height: height}">
+        	    
+    	</div>     
+    </div>
+</template>
+<script lang="ts" setup>
+import {ref, onMounted, defineProps, withDefaults} from 'vue'
+//widthDefaults方法接受2个参数，第一个传defineProps函数，第二个传props默认值
+//因为是ts,不能直接用js中的String类型， 给defineProps设置一个泛型，设置接受的参数类型
+const props = widthDefaults(
+    defineProps<{width?: string, height?: string}>(),
+    {
+        width: '100%',
+        height: '360px'
+    }
+	)
+</script>
+```
+
+
+
