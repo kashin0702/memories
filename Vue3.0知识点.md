@@ -109,6 +109,21 @@ setup (props) {
 }
 ```
 
+
+
+### onUpdated生命周期
+
+```js
+setup(){
+    onUpdated(() => {
+    	// 只要界面发生更新，这里的代码就会执行
+	}) 
+}
+
+```
+
+
+
 #### watch函数-响应式更改
 
 watch接收3个参数

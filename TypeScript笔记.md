@@ -97,6 +97,12 @@ calc(10,20,add)
 
 
 
+### interface/type区别
+
+interface只能定义对象类型。
+
+而type声明可以声明任何类型，包括基础类型、联合类型或交叉类型
+
 
 
 ### 函数类型检测
@@ -174,7 +180,7 @@ const p = new Person('david', 18)
 
 
 
-### class类的继承
+### class类的继承extends
 
 ```typescript
 class Person{
@@ -548,7 +554,7 @@ class Person {
     
 }
 // Student继承Person， Person也是Student的父类
-class Student extends Peroson {
+class Student extends Person {
     studying() {
         
     }
