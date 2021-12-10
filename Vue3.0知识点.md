@@ -1,5 +1,3 @@
-### 组合式API
-
 #### setup
 
 setup内不可使用**this**
@@ -43,6 +41,20 @@ setup (props) {
   }
 }
 ```
+
+#### setup参数
+
+```js
+//context对象包含3个属性{emit,attrs,slots}
+//emit:发射自定义事件 
+//attrs:所有非prop的attribute  
+//slots:父组件传递过来的插槽 render函数使用,较少使用，一般用jsx更多
+setup(props, {emit, attrs, slots}){
+    
+}
+```
+
+
 
 #### 带ref的响应式变量
 
@@ -111,7 +123,7 @@ setup (props) {
 
 
 
-### onUpdated生命周期
+#### onUpdated生命周期
 
 ```js
 setup(){
@@ -447,7 +459,7 @@ export default {
 </script>
 ```
 
-### 
+
 
 ### toRefs() / toRef()
 
@@ -533,8 +545,8 @@ const stop = watchEffect(() => {
 if(age.value > 25) {
     stop() //当age>25 调用stop() 停止侦听
 
-
-//watchEffect可以传入一个参数，该参数也是一个回调函数，用于清除监听副作用
+//副作用：在监听函数内发送网络请求，当监听对象改变时，会再次发送请求，清除上一次请求就是清除副作用
+//watchEffect函数内可以传入一个参数，该参数也是一个回调函数，用于清除监听副作用
 const stop = watchEffect((onInvalidate) => {
     onInvalidate(() => {
         //在这个函数内清除额外副作用 如清除网络请求伪代码：request.cancel()
@@ -545,8 +557,6 @@ const stop = watchEffect((onInvalidate) => {
 ```
 
 #### watchEffect监听dom中的ref
-
-
 
 ```vue
 <template>
@@ -588,7 +598,7 @@ watch侦听数据源有2种类型
 
 ```js
 const info = reactive({name: 'david',age: 18})
-// 情况1 侦听reactive对象，传入一个getter函数 返回的是普通的值
+// 情况1 侦听reactive对象的属性，传入一个getter函数 
 watch(() => info.name, (newVal,oldVal) => {
     console.log(newVal,newVal)  
 })
@@ -596,7 +606,7 @@ const changeData = () {
     info.name = 'yyy'  
 }
 // 
-//情况2 侦听reactive对象并传入该对象，获取到的newVal和oldVal也是reactive对象
+//情况2 侦听整个对象，获取到的newVal和oldVal也是reactive对象
 watch(info, (newVal,oldVal) => {
     console.log(newVal,newVal) //Proxy{name: ,age:}对象
 })
@@ -623,7 +633,7 @@ watch(() => ({...info}), (newVal,oldVal) => {
 const info = reactive({name: 'david', age: 20})
 const name = ref('gyf')
 
-// watch第一个参数也可以传数组, 返回的newVal oldVal也变成数组,也可以解构
+// watch第一个参数也可以传数组,监听多个对象, 返回的newVal oldVal也变成数组,也可以解构
 watch([info,name],([newInfo,newName],[oldInfo,oldName]) => {
     console.log(newInfo,newName,oldInfo,oldName)
 })
@@ -657,10 +667,21 @@ import {ref,computed} from 'vue'
 setup(){
     const firstName = ref('david')
     const lastName = ref('billy')
+    // 函数写法
     const fullName = computed(() => firstName.value + lastName.value)
-    
+    // 对象写法
+    const fullName2 = computed({
+        get: () => firstName.value + lastName.value,
+        // changeName修改的值会传入newValue
+        set: (newValue) => {
+            const name = newValue
+        }
+    })
+    const changeName = () => {
+        fullName2.value = 'xxx' // computed是ref对象，要加.value
+    }
     return {
-        fullName //此时计算属性也是响应式对象(ref对象)
+        fullName //计算属性也是响应式对象(ref对象)
     }
 }
 // 通过计算属性修改值
@@ -854,31 +875,7 @@ setup(){
 }
 ```
 
-### 封装useState
 
-```js
-import { mapState, createNamespacedHelpers } from 'vuex'
-import { useMapper } from './useMapper'
-
-export function useState(moduleName, mapper) {
-    let mapperFn = mapState
-    if (typeof moduleName === 'string' && moduleName.length > 0) {
-        // createNamespacedHelpers()是store命名空间辅助函数
-        mapperFn = createNamespacedHelpers(moduleName).mapState
-    } else {
-        mapper = moduleName
-    }
-    return useMapper(mapper, mapperFn)
-}
-```
-
-
-
-### vue3 axios封装
-
-```typescript
-
-```
 
 ###  axios请求失败
 
@@ -949,4 +946,303 @@ const props = widthDefaults(
 ```
 
 
+
+## setup内使用vuex辅助函数
+
+```js
+//常规写法 使用useStore和computed获取store内的state
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+export default {
+    setup(){
+        const store = useStore()
+        const sCounter = computed(()=> store.state.counter)
+        return {
+            sCounter
+        }
+    }
+}
+
+// mapState辅助函数写法
+import { computed } from 'vue'
+import { mapState, useStore } from 'vuex'
+export default {
+ 	setup(){
+        const store = useStore()
+        const storeStateFn = mapState(['counter','name', 'age', 'height'])
+        //storeStateFn其实是一个这样的对象:
+        //{counter: function, name: function, age: function, height: function}
+        const storeState = {}
+        // 转化后的storeState: {counter: ref, name: ref ...}
+        Object.keys(storeStateFn).forEach(Key => {
+            const fn = storeStateFn[key].bind({$store: store}) //给方法绑定执行环境$store
+            storeState[key] = computed(fn) // 通过computed把fn转成ref对象，保存给storeState
+        })
+    }   
+}
+```
+
+### 封装mapState
+
+```js
+// 封装hooks/useMapState.js
+import { computed } from 'vue'
+import { mapState, useStore } from 'vuex'
+export function useMapState(mapper){ // mapper就是外部传入的参数
+    const store = useStore()
+    const storeStateFn = mapState(mapper)
+    const storestate = {}
+    Object.keys(storeStateFn).forEach(key => {
+        const fn = storeStateFn[key].bind({$store: store})
+        storeState[key] = computed(fn)
+    })
+    return storeState
+}
+
+// 外部使用hooks
+import {useMapState} from './hooks/useMapstate'
+setup(){
+    // 数组格式
+    const storeState = useMapState(['counter', 'name', 'age'])
+    // 对象格式
+    const storeState2 = useMapState({
+        sCounter: state => state.counter
+    })
+    return {
+        ...storeState,
+        ...storeState2
+    }
+}
+```
+
+### 封装mapGetters
+
+```js
+// 封装hooks/useMapGetters.js
+import { computed } from 'vue'
+import { mapGetters, useStore } from 'vuex'
+export function useMapState(mapper){ // mapper就是外部传入的参数
+    const store = useStore()
+    const storeGettersFn = mapGetters(mapper)
+    const storeGetters = {}
+    Object.keys(storeGettersFn).forEach(key => {
+        const fn = storeGettersFn[key].bind({$store: store})
+        storeGetters[key] = computed(fn)
+    })
+    return storeGetters
+}
+```
+
+### 二次封装mapState和mapGetters
+
+mapState和mapGetters逻辑代码基本一样，可通过2次封装到一个useMapper中
+
+```js
+// useMapper.js
+import {computed} from 'vue'
+import {useStore} from 'vuex'
+export function useMapper(mapper,mapperFn){
+    const store = useStore()
+    const storeFn = mapperFn(mapper) // 从外部传入要调用mapState还是mapGetters
+    const storeState = {}
+    Object.keys(storeFn).forEach(key => {
+        const fn = storeFn[key].bind({$store: store})
+        storeState[key] = computed(fn)
+    })
+    return storeState
+}
+
+// useState.js
+import {useMapper} from 'hooks/useMapper'
+import {mapState} from 'vuex'
+export function useState(mapper){
+    return useMapper(mapper,mapState)
+}
+
+// useGetters.js
+import {useMapper} from 'hooks/useMapper'
+import {mapGetters} from 'vuex'
+export function useGetters(mapper){
+    return useMapper(mapper, mapGetters)
+}
+```
+
+### mapMutations
+
+```js
+// setup内使用mapMutations和methods内使用无差异，不需要转化
+setup(){
+    // 也支持2种写法
+    const storeMutations = mapMutations(['increment','decrement'])
+    const storeMutations2 = mapMutations({
+        add: 'increment',
+        sub: 'decrement'
+    })
+    return {
+        ...storeMutations,
+        ...storeMutations2
+    }
+}
+```
+
+### mapActions
+
+```js
+setup(){
+    const storeActions = mapActions(['increment','decrement'])
+    const storeActions2 = mapActions({
+        add:'increment',
+        sub:'decrement'
+    })
+    return {
+        ...storeActions,
+        ...storeActions2
+    }
+}
+```
+
+### module有命名空间时的辅助函数
+
+```js
+methods: {
+    // 写法1
+    ...mapstate({
+        counter: state => state.home.counter
+    })
+    ...mapGetters({
+        doubleCounter: 'home/doubleCounter' //home模块下的doubleCounter函数
+    })
+    // 写法2
+    ...mapState("home", ['counter'])
+    ...mapGetters("home", ['doubleCounter'])
+}
+
+// 写法3  导入命名空间辅助函数
+import {createNameSpacedHelpers} from 'vuex'
+// createNameSpacedHelpers返回一个该home模块的辅助函数对象
+const {mapState, mapGetters, mapActions,mapMutations} = createNameSpacedHelpers('home')
+export default {
+   methods:{
+    ...mapState(['counter'])
+    ...mapGetters(['doubleCounter'])
+    ...mapMutations(['increment', 'decrement'])
+    } 
+}
+
+```
+
+### module内重新封装有moduleName的useState和useGetters
+
+```js
+// useMapper.js
+import {computed} from 'vue'
+import {useStore} from 'vuex'
+export function useMapper(mapper,mapperFn){
+    const store = useStore()
+    const storeFn = mapperFn(mapper) // 从外部传入要调用mapState还是mapGetters
+    const storeState = {}
+    Object.keys(storeFn).forEach(key => {
+        const fn = storeFn[key].bind({$store: store})
+        storeState[key] = computed(fn)
+    })
+    return storeState
+}
+
+
+// useState.js
+import {mapState, createNamespacedHelpers} from 'vuex'
+import {useMapper} from 'useMapper'
+// 多传入一个模块名moduleName
+export function useMapState(moduleName, mapper){
+    let mapperFn = mapState
+    if(typeof moduleName === 'string' && moduleName !== ''){
+        //把mapperFn转化后传入useMapper 这样调用时就支持模块化了
+        mapperFn = createNamespacedHelpers(moduleName).mapState
+    }else{
+        // 没传moduleName的情况，把moduleName作为mapper传给useMapper函数
+        mapper = moduleName 
+    }
+    return useMapper(mapper, mapperFn) 
+}
+
+// 外部调用传入模块名即可，useState('home',['counter','name'])
+```
+
+## vue3全局属性globalProperties
+
+```js
+//main.js 注册全局过滤器
+// app.use会把app传给里面的执行函数, 从而通过app进行注册操作
+app.use(registerProperties)
+app.use(pluginFunction)
+
+// registerProperties.js
+import moment from 'moment'
+export default function registerProperties(app){ //这里拿到app.use传入的app
+    app.config.globalProperties.$filters = {
+        formatUTCTime(utcTime: any, format: string = DATA_FORMAT) {
+          const local = moment.utc(utcTime)
+          const localTime = moment(local).format(format)
+          return localTime
+        }
+  	}
+}
+
+// 拿到app对象, 注册任何想要实现的插件
+export function pluginFunction(app){
+    app.component() //注册全局组件
+    app.mixin()   //注册全局混入
+}
+```
+
+## setup内拿全局属性
+
+```js
+import {getCurrentInstance} from 'vue'
+setup(){
+    const instance = getCurrentInstance()
+    console.log(instantce.appConetxt.config.globalProperties.$filters.formatUTCTime)
+}
+```
+
+
+
+## v-model对组件双向绑定 
+
+### 子组件事件emit("update:modelValue")
+
+```vue
+<!--父组件-->
+<!-- v-model默认绑定一个接收事件： @update:model-value = "message = $event"  -->
+<my-component v-model="message"></my-component>
+
+
+<!--子组件接收-->
+<template>
+	//...code
+</template>
+<script>
+	export default {
+        props:{
+            modelValue: {  //v-model传过来的数据自动保存到modelValue中
+                type: Object,
+                required: true
+            }
+        },
+        setup(props,{emit}){
+            // 实现单向数据流，拷贝对象，不会对父组件产生影响，
+            const mydata = ref({...props.modelValue})
+            // 监听modelValue改变 发送给父组件进行更新
+            watch(
+                mydata,
+                (newValue)=>{
+                    // 子组件触发update事件, 传给父组件
+      				emit('update:modelValue', newValue)
+            }, {
+                deep: true
+            })
+        }
+    }
+</script>
+```
 
