@@ -712,9 +712,9 @@ setup(){
 
 ### setup内的生命周期
 
-setup生命周期内没有**beforeCreate**和**beforeCreate**生命周期，且不推荐在这两个生命周期内操作了
+setup生命周期内没有**beforeCreate**和**Create**生命周期，且不推荐在这两个生命周期内操作了
 
-setup比**beforeCreate**和**beforeCreate**更早执行，直接在setup内执行即可
+setup比**beforeCreate**和**Create**更早执行，直接在setup内执行即可
 
 ```js
 // setup内可导入的生命周期函数
@@ -1104,7 +1104,7 @@ setup(){
 ### module有命名空间时的辅助函数
 
 ```js
-methods: {
+computed: {
     // 写法1
     ...mapstate({
         counter: state => state.home.counter
@@ -1122,9 +1122,11 @@ import {createNameSpacedHelpers} from 'vuex'
 // createNameSpacedHelpers返回一个该home模块的辅助函数对象
 const {mapState, mapGetters, mapActions,mapMutations} = createNameSpacedHelpers('home')
 export default {
-   methods:{
+   computed:{
     ...mapState(['counter'])
     ...mapGetters(['doubleCounter'])
+	},
+    methods: {
     ...mapMutations(['increment', 'decrement'])
     } 
 }

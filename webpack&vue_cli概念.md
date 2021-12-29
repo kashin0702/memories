@@ -1,3 +1,189 @@
+## webpack知识点
+
+vue项目要打包的东西
+
+​	1.js打包   es6转es5  ts代码转化
+
+2. css处理  sass,less等预处理器的处理
+3. 资源文件img,font  图片Img文件的加载  字体font文件加载
+4. html资源处理  打包html资源文件
+5. 处理vue项目的sfc文件  .vue文件
+
+### 全局安装
+
+通过npm安装 (安装node后自带npm)
+
+npm install webpack webpack-cli -g  (安装2个: webpack和webpack-cli)
+
+命令行 全局打包命令: webpack
+
+### 局部安装
+
+不同的项目依赖的webpack版本不同，推荐每个项目使用局部安装webpack
+
+npm install webpack webpack-cli -D (--save-dev)  生成node_modules文件
+
+**命令行局部打包命令: **
+
+**方式1： ./node_modules/.bin/webpack**
+
+**方式2： npx webpack**
+
+**方式3： package.json文件中---> "script"添加脚本: "build": "webpack"**
+
+修改打包文件入口和出口 (webpack默认入口是src/index.js)
+
+npx webpack --entry ./src/main.js --output-path ./dist
+
+### npm init 
+
+创建package.json文件 (包依赖项文件)
+
+### import方法懒加载  
+
+其实就是在build时对文件进行分包，懒加载的文件会打包成chunk.xxx.js
+
+```js
+// import是webpack的方法，返回一个promise对象 可使用语法:import('./xxx').then()
+const routes = [
+    										// magic comment魔法注释 给分包自定义名
+    {path: '/home', component: () => import(/* webpackChunkName: "home-chunk "*/'../views/home.vue')}
+]
+```
+
+### 配置文件webpack.config.js
+
+```js
+const path = require('path')
+module.exports = {
+    entry: './src/main.js',
+    // output必须是绝对路径
+    output: {
+        // path.resolve对路径进行拼接 __dirname是当前文件路径
+        path: path.resolve(__dirname, './dist'),
+        filename: 'bundle.js' //打包后文件名
+    },
+    // 模块配置
+    module: {
+        // 模块规则, 是一个数组
+        rules: [
+            {
+                test: /\.css$/, // 用正则表达式匹配
+                use: [
+                   // {loader: 'css-loader'} // 完整写法
+                    "style-loader", // 注意：loader从下往上执行,先写style-loader
+                    "css-loader",
+                    {   // 添加Postcss需要用完整写法，配置option属性
+                        loader: "postcss-loader",
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    require('autoprefixer')
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.less$/,
+                use:[// less-loader只是转化，依然要使用style,css-loader进行加载
+                    "style-loader",
+                    "css-loader",
+                    "less-loader"
+                ]
+            }
+        ]
+    }
+}
+```
+
+### css-loader
+
+命令行安装: npm install css-loader -D
+
+### style-loader
+
+命令行安装: npm install style-loader -D
+
+### less-loader
+
+npm install less less-loader -D
+
+### postcss 
+
+postcss其实是一个平台，利用插件实现很多css转化和适配
+
+npm install postcss postcss-cli -D
+
+安装postcss的插件 autoprefixer
+
+npm install autoprefixer -D   自动添加浏览器前缀插件
+
+ //--use 指定使用的插件 -o输出demo.css 输入test.css
+
+npx postcss --use autoprefixer -o demo.css test.css   
+
+```css
+.title{
+    /*自动添加前缀插件*/
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+```
+
+### postcss-preset-env
+
+包括了autoprefixer功能的插件，一般用这个插件
+
+npm install postcss-preset-env -D
+
+```js
+{   // 添加Postcss需要用完整写法，配置option属性
+    loader: "postcss-loader",
+    options: {
+        postcssOptions: {
+            plugins: [
+                require('postcss-preset-env')
+            ]
+        }
+    }
+}
+```
+
+### file-loader 
+
+```js
+{
+    test: /\.(jpg|png|gif|svg)$/,
+    use:[
+        "file-loader"
+    ]
+}
+```
+
+### 使用相对路径导入图片不显示
+
+```js
+const el = document.createElement('img')
+// 这种导入方式打包后，图片是无法显示的，因为这个src会被认为是字符串
+el.src = '../assets/xxx.png'  
+
+// 解决方案: 使用模块化方式导入，当成模块资源使用， import或者require 打包时才能正确解析资源路径
+el.src = require('../assets/xxx.png')
+// 或者
+import xxpng from '../assets/xxx.png' 
+el.src = xxpng
+```
+
+
+
+
+
+
+
 ## 　各文件作用
 
 1、build/dev-server.js  文件 项目node的启动文件，这里面做了webpack配置和node操作，
@@ -557,3 +743,6 @@ module.exports = {
   }
 }
 ```
+
+
+
