@@ -19,7 +19,7 @@ npm install webpack webpack-cli -g  (安装2个: webpack和webpack-cli)
 
 ### 局部安装
 
-不同的项目依赖的webpack版本不同，推荐每个项目使用局部安装webpack
+**不同的项目依赖的webpack版本不同，推荐每个项目使用局部安装webpack**
 
 npm install webpack webpack-cli -D (--save-dev)  生成node_modules文件
 
@@ -37,19 +37,9 @@ npx webpack --entry ./src/main.js --output-path ./dist
 
 ### npm init 
 
-创建package.json文件 (包依赖项文件)
+创建package.json文件 (依赖项文件)
 
-### import方法懒加载  
 
-其实就是在build时对文件进行分包，懒加载的文件会打包成chunk.xxx.js
-
-```js
-// import是webpack的方法，返回一个promise对象 可使用语法:import('./xxx').then()
-const routes = [
-    										// magic comment魔法注释 给分包自定义名
-    {path: '/home', component: () => import(/* webpackChunkName: "home-chunk "*/'../views/home.vue')}
-]
-```
 
 ### 配置文件webpack.config.js
 
@@ -59,7 +49,7 @@ module.exports = {
     entry: './src/main.js',
     // output必须是绝对路径
     output: {
-        // path.resolve对路径进行拼接 __dirname是当前文件路径
+        // path.resolve对路径进行拼接 __dirname是当前文件路径， ./dist打包后的文件夹
         path: path.resolve(__dirname, './dist'),
         filename: 'bundle.js' //打包后文件名
     },
@@ -100,9 +90,13 @@ module.exports = {
 
 ### css-loader
 
+作用：只解析.css文件， 并不负责把CSS插入到页面
+
 命令行安装: npm install css-loader -D
 
 ### style-loader
+
+作用： 把解析后的css样式插入到元素中
 
 命令行安装: npm install style-loader -D
 
@@ -156,19 +150,92 @@ npm install postcss-preset-env -D
 ### file-loader 
 
 ```js
+// 打包图片
 {
     test: /\.(jpg|png|gif|svg)$/,
     use:[
-        "file-loader"
+        {
+            loader: 'file-loader',
+            options: {
+                outputPath: 'img', //打包后输出路径在img文件夹内
+                // []内表示文件名格式，hash:6表示6位的哈希值，ext表示文件后缀名
+                name: '[name]_[hash:6].[ext]'  
+            }
+        }
+    ]
+}
+// 打包字体图标
+{
+    test: /\.(eot|ttf|woff|woff2?)$/,
+    use:[
+        {
+            loader: 'file-loader',
+            options: {
+                name: 'font/[name]_[hash:6].[ext]' // 路径也可以直接写在name属性内
+            }
+        }
     ]
 }
 ```
 
-### 使用相对路径导入图片不显示
+### url-loader
+
+和file-loader工作方式相似，可以将小文件转成base64URI
+
+区别：可以对小的图片进行base64格式打包，打包后不会生成图片，会被编码到打包后的js文件中
+
+优点： 减少请求服务器的次数 (图片请求也会消耗服务器资源)
+
+```js
+{
+    test: /\.(jpg|png|gif|svg)$/,
+    use:[
+        {
+            loader: 'url-loader',
+            options: {
+                outputPath: 'img', //打包后输出路径在img文件夹内
+                name: '[name]_[hash:6].[ext]',
+                limit: 100 * 1024 // 100kb以下的图片才进行base64格式打包
+            }
+        }
+    ]
+}
+```
+
+### asset module type(资源模块类型)
+
+webpack5新特性, 替代file-loader/url-loader等
+
+```js
+// asset打包图片, 效果同上面的url-loader
+{
+    test: /\.(jpg|png|gif|svg)$/,
+    type: 'asset',
+        parser:{
+            dataUrlCondition: {
+                maxSize: 100 *1024
+            }
+        }
+}
+// asset打包字体图标
+{
+    test: /\.(eot|ttf|woff|woff2?)$/,
+    type: 'asset/resource',
+        generator: {
+            filename: 'font/[name]_[hash:6][ext]' // asset不需要加.
+        }
+}
+```
+
+
+
+
+
+### 使用相对路径导入图片不显示的问题
 
 ```js
 const el = document.createElement('img')
-// 这种导入方式打包后，图片是无法显示的，因为这个src会被认为是字符串
+// 这种导入方式通过webpack打包后，图片是无法显示的，因为这个src会被认为是字符串
 el.src = '../assets/xxx.png'  
 
 // 解决方案: 使用模块化方式导入，当成模块资源使用， import或者require 打包时才能正确解析资源路径
@@ -180,11 +247,768 @@ el.src = xxpng
 
 
 
+## webpack插件-plugin
+
+webpack的另一个核心就是插件，用来实现打包优化，资源管理、环境变量注入等功能
+
+### cleanWebpackPlugin
+
+cleanWebpackPlugin： 每次重新打包前自动删除dist文件夹
+
+安装: npm install clean-webpack-plugin -D
+
+```js
+const path = require('path')
+// 该模块会返回一个对象，包含一个cleanWebpackPlugin类
+const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+module.exports = {
+    entry: './src/main.js',
+    // output必须是绝对路径
+    output: {
+        // path.resolve对路径进行拼接 __dirname是当前文件路径
+        path: path.resolve(__dirname, './dist'),
+        filename: 'bundle.js' //打包后文件名
+    },
+    // 插件配置
+    plugins: [
+        new CleanWebpackPlugin()
+    ]
+}
+```
+
+### htmlWebpackPlugin
+
+htmlWebpackPlugin： 打包后生成一个index.html入口文件
+
+```js
+const path = require('path')
+const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+// webpack内置插件 无需安装
+const {DefinePlugin} = require('webpack')
+module.exports = {
+    entry: './src/main.js',
+    // output必须是绝对路径
+    output: {
+        // path.resolve对路径进行拼接 __dirname是当前文件路径
+        path: path.resolve(__dirname, './dist'),
+        filename: 'bundle.js' //打包后文件名
+    },
+    // 插件配置
+    plugins: [
+        new CleanWebpackPlugin(),
+        // htmlwebpackplugin可以传入一个对象，用来定义index.html的模板
+        new HtmlWebpackPlugin({
+        	template: './public/index.html' //使用public下面的index.html作为打包后的模板
+        }),
+        // 定义index.html模板内EJS语法的BASE_URL的值
+        new DefinePlugin({
+            BASE_URL: "'./'"  // 双引号内单引号，定义字符串， 一个双引号会作为变量去寻找对应的值
+        })
+    ]
+}
+```
+
+### copyWebpackPlugin
+
+copyWebpackPlugin：把public内的文件复制到打包后的dist文件夹内
+
+```js
+const copyWebpackPlugin = require('copy-webpack-plugin')
+plugins:[
+    new CopyWebpackPlugin({
+        patterns: [
+            {
+                from: 'public', //从哪里拷贝
+                to: './',   // 复制到output打包文件夹内
+                globOptions: {
+                    ignore: [
+                        '**/index.html' // 要忽略的文件
+                    ]
+                }
+            }
+        ]
+    })
+]
+```
+
+### mode和devtool
+
+```js
+module.exports = {
+    mode: 'development',  // 打包模式:production和devlopment，区别代码是否压缩
+    devtool: 'source-map'  // 建立js映射文件， 方便调试代码错误，返回具体的错误文件和位置
+} 
+```
+
+
+
+## Babel
+
+将ES6+/TS/JSX 转化为普通javascript代码的工具
+
+**@babel/core** 核心库
+
+**@babel/cli** 能在命令行使用babel
+
+安装： npm install @babel/core @babel/cli  -D
+
+使用：npx babel demo.js -- out-dir dist     //把demo.js转化为普通js, 输出到dist文件夹下
+
+### 转化箭头函数
+
+转化特定的语法 需要使用babel特定插件，也需要安装
+
+安装插件: npm install @babel/plugin-transform-arrow-functions -D
+
+// 命令行 --plugins跟上插件
+
+使用： npx babel demo.js --out-dir dist --plugins=@babel/plugin-transform-arrow-functions
+
+### Babel预设@babel/preset-env
+
+预设了一些常用的转换
+
+安装: npm install @babel/preset-env -D
+
+使用： npx babel demo.js --out-dir dist --presets=@babel/preset-env
+
+通过webpack使用babel
+
+```js
+{
+    test: /\.js$/,
+        use: {
+            loader: 'babel-loader',
+            options: {
+                // 写法1： 逐个写入插件
+                plugins: [
+				"@babel/plugin-transform-arrow-functions", //转化箭头函数插件
+                 "@babel/plugin-transform-block-scoping"  // 转化const作用域插件
+                ],
+                // 写法2： 直接使用预设
+                presets: [
+				"@babel/preset-env"
+                ],
+                
+                presets: [
+                    // 写法3： preset有额外参数时,写在数组中，额外参数跟在后面的{}
+                    ["@babel/preset-env", {}]
+                ]
+            }
+        }
+}
+```
+
+### 单独写babel配置文件
+
+babel.config.json (或.js .cjs .mjs)
+
+.babelrc.json (或.babelrc  .js .cjs)
+
+```js
+// babel.config.js
+module.exports = {
+    presets: [
+    	"@babel/preset-env"
+    ]
+}
+
+
+// webpack.config.js 
+{
+    test: /\.js$/,
+    use: {
+        loader: 'babel-loader'  //直接写babel-loader即可
+    }
+}
+
+```
+
+### npm下载的vue不同版本解析
+
+**vue的版本主要分为1. 运行时+编译器 或 2.仅运行时**
+
+通过npm install vue@next 下载下来的vue代码，放在node_modules内
+
+其中dist文件夹下有很多版本
+
+**vue.global.js:**  通过<script src=''>进行引用或cdn引用的就是这个版本
+
+esm表示es module
+
+**vue.esm-browser.js:**  浏览器中通过<script type="module"> 引用的是这个版本
+
+**vue(.runtime).esm-bundler.js:**  用于webpack等构建工具的版本, 有2个版本 runtime-compiler和runtime only
+
+runtime only 不能解析template,   runtime-compiler可以
+
+**所以如果app.vue文件(打包入口文件)含有template模板，打包vue项目时要指定vue.esm-bundler.js 版本**
+
+
+
+### vue开发的3种方式
+
+1. template模板方式
+2. render函数， 使用h函数来编写渲染的内容 (h函数返回虚拟vnode节点)
+3. sfc方式编写： 即.vue文件中的template来编写模板 （.vue文件会通过vue-loader 解析）
+
+
+
+### .vue就是sfc文件
+
+.vue文件本质就是sfc(single file components(单文件组件))
+
+vscode安装插件支持sfc文件 
+
+1. vetur  vscode支持的vue插件
+2. volar 官方推荐 
+
+
+
+### vue项目打包
+
+### vue-loader
+
+解析.vue文件
+
+npm install默认会安装vue2的loader， 需要使用@next安装最新版
+
+安装: npm install vue-loader@next -D  开发时依赖
+
+同时安装: npm install @vue/compiler-sfc   （sfc文件解析插件）
+
+引入vue-loader的插件: VueLoaderPlugin
+
+```js
+const {VueLoaderPlugins} = require('vue-loader/dist/index')
+{
+    test: /\.vue$/,
+    use: {
+        "vue-loader"
+    }
+}
+plugins: [
+    new VueLoaderPlugins(),
+    // 额外打包配置，写在definePlugin内
+    new DefinePlugin({
+        __VUE_OPTIONS_API: true, // 是否支持vue2的optionsAPI, 设置false打包后包会更小
+        __VUE_PROD_DEVTOOLS__: false // 生产环境是否支持devtools调试工具
+    })
+]
+```
+
+
+
+### webpack搭建本地服务
+
+#### webpack-dev-server（基于express框架的本地服务器）
+
+**没有本地服务时，可使用live-server插件实现本地服务，但没有热更新功能**
+
+作用： 监听文件变化，具备live reloading（实时重新加载）的功能
+
+1.安装： npm install webpack-dev-server -D
+
+2.配置脚本： package.json 内配置serve脚本
+
+```json
+"script":{
+    "build": "webpack",
+    "serve": "webpack serve"  //运行npm run serve时 自动执行该命令 启动本地服务器
+}
+```
+
+### npm run serve 后的打包文件
+
+本质上也是有一个打包文件产生，但是不会输出任何打包后的文件到目录上，而是**存在了内存**里供本地服务使用 
+
+
+
+### devServer配置 
+
+```js
+const path = require('path')
+//完整配置目录
+module.exports = {
+    target: 'web|node', // 打包环境 一般都是web
+    mode: 'development',
+    devtool: 'source-map',
+    entry: './src/main.js',
+    output: {}, //打包出口
+    module: {}, // 各种loader配置
+    plugins: [], // 各种插件配置
+    devServer: { // devServer配置
+        // 开发环境使用, 生产环境仍要使用CopyWebpackPlugin插件，因为资源都要部署到服务器上
+        contentBase: { //如果某些资源未被webpack打包，则会从contentBase中加载
+            "./public"   //public文件夹内的资源会被webpack加载
+        },
+        // webpack中一般把一个文件当成一个模块， 不开启默认使用live reloading
+        hot: true, // hmr(模块热替换) 应用运行中替换、添加、删除模块，无需刷新整个页面 
+        // localhost本质是一个域名，会被解析成127.0.0.1
+        host: "localhost | 0.0.0.0",
+        port: 8090,
+        // 是否对请求的数据进行压缩，压缩除html外的文件。一般采用gzip压缩
+        compress: true,   // 响应头response-headers的content-encoding变成gzip
+        // 最常用的配置，开发阶段本地跨域配置
+        proxy: {
+            "/api":{
+                target: "http://xxxx.cn:8888",
+                pathRewrite: {
+                    "^/api": ''     //重写路径 去除/api路径
+                },
+                secure: false,  // 默认true 没有证书时，不接受转发到https服务器上
+                changeOrigin: true // 请求源修改，设为true会放到header中，避免服务器安全校验
+            }
+        }
+    },
+    // 模块解析 注意和devServer同级
+    resolve: {
+        // 扩展名配置
+        extensions: [".vue", '.ts'],  //默认有.js .json  所以import引入js json可以不写后缀名
+        // 路径别名配置
+        alias: {
+            "@": path.resolve(__dirname, './src') // __dirname表示当前项目路径
+        }
+    }
+}
+```
+
+```js
+// main.js 文件
+import './js/xxxx.js' 
+// 需要加个判断，指定要开启热替换的模块（ vue-loader默认实现了热替换，无需手动写）
+if(module.hot){
+    module.hot.accept('./js/xxxx.js') // 要开启热替换的模块
+}
+```
+
+### devServer热更新原理
+
+webpackDevServer会创建2个服务:
+
+1.静态资源服务(express) 2.socket服务(长链接)
+
+express server直接提供静态资源的服务(打包后的资源直接被浏览器请求和解析)
+
+socket server 长链接服务，建立连接后服务器可以直接发送文件到客户端
+
+当服务器监听到对应的模块发生变化时，会生成2个文件.json描述文件，.js更新文件
+
+通过长链接直接将2个文件主动发给客户端(浏览器)
+
+浏览器拿到2个文件后，通过hmr runtime机制加载2个文件实现模块热更新
+
+
+
+### localhost和0.0.0.0的区别
+
+127.0.0.1是一个回环地址，意思是自己主机发出去的包，被自己接收
+
+正常数据库包发送经过应用层-传输层-网络层-数据链路层-物理层
+
+而回环地址在网络层就被捕获，不经过数据链路层-物理层
+
+因此当监听127.0.0.1时，在同一网段下的主机中，通过ip地址是不能访问的
+
+0.0.0.0： 监听ipv4上所有的地址，再根据端口找到不同的应用程序
+
+当监听0.0.0.0时，即监听ipv4上所有的地址，在同一网段的其他主机就能通过ip地址进行访问
+
+
+
+### resolve 模块解析
+
+```js
+ // 模块解析 注意和devServer同级
+    resolve: {
+        // 扩展名配置
+        extensions: [".vue", '.ts'],  //默认有.js .json  所以import引入js json可以不写后缀名
+        // 路径别名配置
+        alias: {
+            "@": path.resolve(__dirname, './src') // __dirname表示当前项目路径
+        }
+    }
+```
+
+resolve用于设置模块如何被解析
+
+可以帮助webpack从每个require/import语句中找到需要引入的合适的模块代码
+
+webpack能解析的3种文件路径
+
+1.绝对路径 不需要进一步解析
+
+2.相对路径
+
+​	使用import/require引入的资源文件所处的目录，被认为是上下文目录
+
+​	在Import/require中给定的相对路径，会拼接此上下文路径，来生成模块的绝对路径
+
+3.模块路径
+
+​	在resolve.modules中指定的所有目录检索模块
+
+​	默认值：node_modules, 默认会从node_modules中查找模块
+
+确认是文件还是文件夹
+
+如果是文件：
+
+如果文件有扩展名，则直接打包，否则使用resolve.extensions作为文件扩展名解析
+
+如果是文件夹：
+
+resolve.mainFiles配置选项中指定的文件顺序查找， mainFiles默认值是index
+
+再根据resolve.extensions来解析扩展名
+
+**所以/common/index.js这种目录结构时，可直接import xxx from  './common'  省略路径index.js**
+
+
+
+### 环境分离（重要）
+
+```js
+//第一步 package.json配置： 不同环境运行不同的webpack配置
+"scripts": { // --config 指定配置文件
+    "build": "webpack --config ./config/webpack.prod.config.js",
+    "serve": "webpack serve --config ./config/webpack.dev.config.js"
+}
+```
+
+```js
+// 创建一个config文件夹，存放不同环境的webpack配置
+// webpack.common.config.js 公共配置 （开发和生产都需要的配置）
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const {DefinePlugin} = require('webpack')
+const {VueLoaderPlugin} = require('vue-loader/dist/index')
+module.exports = {
+    target: 'web',
+    entry: './src/main.js',
+    output: path.resolve(__dirname, './dist'),
+    filename: 'js/bundle.js',
+    resolve: {
+        extensions: [],
+        alias: {}
+    },
+    module: {},
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: './public/index.html',
+            title: 'xxx'
+        }),
+        new DefinePlugin({
+            BASE_URL: "'./'",
+            __VUE_OPTIONS_API__: true,
+            __VUE_PROD_DEVTOOLS: false
+        }),
+        new VueLoaderPlugin()
+    ]
+}
+// webpack.dev.config.js 开发环境配置
+module.exports = {
+    mode: 'development',
+    devtool: 'source-map',
+    devServer: {},
+    
+}
+// webpack.prod.config.js 生产环境配置
+const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+module.exports = {
+    mode: 'production',
+    plugins: [
+        new CleanWebpackPlugin(), // 生产环境才需要的插件
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: "public",
+                    to: './', 
+                    globOptions: {
+                        ignore: ["**/index.html"]
+                    }
+                }
+            ]
+        })
+    ]
+}
+```
+
+### merge 合并
+
+webpack-merge也是一个插件，用来合并配置文件， 需要安装
+
+安装: npm install webpack-merge -D
+
+把webpack.common.config合并到dev和prod的config文件中
+
+```js
+// merge是一个函数， 入参就是2个要合并的对象
+const {merge} = require('webpack-merge')
+const commonConfig = require('./webpack.common.config')
+
+const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+
+// 通过merge函数合并commonConfig和 {}内的prod配置对象
+module.exports = merge(commonConfig, {
+    mode: 'production',
+    plugins: [
+        new CleanWebpackPlugin(), // 生产环境才需要的插件
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: "public",
+                    to: './',
+                    globOptions: {
+                        ignore: ["**/index.html"]
+                    }
+                }
+            ]
+        })
+    ]
+})
+```
 
 
 
 
-## 　各文件作用
+
+
+
+## vue-cli知识点
+
+作用： 预设很多webpack的基本配置
+
+全局安装: npm install @vue/cli -g
+
+通过vue-cli创建vue项目：  vue create 项目名称
+
+### vue-cli创建项目的目录结构
+
+public: 存放一些项目资源，打包时会被复制到dist文件夹
+
+src: 所有源码
+
+.browserslistrc: 设置要适配的浏览器范围
+
+.gitignore:  git的忽略文件
+
+babel.config.js:   babel配置文件
+
+package.json:   项目的管理文件
+
+### vue-cli脚本
+
+```js
+// vue-cli和webpack的运行原理是一样的，就是运行了vue-cli的对应命令
+"script": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+}
+```
+
+### vue-cli-service原理（难点）
+
+运行npm run serve 就是执行vue-cli-service serve命令
+
+这个命令会去**node_modules/.bin**文件下寻找**vue-cli-service**文件执行
+
+而这个vue-cli-service其实是一个软连接，真实执行的代码位置在node_modules/@vue/cli-service目录下
+
+**node_modules/@vue/cli-service/package.json**文件:
+
+```json
+// 关键脚本 真实执行的命令: vue-cli-service
+"bin":{
+    "vue-cli-service": "bin/vue-cli-service.js" //真正被执行的js
+}
+```
+
+部分源码 (配置所有webpack配置)
+
+```js
+// node_modules/@vue/cli-service/lib/service.js
+// 获取webpack的所有配置
+const webpackConfig = api.resolveWebpackConfig()
+
+// 同目录pluginAPI.js
+resolveWebpackConfig(chainableConfig){
+    return this.service.resolveWebpackConfig(chainableConfig)
+}
+```
+
+部分基础配置源码
+
+```js
+// config/base.js  css.js prod.js
+webpackconfig  // 基于第三方库，采用了链式调用
+	.mode('development')
+	.context(api.service.context)
+	.entry('app')
+	.add('./src/main.js')
+	.end()
+	.output
+		.path(api.resolve(options.outputDir))
+		.filename(isLegacyBundle ? '[name]-legacy.js' : '[name].js')
+	// ....
+```
+
+
+
+### vue.config.js(vue-cli配置)
+
+自己的vue-cli配置文件， 最后会和vue-cli内的webpack配置进行合并
+
+```js
+module.exports = {
+    // 根据源码，两种key的写法都可以
+    configureWebpack: {},
+    chainWebpack: {}
+}
+```
+
+
+
+
+
+## Vite
+
+官网: cn.vitejs.dev
+
+思想: 基于最新浏览器支持es module解析，把ts,vue等文件都转化为module，省去了模块解析这一步
+
+预打包： 如果项目有基于第三方库，第一次打包会对这些库进行预打包，放在node_modules/.vite下，第二次打包会直接拿这些包进行打包，所以速度更快
+
+```js
+// main.js
+import {fn} from './utils.js'
+console.log(fn('123'))
+```
+
+```html
+<html>
+    <!--最新浏览器使用type="module" 支持es module语法， 能够解析esModule模块-->
+    <script src="./main.js" type="module"></script>
+</html>
+```
+
+局部安装:  npm install vite -D 
+
+运行： npx vite (运行**node_modules/.bin**文件夹内的vite)
+
+
+
+### vite对css的支持
+
+先npm init 安装package.json 管理项目依赖
+
+vite 可以直接解析css模块 不需要css-loader
+
+vite不能解析less,还是需要安装: npm install less -D
+
+安装postcss：  npm install postcss -D
+
+安装postcss对应插件：npm install postcss-preset-env -D
+
+写对应配置
+
+```js
+// postcss.config.js
+module.exports = {
+    plugins: [
+        require('postcss-preset-env')
+    ]
+}
+```
+
+### vite对ts的支持
+
+vite直接支持ts 不需要额外配置
+
+
+
+### vite对vue的支持
+
+安装插件：
+
+vue3： @vitejs/plugin-vue
+
+vue3jsx： @vitejs/plugin-vue-jsx
+
+vue2： underfin/vite-plugin-vue2
+
+
+
+### vite.config.js(vite配置文件)
+
+```js
+const vue = require('@vitejs/plugin-vue')
+module.exports = {
+    plugins:[
+         vue()
+    ]
+}
+```
+
+
+
+### 正式打包
+
+npx vite build
+
+
+
+### 真实开发可使用script命令
+
+```js
+// package.json 配置脚本
+"script":{
+    "serve": "vite",
+    "build": "vite build",
+    "preview": "vite preview"  // 预览打包后的项目
+}
+```
+
+
+
+### vite脚手架
+
+vite实际上有2个工具：
+
+vite: 相当于一个构建工具，类似webpack， 从0开始搭建项目
+
+@vitejs/create-app: 相当于脚手架，类似vue-cli， 预设很多vite配置
+
+使用方法（推荐， 非官方init方法）：
+
+1.全局安装脚手架: npm install @vitejs/create-app -g
+
+2.创建项目:  create-app 项目名称
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 
+
+### 
+
+### 　vue-cli各配置文件作用
 
 1、build/dev-server.js  文件 项目node的启动文件，这里面做了webpack配置和node操作，
 
@@ -200,7 +1024,7 @@ el.src = xxpng
 
 
 
-## **1、build/dev-server.js**
+### **1、build/dev-server.js**
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
@@ -354,7 +1178,7 @@ module.exports = {
 }
 ```
 
-## **2、build/webpack.base.conf.js**
+### **2、build/webpack.base.conf.js**
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
@@ -444,7 +1268,7 @@ module.exports = {
 
  
 
-## **3、build/webpack.dev.conf.js**
+### **3、build/webpack.dev.conf.js**
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
@@ -501,7 +1325,7 @@ module.exports = merge(baseWebpackConfig, {
 
  
 
-## **4、build/webpack.prod.conf.js** 
+### **4、build/webpack.prod.conf.js** 
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
@@ -644,7 +1468,7 @@ module.exports = webpackConfig
 
  
 
-## **5、build/build.js**
+### **5、build/build.js**
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
@@ -696,7 +1520,7 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
 
  
 
-## **6、config/index.js**
+### **6、config/index.js**
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
