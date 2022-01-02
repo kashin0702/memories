@@ -1248,3 +1248,163 @@ setup(){
 </script>
 ```
 
+
+
+
+
+## Vue3.0源码相关
+
+Vue源码包括3大核心：
+
+1.compiler模块： 编译模板系统(编译.vue文件中的template转化为虚拟node)
+
+2.runtime模块： 也称为renderer模块，真正的渲染模块，把vNode渲染成真实dom
+
+3.reactivity模块：响应式系统 （diff算法，判断数据是否改变，进行页面更新）
+
+### 编写mini-vue
+
+```html
+<!--index.html-->
+<html>
+<body>
+    <div id="app"></div>
+    <script src='./renderer.js'></script>
+    <script>
+        // 通过h函数创建vnode
+        const vnode = h('div', {class="active"}, [
+            h('h2', null, "当前计数：100"),
+            h('button', null, "+1")
+        ])
+        // 通过mount函数，把vnode挂载到app上
+        mount(vnode, document.querySelector('#app'))
+        
+        // 创建新的vnode
+        const vnode1 = h('h2', {class="hhh"}, "哈哈哈")
+        // 更新dom
+        patch(vnode, vnode1)
+    </script>
+</body>
+</html>
+```
+
+### 实现h函数,mount,reactivity
+
+```js
+// renderer.js
+// 实现h函数，vnode就是一个Js对象，就是{} 
+const h = (tag, props, children) => {
+    // h函数的本质: vnode -> javascript对象 -> {}
+    return {
+       tag,
+       props,
+       children
+    }
+}
+
+// 实现mount(挂载）功能: 把vnode转化成真实dom并挂载到元素上
+const mount = (vnode, container) => {
+    // 1.创建元素el 同时在vnode上保存一份vnode.el
+    const el = vnode.el = document.createElement(vnode.tag)
+    // 2.处理Props
+    for(const key in vnode.props){//遍历props属性
+        const value = vnode.props[key]
+        if(key.startWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
+            el.addEventListener(key.slice(2).toLowerCase(), value)
+        }else{
+            el.setAttribute(key, value) // 给元素添加属性
+        }
+    }
+    // 3.处理children子节点
+    if(vnode.children){
+        if(typeof vnode.children === 'string'){
+            el.textContent = vnode.children // 是string类型就直接赋值
+        }else{
+            vnode.children.forEach(item => { // 数组类型，进行递归调用mount
+                mount(item, el)
+            })
+        }
+    }
+    // 4.将el挂载到container
+    container.appendChild(el)
+}
+
+// 实现dom更新 当修改vnode时，更新dom
+const patch = (n1, n2) => {
+    // 1.先判断节点是否相同，不同的话直接删除旧节点，添加新节点
+    if(n1.tag !== n2.tag){
+        // 删除节点需要用到节点的父元素
+        const n1ParentEl = n1.el.parentElement
+        n1ParentEl.removeChild(n1.el)
+        mount(n2, n1ParentEl) // 挂载n2节点
+    }else{ //节点相同的情况
+        const el = n2.el = n1.el // 取出vnode.el上保存的element对象，并在n2中保存
+        // 2.处理props
+        const oldProps = n1.props
+        const newProps = n2.props
+        // 获取所有新的props并添加到el中
+        for(const key in newProps){
+            const oldValue = oldProps[key]
+            const newValue = newProps[key]
+            // 不同表示不相等或者是新属性，添加到el
+            if(newValue !== oldValue){
+                if(key.startWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
+            		el.addEventListener(key.slice(2).toLowerCase(), newValue)
+        		}else{
+            		el.setAttribute(key, newValue) // 给元素添加属性
+        		}
+            }
+        }
+        // 3.删除旧的props
+        for(const key in oldProps){
+            if(!(key in newProps)){
+                if(key.startWith('on')){ 
+                    const value = oldProps[key]
+                    // 删除事件监听器
+            		el.removeEventListener(key.slice(2).toLowerCase(), value)
+        		}else{
+            		el.removeAttribute(key) // 删除属性
+        		}
+            }
+        }
+        
+        // 4. 处理children
+        let oldChildren = n1.children || []
+        let newChildren = n2.children || []
+        // 情况1：newChildren是string
+        if(typeof newChildren === 'string'){
+            el.innerHTML = newChildren
+        }else{
+            //情况2：newChildren是一个数组 oldChildren是string
+            if(typeof oldChildren === 'string'){
+                el.innerHTML = ''
+                newChildren.forEach(item => {
+                    mount(item, el)
+                })
+            }else{ // 情况3：2个都是数组
+                // 考虑多种情况，旧children长还是新children长
+                //oldChildren: [v1,v2,v3]
+                //newChildren: [v1,v5,v6,v7,v8]
+                // 计算2个数组最小长度，对相同长度的每项进行Patch操作
+                const commonLength = Math.min(oldChildren.length, newChildren.length)
+                for(let i=0; i<commonLength; i++){
+                    patch(oldChildren[i], newChildren[i])
+                }
+                // 旧的比新的长，删除旧children多出来的项
+                if(oldChildren.length > newChildren.length){
+                    oldChildren.slice(newChildren.length).forEach(item => {
+                        el.removeChild(item.el)
+                    })
+                }
+                // 新的比旧的长，把newChildren多出来的项挂载进去
+                if(oldChildren.length < newChildren.length){
+                    newChildren.slice(oldChildren.length).forEach(item => {
+                        mount(item, el)
+                    })
+                }
+            }
+        }
+    }
+}
+```
+
