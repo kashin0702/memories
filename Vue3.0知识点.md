@@ -1262,8 +1262,6 @@ Vue源码包括3大核心：
 
 3.reactivity模块：响应式系统 （diff算法，判断数据是否改变，进行页面更新）
 
-### 编写mini-vue
-
 ```html
 <!--index.html-->
 <html>
@@ -1281,14 +1279,16 @@ Vue源码包括3大核心：
         
         // 创建新的vnode
         const vnode1 = h('h2', {class="hhh"}, "哈哈哈")
-        // 更新dom
+        // update DOM
         patch(vnode, vnode1)
     </script>
 </body>
 </html>
 ```
 
-### 实现h函数,mount,reactivity
+### renderer.js 
+
+### 实现h函数,mount,patch
 
 ```js
 // renderer.js
@@ -1358,13 +1358,12 @@ const patch = (n1, n2) => {
         // 3.删除旧的props
         for(const key in oldProps){
             if(!(key in newProps)){
-                if(key.startWith('on')){ 
-                    const value = oldProps[key]
-                    // 删除事件监听器
-            		el.removeEventListener(key.slice(2).toLowerCase(), value)
-        		}else{
-            		el.removeAttribute(key) // 删除属性
-        		}
+                el.removeAttribute(key) // 删除属性
+            }
+            if(key.startWith('on')){ 
+                const value = oldProps[key]
+                // 删除事件监听器
+                el.removeEventListener(key.slice(2).toLowerCase(), value)
             }
         }
         
@@ -1403,6 +1402,247 @@ const patch = (n1, n2) => {
                     })
                 }
             }
+        }
+    }
+}
+```
+
+
+
+### 响应式系统
+
+依赖收集： 当某个数据发生改变，收集所有用到这个数据的方法，把它们都重新执行一遍 
+
+```js
+// 定义一个依赖收集的类: Dep (dependence)
+class Dep {
+    constructor(){
+        // 收集依赖的sub,定义成集合
+        this.subscribers = new Set() // 定义1个集合，和数组的区别是集合内的元素不能重复
+    }
+    
+    // 添加副作用函数(数据改变后要执行的函数都是副作用函数)
+    addEffect(effect){
+        this.subscribers.add(effect) // 集合添加方法用add, 不用Push
+    }
+    // 执行副作用函数
+    notify(){
+        this.subscribers.forEach(effect => {
+            effect()
+        })
+    }
+    
+    depend(){
+        if(activeEffect){
+            this.subscribers.add(activeEffect)
+        }
+    }
+}
+
+const info = {counter: 100}
+fn1(){
+    console.log(info.counter *2)
+}
+fn2(){
+    console.log(info.counter * info.counter)
+}
+
+// 版本1：通过dep.addEffect收集依赖  
+const dep = new Dep()
+// 添加依赖（手动）
+dep.addEffect(fn1) 
+dep.addEffect(fn2)
+// 当info.counter发生改变时,调用notify （手动）
+info.counter++
+dep.notify()
+
+
+
+// 版本2：通过watchEffect收集依赖  创建一个activeEffect保存依赖
+let activeEffect = null
+// 用watchEffect接受副作用函数, addEffect不用来接受参数
+function watchEffect(effect){
+    activeEffect = effect
+    dep.depend()
+    effect() // 传入时先执行一次
+    activeEffect = null // 执行完depend， activeEffect置空
+}
+
+watchEffect(fn1)
+watchEffect(fn2)
+// 数据发生改变
+info.counter++
+// 执行所有依赖函数
+dep.notify()
+
+```
+
+### 不同属性要建立不同的dep
+
+```js
+const info = {counter: 100, name: 'david'}
+
+//当counter或name发生改变, 对其有依赖的函数应该放在不同的dep中进行管理和执行
+fn1(){
+    console.log(info.counter) // 只依赖counter
+}
+fn2(){
+    console.log(info.name)// 只依赖name
+}
+// dep的管理结构:
+/**
+vue源码中的结构
+const targetMap = new Map()
+targetMap[info] = new Map(info)
+infoMap[counter] = dep1.subscribers
+infoMap[name] = dep2.subscribers
+*/
+```
+
+### 实现reactive方法(核心)
+
+#### vue2数据劫持
+
+```js
+// vue2中对raw（原始数据）进行数据劫持
+// 实现响应式数据，自动收集依赖：const info = reactive({counter: 100, name: 'david'})
+function reactive(raw){
+    Object.keys(raw).forEach(key => {
+        const dep = getDep(raw, key)
+        const value = raw[key]
+        // defineProperty接受3个参数, 第三个参数是一个对象包含get/set方法
+        Object.defineProperty(raw, key , {
+            get(){// 获取raw.counter时会调用get，利用get这个特性收集依赖
+                dep.depend()
+            },        
+            set(newValue){// 设置raw.counter时会调用set
+                if(value !== newValue){
+                    value = newValue
+                    dep.notify()
+                }
+            } 
+        })
+    })
+    return raw
+}
+// const counter = raw.counter 会调用get
+// raw.counter = '200'  会调用set
+
+
+//const targetMap = new Map() map创建的是键值对合集
+// Map({key:value}) key是一个字符串
+// weakMap({key}: value) key是一个对象，同时key的引用是弱引用
+const targetMap = new WeakMap()
+// 工具函数：根据target, key获取map 
+function getDep(target, key){
+    // 1.根据target取出对应的map对象
+    let depsMap = targetMap.get(target) // 调用map对象方法get传入target
+    if(depsMap === null){
+        depsMap = new Map()
+        targetMap.set(target, depsMap)
+    }
+    // 2. 取出具体的dep对象
+    let dep = depsMap.get(key)
+    if(dep === null){
+        dep = new Dep()
+        depsMap.set(key, dep)
+    }
+    return dep
+}
+
+
+```
+
+#### vue3数据劫持
+
+proxy优势
+
+Object.defineProperty是劫持对象的属性时，如果新增属性
+
+那么vue2需要再次调用definedProerty, (Vue.$set就是再次调用了definedProerty)
+
+ 而Proxy劫持的是整个对象，不需要处理
+
+defineProperty修改的是原来的对象触发拦截
+
+proxy修改的是代理对象(new Proxy实例)，触发拦截
+
+```js
+// vue3数据劫持
+function reactive(raw){
+    // 返回的是一个proxy对象
+    return new Proxy(raw, {//操作代理对象raw时，执行get或set
+        // 入参target就是raw
+        get(target, key){
+            const dep = getDep(target, key)
+            dep.depend() //收集依赖
+            return target[key]
+        },
+        set(target, key, newValue){
+            const dep = getDep(target, key)
+            target[key] = newValue
+            dep.notify()
+        }
+    })
+}
+```
+
+### 实现mini-vue
+
+mini-vue入口文件
+
+实现了渲染系统、可响应式系统、应用入口模块
+
+```html
+<html>
+    <div id="app"></div>
+    <script src="./renderer.js"></script>
+    <script src="./reactive.js"></script>
+    <script src="./index.js"></script>
+    <script>
+    	//1.创建根组件
+        const App = {
+            data: reactive({
+                counter: 0
+            }),
+            render(){
+                return h('div', null, [
+                    h('h2', null, `当前计数${this.data.counter}`),
+                    h('button',{onClick: ()=> {
+                        this.data.counter++
+                    }}, '+1')
+                ])
+            }
+        }
+        // 2.挂载组件
+        const app = creaetApp(App)
+        app.mount('#app')
+    </script>
+</html>
+```
+
+
+
+```js
+// index.js
+function createApp(rootComponent){
+    return {
+        mount(selector){
+            const container = document.querySelector(selector)
+            let isMounted = false
+            let oldVnode = null
+            
+            watchEffect(function(){
+                if(!isMounted){
+                    oldVnode = rootComponent.render()
+                    mount(oldVnode,container) // 这个是renderer.js中的mount方法
+                    isMounted = true
+                }else{
+                    const newVnode = rootComponent.render()
+                    patch(oldVnode, newVnode)
+                    oldVnode = newVnode
+                }
+            })
         }
     }
 }
