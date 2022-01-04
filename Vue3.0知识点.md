@@ -1531,7 +1531,7 @@ function reactive(raw){
 
 //const targetMap = new Map() map创建的是键值对合集
 // Map({key:value}) key是一个字符串
-// weakMap({key}: value) key是一个对象，同时key的引用是弱引用
+// weakMap({key}: value) key是一个对象，同时key的引用是弱引用(数组，对象中的引用是强引用)
 const targetMap = new WeakMap()
 // 工具函数：根据target, key获取map 
 function getDep(target, key){

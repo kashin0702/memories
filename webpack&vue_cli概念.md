@@ -19,6 +19,8 @@ npm install webpack webpack-cli -g  (安装2个: webpack和webpack-cli)
 
 ### 局部安装
 
+npm install 不写-g就是局部安装
+
 **不同的项目依赖的webpack版本不同，推荐每个项目使用局部安装webpack**
 
 npm install webpack webpack-cli -D (--save-dev)  生成node_modules文件
