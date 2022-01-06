@@ -1469,7 +1469,7 @@ dep.notify()
 
 // 版本2：通过watchEffect收集依赖  创建一个activeEffect保存依赖
 let activeEffect = null
-// 用watchEffect接受副作用函数, addEffect不用来接受参数
+// 用watchEffect接受副作用函数, 不需要addEffect收集effect函数
 function watchEffect(effect){
     activeEffect = effect
     dep.depend()
@@ -1488,9 +1488,15 @@ dep.notify()
 
 ### 不同属性要建立不同的dep
 
+dep1(info.counter)  subscribers
+
+dep2(info.name)  subscribers
+
+dep3(foo.height)  suscribers
+
 ```js
 const info = {counter: 100, name: 'david'}
-
+const foo = {height: '1.88'}
 //当counter或name发生改变, 对其有依赖的函数应该放在不同的dep中进行管理和执行
 fn1(){
     console.log(info.counter) // 只依赖counter
@@ -1502,8 +1508,9 @@ fn2(){
 /**
 vue源码中的结构
 const targetMap = new Map()
-targetMap[info] = new Map(info)
-infoMap[counter] = dep1.subscribers
+targetMap[info] = new Map(info) => infoMap[counter] = dep1.subscribers
+targetMap[foo] = new Map(foo)  => infoMap[foo] = dep2.subscribers
+
 infoMap[name] = dep2.subscribers
 */
 ```
