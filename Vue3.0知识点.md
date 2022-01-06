@@ -1346,7 +1346,7 @@ const patch = (n1, n2) => {
         for(const key in newProps){
             const oldValue = oldProps[key]
             const newValue = newProps[key]
-            // 不同表示不相等或者是新属性，添加到el
+            // 不同表示是新属性，添加到el
             if(newValue !== oldValue){
                 if(key.startWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
             		el.addEventListener(key.slice(2).toLowerCase(), newValue)
@@ -1358,12 +1358,13 @@ const patch = (n1, n2) => {
         // 3.删除旧的props
         for(const key in oldProps){
             if(!(key in newProps)){
-                el.removeAttribute(key) // 删除属性
-            }
-            if(key.startWith('on')){ 
-                const value = oldProps[key]
-                // 删除事件监听器
-                el.removeEventListener(key.slice(2).toLowerCase(), value)
+                if(key.startWith('on')){ 
+                    const oldValue = oldProps[key]
+                    // 删除事件监听
+            		el.removeEventListener(key.slice(2).toLowerCase(), oldValue)
+        		}else{
+            		el.removeAttribute(key) //删除属性 
+        		}
             }
         }
         
@@ -1372,13 +1373,20 @@ const patch = (n1, n2) => {
         let newChildren = n2.children || []
         // 情况1：newChildren是string
         if(typeof newChildren === 'string'){
-            el.innerHTML = newChildren
+            // oldChildren也是string 且值不相等，对el.textContent赋值
+            if(typeof oldChildren === 'string'){
+                if(newChildren !== oldChildren){
+                    el.textContent = newChildren
+                }
+            }else {
+                el.innerHTML = newChildren //oldChildren是数组, 对el.innerHTML赋值
+            }
         }else{
-            //情况2：newChildren是一个数组 oldChildren是string
+           //情况2：newChildren是一个数组 oldChildren是string
             if(typeof oldChildren === 'string'){
                 el.innerHTML = ''
                 newChildren.forEach(item => {
-                    mount(item, el)
+                    mount(item, el) //遍历挂载newChildren内的子node
                 })
             }else{ // 情况3：2个都是数组
                 // 考虑多种情况，旧children长还是新children长
@@ -1401,7 +1409,8 @@ const patch = (n1, n2) => {
                         mount(item, el)
                     })
                 }
-            }
+            } 
+        } 
         }
     }
 }

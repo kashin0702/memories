@@ -45,6 +45,8 @@ npx webpack --entry ./src/main.js --output-path ./dist
 
 ### 配置文件webpack.config.js
 
+__dirname是[node.js](https://so.csdn.net/so/search?q=node.js)的一个全局变量，用于指向当前执行脚本（dirname.js）所在的目录路径，而且是绝对路径
+
 ```js
 const path = require('path')
 module.exports = {
@@ -322,7 +324,7 @@ plugins:[
         patterns: [
             {
                 from: 'public', //从哪里拷贝
-                to: './',   // 复制到output打包文件夹内
+                to: './',   // 可不填，不填默认拷贝到output地址
                 globOptions: {
                     ignore: [
                         '**/index.html' // 要忽略的文件
