@@ -1540,7 +1540,8 @@ function reactive(raw){
         // defineProperty接受3个参数, 第三个参数是一个对象包含get/set方法
         Object.defineProperty(raw, key , {
             get(){// 获取raw.counter时会调用get，利用get这个特性收集依赖
-                dep.depend() //当调用watchEffect(fn)传入raw.counter时，就会来到这里收集依赖
+            //每当执行watchEffect(fn) fn内获取raw.counter时，就会触发get来到这里收集依赖
+                dep.depend() 
                 return value
             },        
             set(newValue){// 设置raw.counter时会调用set
