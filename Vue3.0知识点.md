@@ -1488,9 +1488,13 @@ dep.notify()
 
 ### 不同属性要建立不同的dep
 
+对象相同，属性不同:
+
 dep1(info.counter)  subscribers
 
 dep2(info.name)  subscribers
+
+对象也不相同:
 
 dep3(foo.height)  suscribers
 
@@ -1506,12 +1510,12 @@ fn2(){
 }
 // dep的管理结构:
 /**
-vue源码中的结构
+vue源码中的结构 伪代码
 const targetMap = new Map()
 targetMap[info] = new Map(info) => infoMap[counter] = dep1.subscribers
-targetMap[foo] = new Map(foo)  => infoMap[foo] = dep2.subscribers
-
-infoMap[name] = dep2.subscribers
+targetMap[info] = new Map(info) => infoMap[name] = dep2.subscribers
+targetMap[foo] = new Map(foo)  => fooMap[height] = dep3.subscribers
+例子: info.counter发生改变， 根据info取newMap(info), 再从map中取key: counter，最后根据counter取到依赖dep1.subscribers
 */
 ```
 
@@ -1520,21 +1524,29 @@ infoMap[name] = dep2.subscribers
 #### vue2数据劫持
 
 ```js
+function watchEffect(effect){
+    activeEffect = effect
+    //dep.depend()
+    effect() // 传入时先执行一次 执行该方法用到的数据，就会调用defineProperty内的get方法
+    activeEffect = null // 执行完depend， activeEffect置空
+}
+
 // vue2中对raw（原始数据）进行数据劫持
 // 实现响应式数据，自动收集依赖：const info = reactive({counter: 100, name: 'david'})
 function reactive(raw){
     Object.keys(raw).forEach(key => {
-        const dep = getDep(raw, key)
+        const dep = getDep(raw, key)//获取对应属性的dep
         const value = raw[key]
         // defineProperty接受3个参数, 第三个参数是一个对象包含get/set方法
         Object.defineProperty(raw, key , {
             get(){// 获取raw.counter时会调用get，利用get这个特性收集依赖
-                dep.depend()
+                dep.depend() //当调用watchEffect(fn)传入raw.counter时，就会来到这里收集依赖
+                return value
             },        
             set(newValue){// 设置raw.counter时会调用set
                 if(value !== newValue){
                     value = newValue
-                    dep.notify()
+                    dep.notify() //执行所有依赖项
                 }
             } 
         })
@@ -1546,22 +1558,22 @@ function reactive(raw){
 
 
 //const targetMap = new Map() map创建的是键值对合集
-// Map({key:value}) key是一个字符串
-// weakMap({key}: value) key是一个对象，同时key的引用是弱引用(数组，对象中的引用是强引用)
+// Map({key:value}) key可以是任意值
+// weakMap({key}: value) key必须是一个对象，同时key的引用是弱引用(数组，对象中的引用是强引用)
 const targetMap = new WeakMap()
-// 工具函数：根据target, key获取map 
+// 获取dep的核心方法：根据target, key获取对应的dep 
 function getDep(target, key){
-    // 1.根据target取出对应的map对象
+    // 1.根据target取出对应的depsMap对象
     let depsMap = targetMap.get(target) // 调用map对象方法get传入target
-    if(depsMap === null){
+    if(!depsMap){
         depsMap = new Map()
         targetMap.set(target, depsMap)
     }
-    // 2. 取出具体的dep对象
+    // 2. 再根据depsMap取出具体的dep对象
     let dep = depsMap.get(key)
-    if(dep === null){
+    if(!dep){
         dep = new Dep()
-        depsMap.set(key, dep)
+        depsMap.set(key, dep) //对不同的key创建不同的dep依赖
     }
     return dep
 }
