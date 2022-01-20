@@ -1270,7 +1270,7 @@ Vue源码包括3大核心：
     <script src='./renderer.js'></script>
     <script>
         // 通过h函数创建vnode
-        const vnode = h('div', {class="active"}, [
+        const vnode = h('div', {class:"active"}, [
             h('h2', null, "当前计数：100"),
             h('button', null, "+1")
         ])
@@ -1278,7 +1278,7 @@ Vue源码包括3大核心：
         mount(vnode, document.querySelector('#app'))
         
         // 创建新的vnode
-        const vnode1 = h('h2', {class="hhh"}, "哈哈哈")
+        const vnode1 = h('h2', {class:"hhh"}, "哈哈哈")
         // update DOM
         patch(vnode, vnode1)
     </script>
@@ -1357,14 +1357,13 @@ const patch = (n1, n2) => {
         }
         // 3.删除旧的props
         for(const key in oldProps){
+            if(key.startWith('on')){  //删除所有旧的事件，防止patch出现多个重复事件
+                const oldValue = oldProps[key]
+                // 删除事件监听
+                el.removeEventListener(key.slice(2).toLowerCase(), oldValue)
+            }
             if(!(key in newProps)){
-                if(key.startWith('on')){ 
-                    const oldValue = oldProps[key]
-                    // 删除事件监听
-            		el.removeEventListener(key.slice(2).toLowerCase(), oldValue)
-        		}else{
-            		el.removeAttribute(key) //删除属性 
-        		}
+                el.removeAttribute(key) //删除属性 
             }
         }
         
@@ -1526,7 +1525,7 @@ targetMap[foo] = new Map(foo)  => fooMap[height] = dep3.subscribers
 ```js
 function watchEffect(effect){
     activeEffect = effect
-    //dep.depend()
+    //dep.depend() // 不需执行该方法，在get中执行
     effect() // 传入时先执行一次 执行该方法用到的数据，就会调用defineProperty内的get方法
     activeEffect = null // 执行完depend， activeEffect置空
 }
@@ -1543,7 +1542,7 @@ function reactive(raw){
             //每当执行watchEffect(fn) fn内获取raw.counter时，就会触发get来到这里收集依赖
                 dep.depend() 
                 return value
-            },        
+            },
             set(newValue){// 设置raw.counter时会调用set
                 if(value !== newValue){
                     value = newValue
@@ -1644,7 +1643,7 @@ mini-vue入口文件
             }
         }
         // 2.挂载组件
-        const app = creaetApp(App)
+        const app = createApp(App)
         app.mount('#app')
     </script>
 </html>
@@ -1655,25 +1654,163 @@ mini-vue入口文件
 ```js
 // index.js
 function createApp(rootComponent){
+    // 返回一个对象，包含了mount方法
     return {
         mount(selector){
             const container = document.querySelector(selector)
             let isMounted = false
             let oldVnode = null
-            
+            // 把mount和patch放入watchEffect的副作用函数中，副作用函数effect会自动执行
             watchEffect(function(){
-                if(!isMounted){
+                if(!isMounted){ // 需要加一个首次执行的判断,首次进入执行的是mount挂载
+                    // render函数获取数据时触发数据劫持get，进而调用dep.depend()
                     oldVnode = rootComponent.render()
                     mount(oldVnode,container) // 这个是renderer.js中的mount方法
-                    isMounted = true
+                    isMounted = true // 执行完后isMounted = true
                 }else{
+                 // 之后每当更新数据时，就会调数据劫持的set方法，set内执行dep.notify()
+                 // 就会重新执行这个effect函数本身，并来到这里
                     const newVnode = rootComponent.render()
-                    patch(oldVnode, newVnode)
+                    patch(oldVnode, newVnode) // 更新页面执行patch
                     oldVnode = newVnode
                 }
             })
         }
     }
 }
+
+function watchEffect(effect){
+    activeEffect = effect
+    effect()  // 关键: 副作用函数自动执行，触发数据劫持get
+    activeEffect = null
+}
 ```
 
+
+
+### 源码初始化过程
+
+
+
+```html
+<html>
+    <div id="app"></div>
+    <template id="my-app">
+    	<div>david</div>
+     	<h2>{{message}}</h2>
+    </template>
+</html>
+<script>
+    // 定义根组件
+    const App = {
+        template: `#my-app`,
+        data(){
+            return {
+                message: 'hello world'
+            }
+        },
+        methods: {
+            fn(){}
+        }
+    }
+    // 这部分才是vue源码渲染的开始，传入App根组件对象
+    const app = createApp(App)
+	app.mount('#app')
+</script>
+
+```
+
+渲染器: h --> vnode --> render()
+
+mount的核心功能:
+
+1.根据传入的app创建vNode
+
+2.组件 --> vNode -->**patch**--> 真实DOM
+
+patch方法会判断传入的节点类型，根据节点类型进行对比和挂载
+
+**patch**方法内，当传入组件时，执行**processComponent**
+
+processComponent内判断n1是否有值，没有值就执行**mountComponent**(挂载组件)
+
+```js
+mount(){
+ // 部分核心代码...
+    // 创建根组件的vnode, h函数内部调用的也是createVNode
+    const vnode = createVNode(rootComponent as ConcreteComponent, rootProps)
+    
+    // 定义render函数
+    const render = (vnode, container, isSVG) => {
+        // 如果vnode为空，销毁组件
+        if(vnode == null) {
+            if(container._vnode){
+                unmount(container._vnode, null, null, true)
+            }
+        }else{
+            // 创建或者更新组件都使用patch函数
+            patch(container._vnode || null, vnode, container, null, null, null, isSVG)
+        }
+        flushPostFlushCbs()
+        container._vnode = vnode
+    }
+    // 调用render, 渲染vnode
+    render(vnode, rootContainer, isSVG)
+    
+    // patch部分源码
+    // n1是旧节点，当n1=null表示是第一次挂载
+    // n2是新节点，根据n2的type进行不同的处理
+    const patch: PatchFn = (n1, n2, container, anchor = null, ...) => {
+        const {type, ref, shapeFlag} = n2
+        switch(type) {
+                //处理文本节点
+            case Text:
+                processText(n1,n2,container,anchor)
+                break
+                //处理注释节点
+            case Comment:
+                processCommentNode(n1,n2,container,anchor)
+                // 各种节点类型判断...
+            default:
+                // 处理普通的DOM元素 如div/button等
+                if(shapeFlag & shapeFlag.ELEMENT){
+                    processElement()
+                }
+                // 处理组件节点 我们传入的app是组件，所以会在这里处理
+                else if(shapeFlag & shapeFlag.COMPONENT){
+                    // processComponent内会调用mountComponent
+                    processComponent()
+                }
+        }
+    }
+}
+// 挂载组件部分源码 
+const mountComponent = (initVnode, container, anchor, parentComponent,...) => {
+    // 核心:创建组件实例
+    const instance = (initVnode.component = createComponentInstance())
+    // createComponentInstance()返回的是一个空实例
+    // setupComponent(instance) 初始化组件 把实例放入这个方法，才会给组件赋值
+}
+
+// 生成实例后调用的副作用函数
+setRenderEffect(instance, vnode, container....)
+
+
+// setRenderEffect函数内执行renderComponentRoot 生成子树vnode
+// 因为template会被编译成render函数，所以renderComponentRoot就是去执行render函数对应的vnode
+// 从而获取到子树的vnode
+const subTree = (instance.subTree = renderComponentRoot(instance))
+
+// 把subTree传入 继续执行patch
+patch(null, subTree, container, anchor, instance,parentSuspense, isSVG)
+```
+
+![](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20220120151547026.png)
+
+
+
+#### 组件VNode和组件instance区别
+
+VNode:  虚拟DOM
+
+instance: 保存组件的各种状态(data/props/methods/computed等等)

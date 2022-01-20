@@ -673,7 +673,7 @@ resolve.mainFiles配置选项中指定的文件顺序查找， mainFiles默认�
 
 ### 环境分离（重要）
 
-```js
+```json
 //第一步 package.json配置： 不同环境运行不同的webpack配置
 "scripts": { // --config 指定配置文件
     "build": "webpack --config ./config/webpack.prod.config.js",

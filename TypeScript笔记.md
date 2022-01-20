@@ -89,7 +89,7 @@ interface calcFnType {
 function calc(num1: number, num2: number, calcFn: calcFnType){
     return calcFn(num1, num2)
 }
-const add: calcFnType = (n1, n2) {
+const add: calcFnType = (n1, n2) => {
     return n1 + n2
 }
 calc(10,20,add)
