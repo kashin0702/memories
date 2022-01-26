@@ -1,4 +1,4 @@
-#### setup
+### setup
 
 setup内不可使用**this**
 
@@ -1734,6 +1734,40 @@ patch方法会判断传入的节点类型，根据节点类型进行对比和挂
 
 processComponent内判断n1是否有值，没有值就执行**mountComponent**(挂载组件)
 
+**setupComponent** 给组件实例初始化并赋值
+
+setupComponent流程伪代码:
+
+1.处理props, attrs
+
+instance.props / instance.attrs
+
+2.处理slots
+
+instance.slots
+
+3.执行setup
+
+const result = setup()
+
+instance.setupState = proxyRefs(result)
+
+4.**编译template(重要)**   template --> render --> vnode--> 最后转化成真实DOM
+
+**finishiComponentSetup(instance, isSSR)** //完成组件实例化设置
+
+finishComponentSetup函数内：调用**compile**函数对template进行编译
+
+// **把compile编译完返回的render函数赋值给component.render**
+
+Component.render = compile(Component.template,{其他参数})
+
+//组件的render赋值给实例的render
+
+instance.render = Component.render 
+
+5.支持vue2 optionsAPI
+
 ```js
 mount(){
  // 部分核心代码...
@@ -1769,10 +1803,15 @@ mount(){
                 break
                 //处理注释节点
             case Comment:
-                processCommentNode(n1,n2,container,anchor)
-                // 各种节点类型判断...
+                processCommentNode(n1,n2,container,anchor...)
+                break
+                // 处理fragment组件节点 (template内有多个根元素，进入fragment处理)
+                // 会在最外层再包裹一个Fragment标签
+            case Fragment:
+                processFragment(n1,n2,container,anchor...)
+                break
             default:
-                // 处理普通的DOM元素 如div/button等
+                // 没有多个根元素，即处理普通的DOM元素 如div 进入这里
                 if(shapeFlag & shapeFlag.ELEMENT){
                     processElement()
                 }
@@ -1789,28 +1828,80 @@ const mountComponent = (initVnode, container, anchor, parentComponent,...) => {
     // 核心:创建组件实例
     const instance = (initVnode.component = createComponentInstance())
     // createComponentInstance()返回的是一个空实例
-    // setupComponent(instance) 初始化组件 把实例放入这个方法，才会给组件赋值
+    // setupComponent(instance) 初始化组件的核心方法 把实例放入这个方法，才会给组件赋值
 }
 
 // 生成实例后调用的副作用函数
 setRenderEffect(instance, vnode, container....)
 
-
+// subTree就是template根组件内的各个子节点
 // setRenderEffect函数内执行renderComponentRoot 生成子树vnode
 // 因为template会被编译成render函数，所以renderComponentRoot就是去执行render函数对应的vnode
 // 从而获取到子树的vnode
 const subTree = (instance.subTree = renderComponentRoot(instance))
 
-// 把subTree传入 继续执行patch
+// 把subTree传入 递归执行patch 挂载子树
 patch(null, subTree, container, anchor, instance,parentSuspense, isSVG)
 ```
 
 ![](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20220120151547026.png)
 
+![image-20220126155149173](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20220126155149173.png)
 
+#### **编译器compile函数源码**
 
-#### 组件VNode和组件instance区别
+![image-20220121180739102](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20220121180739102.png)
+
+### 组件VNode和组件instance区别
 
 VNode:  虚拟DOM
 
 instance: 保存组件的各种状态(data/props/methods/computed等等)
+
+### 生命周期回调
+
+```js
+// compositionAPI 注册回调函数并绑定this
+if(beforeMount) {
+    onBeforeMount(beforeMount.bind(publicThis))
+}
+if(mounted){
+    onMounted(mounted.bind(publicThis))
+}
+if(beforeUpdate){
+    onBeforeUpdate(beforeUpdate.bind(publicThis))
+}
+// 生命周期枚举
+export const enum lifecycleHooks {
+    BEFORE_MOUNT = 'bm',
+    MOUNTED = 'm',
+    BEFORE_UPDATE = 'bu'
+    // ...
+}
+// createHook
+export const createHook = (lifecycle) => (hook, target) => {
+    // injectHook的第2个参数hook,就是我们传到生命周期函数里的hook
+    return !isInSSRComponentSetup && injectHook(lifecycle,hook,target)
+}
+
+// 生命周期函数调的其实是createHook中的injectHook
+// 传入生命周期类型
+export const onBeforeMount = createHook(lifecycleHooks.BEFORE_MOUNT)
+epxort const mounted = createHook(lifecycleHooks.MOUNTED)
+
+
+// 生命周期函数执行的位置
+// renderer.ts --> setRenderEffect函数
+if(!instance.isMounted){ // 判断是否是首次挂载
+    const {bm,m,parent} = instance 
+    if(bm) { // bm就是beforeMount回调函数，是一个数组
+        invokeArrayFns(bm) // 通过这个方法执行bm数组内的回调函数
+    }
+}
+
+// onMounted生命周期则是在所有挂载都完成后才执行
+if(m){
+    queuePostRenderEffect(m, parentSuspense) //m会加入一个执行队列，等待patch完成后执行
+}
+```
+

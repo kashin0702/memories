@@ -237,16 +237,20 @@ webpack5新特性, 替代file-loader/url-loader等
 
 ### 使用相对路径导入图片不显示的问题
 
+**动态定义图片路径的时候，url-loader是无法探测到图片路径的**。我们build后发现，图片根本不会打包输出到dist目录（webpack是按需打包的）
+
 ```js
 const el = document.createElement('img')
-// 这种导入方式通过webpack打包后，图片是无法显示的，因为这个src会被认为是字符串
+// 这种导入方式通过webpack打包后，图片是无法显示的，相对路径不会被loader处理，src会被直接解析为字符串，build后的相对路径不对,自然无法显示
 el.src = '../assets/xxx.png'  
 
-// 解决方案: 使用模块化方式导入，当成模块资源使用， import或者require 打包时才能正确解析资源路径
+// 解决方案1: 使用模块化方式导入，当成模块资源使用，会被loader处理, import或者require 打包时才能正确解析资源路径
 el.src = require('../assets/xxx.png')
 // 或者
 import xxpng from '../assets/xxx.png' 
 el.src = xxpng
+// 解决方案2: 使用绝对路径 把图片放到静态资源目录static目录下（build 会将static目录中的文件或者文件夹按照原本的结构放在dist目录下），并用/static绝对路径访问
+
 ```
 
 
