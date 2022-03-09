@@ -1,4 +1,4 @@
-正则表达式的概念类似于文本编辑器中查找和替换
+﻿正则表达式的概念类似于文本编辑器中查找和替换
 语法1：
 var re=/pattern/modefier
 语法2：
@@ -14,7 +14,7 @@ m       多行匹配，而不是到第一个回车处停止
 
 
 正则表达式通配符
-.       任何单个字符（不包括新行标记）
+.       任何单个字符（除了换行符，行结束符）
 []      包含在中括号内的单个字符,  也就是匹配[]括号其中的任意一个都可以
 [^]     没有被包含在中括号内的单个字符, 匹配[]之外的任意一个字符  
 ^       任何一行的开始位置
@@ -65,7 +65,7 @@ aaa$ 匹配 xxx aaa xxx 返回false,匹配xxx aaa 返回true,只能匹配结束�
 /^[a-zA-Z]{6}$/        密码
 
 方法：
-.exec()    捕获方法    接受字符串参数，返回一个array数组，且拥有index,input2个属性
+.exec()    捕获方法    接受字符串参数，返回一个array数组，且拥有index,input 2个属性
 index表示匹配项在字符串中位置,input表示应用正则表达式的字符串
 var text='mom and dad and baby';
 var pattern=/mom(and dad(and baby)?)?/gi;    //包含2个捕获数组 'and baby'  'and dad and baby'
