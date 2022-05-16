@@ -602,7 +602,7 @@ const info = reactive({name: 'david',age: 18})
 watch(() => info.name, (newVal,oldVal) => {
     console.log(newVal,newVal)  
 })
-const changeData = () {
+const changeData = () => {
     info.name = 'yyy'  
 }
 // 
@@ -610,7 +610,7 @@ const changeData = () {
 watch(info, (newVal,oldVal) => {
     console.log(newVal,newVal) //Proxy{name: ,age:}对象
 })
-const changeData = () {
+const changeData = () => {
     info.name = 'yyy'  
 }
 
@@ -1309,7 +1309,7 @@ const mount = (vnode, container) => {
     // 2.处理Props
     for(const key in vnode.props){//遍历props属性
         const value = vnode.props[key]
-        if(key.startWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
+        if(key.startsWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
             el.addEventListener(key.slice(2).toLowerCase(), value)
         }else{
             el.setAttribute(key, value) // 给元素添加属性
@@ -1348,7 +1348,7 @@ const patch = (n1, n2) => {
             const newValue = newProps[key]
             // 不同表示是新属性，添加到el
             if(newValue !== oldValue){
-                if(key.startWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
+                if(key.startsWith('on')){ // 判断传的props是不是函数类型的 {'onClick'=function(){}}
             		el.addEventListener(key.slice(2).toLowerCase(), newValue)
         		}else{
             		el.setAttribute(key, newValue) // 给元素添加属性
@@ -1357,7 +1357,7 @@ const patch = (n1, n2) => {
         }
         // 3.删除旧的props
         for(const key in oldProps){
-            if(key.startWith('on')){  //删除所有旧的事件，防止patch出现多个重复事件
+            if(key.startsWith('on')){  //删除所有旧的事件，防止patch出现多个重复事件
                 const oldValue = oldProps[key]
                 // 删除事件监听
                 el.removeEventListener(key.slice(2).toLowerCase(), oldValue)
@@ -1539,11 +1539,11 @@ function reactive(raw){
         // defineProperty接受3个参数, 第三个参数是一个对象包含get/set方法
         Object.defineProperty(raw, key , {
             get(){// 获取raw.counter时会调用get，利用get这个特性收集依赖
-            //每当执行watchEffect(fn) fn内获取raw.counter时，就会触发get来到这里收集依赖
+            //每当执行watchEffect(fn) fn内调用render时，就会触发get来到这里收集依赖
                 dep.depend() 
                 return value
             },
-            set(newValue){// 设置raw.counter时会调用set
+            set(newValue){// 每当更新数据时，就来到这个set方法
                 if(value !== newValue){
                     value = newValue
                     dep.notify() //执行所有依赖项
@@ -1688,9 +1688,201 @@ function watchEffect(effect){
 
 
 
-### 源码初始化过程
+### vue2源码初始化过程(关键部分)
+
+#### 1.执行init
+
+Vue 初始化主要就干了几件事情，合并配置，初始化生命周期，初始化事件中心，初始化渲染，初始化 data、props、computed、watcher 等等
+
+```js
+var app = new Vue({
+  el: '#app',
+  data: {
+    message: 'Hello Vue!'
+  }
+})
+
+function Vue (options) {
+  if (process.env.NODE_ENV !== 'production' &&
+    !(this instanceof Vue)
+  ) {
+    warn('Vue is a constructor and should be called with the `new` keyword')
+  }
+  this._init(options) //执行init方法
+}
+
+// 部分关键代码
+Vue.prototype._init = function(options) {
+    const vm = this
+    // mergeOptions
+    if (options && options._isComponent) {
+    initInternalComponent(vm, options)
+  } else {
+    vm.$options = mergeOptions(
+      resolveConstructorOptions(vm.constructor),
+      options || {},
+      vm
+    )
+  }
+  vm._self = vm
+  initLifecycle(vm)
+  initEvents(vm)
+  initRender(vm)
+  callHook(vm, 'beforeCreate')
+  initInjections(vm) // resolve injections before data/props
+  initState(vm)
+  initProvide(vm) // resolve provide after data/props
+  callHook(vm, 'created')
+    
+  if (vm.$options.el) {
+    vm.$mount(vm.$options.el) // 执行mount挂载
+  }
+}
+```
+
+#### 2.init内执行$mount
+
+执行vm.$mount(vm.$options.el)  // 关键
+
+```js
+Vue.prototype.$mount = function (
+  el?: string | Element,
+  hydrating?: boolean
+): Component {
+  el = el && inBrowser ? query(el) : undefined
+  return mountComponent(this, el, hydrating) // 调用了mountComponent
+}
+```
+
+#### 3. 执行mountComponent
+
+mountComponent 核心就是先实例化一个渲染Watcher，在它的回调函数中会调用 updateComponent 方法，在此方法中调用 vm._render 方法先生成虚拟 Node，最终调用 vm._update 更新 DOM。
+
+`Watcher` 在这里起到两个作用，一个是初始化的时候会执行回调函数，另一个是当 vm 实例中的监测的数据发生变化的时候执行回调函数
+
+```js
+export function mountComponent (
+  vm: Component,
+  el: ?Element,
+  hydrating?: boolean
+): Component {
+  vm.$el = el
+  if (!vm.$options.render) {
+    vm.$options.render = createEmptyVNode
+    if (process.env.NODE_ENV !== 'production') {
+      /* istanbul ignore if */
+      if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
+        vm.$options.el || el) {
+        warn(
+          'You are using the runtime-only build of Vue where the template ' +
+          'compiler is not available. Either pre-compile the templates into ' +
+          'render functions, or use the compiler-included build.',
+          vm
+        )
+      } else {
+        warn(
+          'Failed to mount component: template or render function not defined.',
+          vm
+        )
+      }
+    }
+  }
+  callHook(vm, 'beforeMount')
+
+  let updateComponent
+  if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+    updateComponent = () => {
+      const name = vm._name
+      const id = vm._uid
+      const startTag = `vue-perf-start:${id}`
+      const endTag = `vue-perf-end:${id}`
+
+      mark(startTag)
+      const vnode = vm._render()
+      mark(endTag)
+      measure(`vue ${name} render`, startTag, endTag)
+
+      mark(startTag)
+      vm._update(vnode, hydrating)
+      mark(endTag)
+      measure(`vue ${name} patch`, startTag, endTag)
+    }
+  } else {
+    updateComponent = () => {
+      vm._update(vm._render(), hydrating)
+    }
+  }
+
+  // we set this to vm._watcher inside the watcher's constructor
+  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
+  // component's mounted hook), which relies on vm._watcher being already defined
+  new Watcher(vm, updateComponent, noop, {
+    before () {
+      if (vm._isMounted) {
+        callHook(vm, 'beforeUpdate')
+      }
+    }
+  }, true /* isRenderWatcher */)
+  hydrating = false
+
+  // manually mounted instance, call mounted on self
+  // mounted is called for render-created child components in its inserted hook
+  if (vm.$vnode == null) {
+    vm._isMounted = true
+    callHook(vm, 'mounted')
+  }
+  return vm
+}
+```
+
+#### 4.render
+
+`vm._render` 最终是通过执行 `createElement` 方法并返回的是 `vnode`，它是一个虚拟 Node
+
+```js
+// 关键行
+vnode = render.call(vm._renderProxy, vm.$createElement)
+```
+
+#### 5.update
+
+Vue 的 `_update` 是实例的一个私有方法，它被调用的时机有 2 个，一个是首次渲染，一个是数据更新的时候。`_update` 方法的作用是把 VNode 渲染成真实的 DOM
+
+`_update` 的核心就是调用 `vm.__patch__` 方法
+
+```js
+Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
+  const vm: Component = this
+  const prevEl = vm.$el
+  const prevVnode = vm._vnode
+  const prevActiveInstance = activeInstance
+  activeInstance = vm
+  vm._vnode = vnode
+  if (!prevVnode) {
+    // initial render
+    vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
+  } else {
+    // updates
+    vm.$el = vm.__patch__(prevVnode, vnode)
+  }
+  activeInstance = prevActiveInstance
+  // update __vue__ reference
+  if (prevEl) {
+    prevEl.__vue__ = null
+  }
+  if (vm.$el) {
+    vm.$el.__vue__ = vm
+  }
+  // if parent is an HOC, update its $el as well
+  if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+    vm.$parent.$el = vm.$el
+  }
+}
+```
 
 
+
+### vue3源码初始化过程(coderwhy)
 
 ```html
 <html>
