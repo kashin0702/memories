@@ -194,6 +194,16 @@ static resolve (value) {
 }
 ```
 
+### 静态reject
+
+```js
+static reject (value) {
+    return new Promise((resolve, reject) => reject(value))
+}
+```
+
+
+
 ### 静态all
 
 ```javascript
