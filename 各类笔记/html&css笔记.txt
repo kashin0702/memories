@@ -1,4 +1,4 @@
-伪类使用单冒号
+﻿伪类使用单冒号
 :hover :visted :active :link
 :first-child
 :checked   :disabled 等等
@@ -6,7 +6,8 @@
 伪元素 双冒号
 ::first-line        //首行   只能用于块级
 ::first-letter      //首字母
-::after ::before    //在选中元素前面或后面插入内容,配合content使用
+::before    // 在选中元素的第一个子元素的前面插入内容,配合content使用
+::after       // 在选中元素的最后子元素的后面插入内容
 p::after{
     content:'xxx'
 }

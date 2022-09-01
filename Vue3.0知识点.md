@@ -656,7 +656,7 @@ computed: {
         get: function(){
             
         },
-        set: function(){
+        set: function(value){
             
         }
     }
