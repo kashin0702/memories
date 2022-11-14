@@ -530,6 +530,20 @@ react脚手架默认隐藏webpack配置，如何查看react项目的webpack配�
 
 2.npm run eject：弹出webpack的配置到项目目录下, 会生成config和scripts文件
 
+#### 安装craco(webpack配置工具)
+
+因为脚手架创建的工程隐藏了webpack配置，可以通过安装craco对webpack进行配置
+
+**npm install @craco/craco@alpha** (支持cra5.0的最新版本)
+
+**安装craco后，package.json中的script命令必须改成craco start | craco build,  craco配置才会生效**
+
+#### craco-less
+
+less样式文件配置工具（类似less-loader配置）
+
+**npm install craco-less@alpha**
+
 
 
 ### 组件类型
@@ -842,7 +856,8 @@ export class Navbar2 extends Component {
 ```react
 // 公共文件定义context
 import React from 'react'
-export default const MyContext = React.createContext() // 创建上下文对象
+const MyContext = React.createContext()
+export default MyContext // 创建上下文对象
 
 // 父组件
 import MyContext from './context.js'
@@ -1134,7 +1149,7 @@ class App extends PureComponent{
 
 函数组件没有实例，所以不能直接绑定ref获取实例, 需要通过**forwardRef**函数进行绑定
 
-**本质是通过forwardRef函数做了一个ref的转发**
+**本质是通过forwardRef函数做了一个ref的转发，也就是高阶组件**
 
 ```jsx
 import {forwardRef} from 'react'
@@ -1195,6 +1210,1050 @@ class App extends PureComponent{
                 <input type='text'/></input>
             </div>
         )
+    }
+}
+```
+
+
+
+#### 受控组件的form表单提交
+
+![image-20221102165646594](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20221102165646594.png)
+
+```jsx
+import React, { PureComponent } from 'react'
+
+class InputCpn extends PureComponent {
+  constructor(){
+    super()
+    this.state = {
+      username: '',
+      password: '',
+      isChecked: false,
+      checks: [
+        {value: '1', label: '游泳', isChecked: false},
+        {value: '2', label: '健身', isChecked: true},
+        {value: '3', label: '摔跤', isChecked: false}
+      ],
+      fruit: 'banana',
+      fruit2: []
+    }
+  }
+  handleSubmit(event) {
+    event.preventDefault() // 阻止默认的表单提交行为
+  }
+  handleInput(event) {
+    // 根据event.target.name动态设置input的内容
+    const key = event.target.name
+    this.setState({
+      [key]: event.target.value
+    })
+  }
+  handleCheck(event) {
+      this.setState({
+          isChecked: event.target.checked // 拿的是event.target.checked属性
+      })
+  }
+    
+  handleMultiCheck(event, index) {
+    // 浅拷贝state数据
+    const checks = [...this.state.checks]
+    checks[index].isChecked = event.target.checked
+    this.setState({ checks })
+  }
+    
+  handleSelect(event) {
+    this.setState({fruit: event.target.value})
+  }
+    
+  handleSelectMultiple(event) {
+    console.log('selectedOptions===>', event.target.selectedOptions)
+    const options = event.target.selectedOptions 
+    // selectedOptions是一个类数组，需要转化后才能使用数组方法
+    const arr = Array.from(options) 
+    const values = arr.map(item => item.value)
+    this.setState({
+      fruit2: values
+    }, () => {
+      console.log(this.state.fruit2)
+    })
+  }
+  render() {
+    const {username,password,isChecked} = this.state
+    return (
+      <div>
+        {/* 原生表单提交监听事件onSubmit */}
+        <form onSubmit={(e) => this.handleSubmit(e)}>
+          {/* 1.表单默认方式提交时(action提交)必须绑定name属性  2.受控组件必须绑定onChange事件*/}
+            账号:
+          <input type="text" name='username'
+              value={username} 
+              onChange={(e) => this.handleInput(e)} 
+          />
+            密码:
+          <input type="password" name='password'
+              value={password} 
+              onChange={(e) => this.handleInput(e)} 
+          />
+          <h2>多选框测试</h2>
+          <input type="checkbox" 
+              checked={isChecked}
+              onChange={e => this.handleCheck(e)}
+          />XX协议
+            
+            <div>多选列表</div>
+          {/* 先定义or获取数据，用map函数渲染 */}
+          {
+            this.state.checks.map((item, index) => {
+              return (
+                <label htmlFor={item.value} key={item.value}>
+                  <input type='checkbox'
+                         id={item.value}
+                         checked={item.isChecked}
+                         onChange={e => this.handleMultiCheck(e, index)} 
+                  />
+                  {item.label}
+                </label>
+              )
+            })
+          }
+          <h2>select下拉控件</h2>
+          <select value={this.state.fruit} onChange={(e) => this.handleSelect(e)}>
+            <option value="apple">苹果</option>
+            <option value="banana">香蕉</option>
+            <option value="pear">梨</option>
+          </select>
+          <h2>select多选情况</h2>
+          <select 
+              value={this.state.fruit2} 
+              onChange={(e) => this.handleSelectMultiple(e)}
+              multiple
+          >
+            <option value="apple">苹果</option>
+            <option value="banana">香蕉</option>
+            <option value="pear">梨</option>
+          </select>
+          {/* button type设置submit类型 */}
+          <button type='submit'>表单提交</button>
+        </form>
+      </div>
+    )
+  }
+}
+```
+
+
+
+### 非受控组件
+
+不绑定value的就是非受控组件，通过设置**defaultValue、defaultChecked**可以绑定默认值
+
+```jsx
+class App extends PureComponent{
+    constructor(){
+        super()
+        this.state = {
+            message: '哈哈哈'
+        }
+        this.inputRef = createRef()
+    }
+    handleClick() {
+        // 获取非受控组件的值
+        console.log(this.inputRef.current.value)
+    }
+    render() {
+        const {message} = this.state
+        return (
+            {/*defaultValue可以给input绑定一个默认值，且不变成受控组件*/}
+        	<div>
+            	<input type="text" defaultValue={message} ref={this.inputRef} />
+                <button onClick={e => this.handeClick(e)}>获取结果</button>
+            </div>
+        )
+    }
+}
+```
+
+
+
+### 高阶组件(设计模式)
+
+高阶组件是一种设计模式，本身是一个函数，接收组件作为参数，返回一个新组件
+
+高阶组件的目的：对组件拦截，返回的新组件可以对原组件进行扩展和增强
+
+```jsx
+function hoc(Cpn) {
+    class newCpn extends PureComponent{
+        constructor(){
+            super()
+            this.state = {
+                userInfo: {
+                    name:'david',
+                    age: '34'
+                }
+            }
+        }
+        render(){
+            // 拦截组件，传入新的属性
+            return <Cpn {...this.state.userInfo}/>
+        }
+    }
+    return newCpn
+}
+class Home extends PureComponent{
+    render(){
+        const {name, age} = this.props.userInfo
+        // 获得注入属性
+        return <div>{name}-{age}哈哈哈</div>
+    }
+}
+class App extends PureComponent{
+    render() {
+        // 使用高阶组件拦截Home组件，返回一个处理后的新组件
+        const newHome = hoc(Home)
+        return (
+        	<newHome/>
+        )
+    }
+}
+```
+
+#### 高阶组件应用1
+
+```jsx
+//拦截组件，导入通用数据
+function enhancedCpn(OriginComponent) {
+    class newCpn extends PureComponent {
+        constructor(){
+            super()
+            this.state = {
+                message: 'some message'
+            }
+        }
+        render() {
+            return <OriginComponent {...this.state.message}/>
+        }
+    }
+}
+
+// 直接把函数式组件放到高阶组件中，返回的新组件即携带了通用数据,通过props传了进来
+const Home = enhancedCpn(function(props) {
+    return <div>Home: {props.message}</div>
+})
+const Profile = enhancedCpn(function(props) {
+    return <div>Profile: {props.message}</div>
+})
+const Other = enhancedCpn(function(props) {
+    return <div>Other: {props.message}</div>
+})
+// 父组件App使用增强后的组件
+class App extends PureComponent {
+    render() {
+        return (
+        	<div>
+            	<Home/>
+                <Profile/>
+                <Other/>
+            </div>
+        )
+    }
+}
+```
+
+
+
+#### 高阶组件应用2
+
+```jsx
+// 父组件
+import MyContext from './MyContext'
+import Home from './Home'
+import Other from './Other'
+class App extends PureComponent{
+    render(){
+        return (
+        	<MyContext.provider value={{name: 'david'}}>
+            	<Home/>
+				<Other/>
+            </MyContext.provider>
+        )
+    }
+}
+
+// 子组件文件夹
+// 定义高阶组件
+import MyContext from './MyContext'
+function hoc(originComponent) {
+    return props => {
+        return (
+        	<MyContext.consumer>
+            	{
+                    // 给传入的组件注入props和value
+                    (value) => <originComponent {...props} {...value}/>
+                }
+            </MyContext.consumer>
+        )
+    }
+}
+class Home extends PureComponent {
+    render() {
+        return <h2>接收高阶组件传的数据：{this.props.name}</h2>
+    }
+}
+// 导出用hoc处理过的home,能直接获得context传入的数据
+export default hoc(Home)
+```
+
+
+
+
+
+### Portals
+
+作用：将元素挂载到根组件之外的指定元素上。
+
+接收2个参数，1.任意可渲染的react子元素 2.要插入的DOM元素
+
+```jsx
+// index.html入口文件 定义一个非root元素, portal创建的元素会挂载到这里
+<div id="david"></div>
+
+import { PureComponent } from 'react'
+import {createPortal} from 'react-dom'
+export class Modal extends PureComponent {
+  render() {
+    // 获取插入的子元素，并插入到#david的DOM元素上，createPortal返回一个虚拟dom
+    return createPortal(this.props.children, document.querySelector('#david'))
+  }
+}
+export default Modal
+
+//父元素
+export class App extends PureComponent {
+    render() {
+        return (
+        	<Modal>
+            	<h2>我是modal子元素</h2>
+            </Modal>
+        )
+    }
+}
+```
+
+
+
+### Fragment
+
+作用：不想render函数包裹根节点时，可以使用Fragment，渲染后就不存在div这样的根节点
+
+和vue中的template标签类似
+
+```jsx
+import {PureComponent, Fragment} from 'react'
+export class App extends PureComponent {
+    render() {
+        return (
+        	<Fragment>
+            	<h2>我是标题</h2>
+                <p>我是内容</p>
+            </Fragment>
+        )
+    }
+}
+// 语法糖写法：直接用空标签 (如果是遍历需要绑定key,不能使用该写法)
+render() {
+    return (
+        <>
+            <h2>我是标题</h2>
+            <p>我是内容</p>
+        </>
+    )
+}
+```
+
+
+
+### StrictMode严格模式
+
+1.不会渲染任何可见UI
+
+2.为后代元素触发额外的检查和警告(使用过时的API或生命周期函数时)
+
+3.严格模式仅在开发模式下运行，不影响生产环境构建
+
+**4.constructor和render会被执行2次，看看是否有副作用（仅开发模式）**
+
+```jsx
+import {PureComponent, Fragment, StrictMode} from 'react'
+export class App extends PureComponent {
+    render() {
+        return (
+            {/*被StrictMode包裹的组件即进入严格模式*/}
+            <StrictMode>
+            	<Home/>
+            </StrictMode>
+            <Other/>
+        )
+    }
+}
+```
+
+
+
+### react-transition-group 过渡动画的第三方库
+
+实现组件显示或消失的过渡动画
+
+安装：**npm install react-transition-group --save**
+
+该库主要包含4个组件
+
+**Transition**：和平台无关的组件(不一定要结合CSS)
+
+**CSSTransition**: 前端开发中常用
+
+**SwitchTransition**: 两个组件显示和隐藏切换时使用
+
+**TransitionGroup**: 多个动画组件包裹进去，一般用于列表中元素的动画
+
+
+
+**CSSTransition 有3个状态:  appear|enter|exit**
+
+3个状态需要定义对应的CSS样式
+
+开始状态：-appear | -enter |-exit
+
+执行动画：-appear-active |  -enter-active | -exit-active
+
+结束动画：-appear-done | -enter-done | -exit-done
+
+```css
+/* style.css */
+/* 首次进入动画 */
+.david-appear {
+  transform: translateX(-200px);
+}
+.david-appear-active {
+  transform: translateX(0);
+  transition: transform 2s ease;
+}
+/* 进入动画 */
+.david-enter {
+  opacity: 0;
+}
+.david-enter-active {
+  opacity: 1;
+  transition: opacity 2s ease;
+}
+
+/* 退出动画 */
+.david-exit {
+  opacity: 1;
+}
+.david-exit-active {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+/* switch切换动画 */
+.switch-enter {
+  transform: translateX(100px);
+  opacity: 0;
+}
+.switch-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: all 1s ease;
+}
+.switch-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+.switch-exit-active {
+  transform: translateX(-100px);
+  opacity: 0;
+  transition: all 1s ease;
+}
+```
+
+```jsx
+import React, { PureComponent } from 'react'
+import {CSSTransition} from 'react-transition-group'
+import './style.css' // 引入样式文件
+export class Animation extends PureComponent {
+  constructor() {
+    super()
+    this.state = {
+      isShow: true
+    }
+  }
+  render() {
+    const {isShow} = this.state
+    return (
+      <div>
+        <button onClick={() => this.setState({isShow: !isShow})}>显示or隐藏</button>
+        {/* in: 控制显示和隐藏 unmountOnExit: 动画退出后卸载组件 classNames：要绑定的class类 timeout: 动画执行时间 appear: 首次进入动画 in属性必须同时为true*/}
+        <CSSTransition 
+            in={isShow} 
+            unmountOnExit={true} 
+            classNames='david' 
+            timeout={2000} 
+            appear
+         >
+          <h2>动画效果测试</h2>
+        </CSSTransition>
+            
+        {/* switchTransition测试  mode: 动画模式 out-in 先离开，后进入*/}
+        <SwitchTransition mode='out-in'>
+          <CSSTransition 
+              {/*必须有2个不一样的key,当key改变时才会在2个内容之间执行切换动画*/}
+              key={isLogin ? 'exit' : 'login'} 
+              classNames="switch" 
+              timeout={1000}
+          >
+            <button 
+            onClick={() => this.setState({isLogin: !isLogin})}>{isLogin ? '退出' : '登录'}			  </button>
+          </CSSTransition>
+        </SwitchTransition>
+            
+        {/* TransitionGroup测试 component：把包裹的TransitionGroup替换为指定的元素，默认是div */}
+        <TransitionGroup component='ul'>
+          {
+            this.state.books.map((item, index) => {
+              return (
+                // 必须绑定唯一key才能正确的显示动画,特别是删除操作的时候
+                <CSSTransition key={item.id} classNames='books' timeout={1000}>
+                  <li>{item.name}-{item.price}</li>
+                </CSSTransition>
+              )
+            })
+          }
+        </TransitionGroup>
+        <button onClick={() => this.addBook()}>添加书籍</button>
+      </div>
+    )
+  }
+}
+```
+
+
+
+### CSS in React解决方案
+
+#### 内联样式
+
+style接收小驼峰命名属性的JS对象，不是CSS字符串，并且可以引用state中的状态来设置样式
+
+#### 独立css文件，import引入
+
+缺点：Import引入的普通css文件都是全局的，不管是父子组件还是兄弟组件，都会互相覆盖
+
+#### CSS module (基于webpack配置环境)
+
+react脚手架已内置了css module配置，只需把**.css/.scss文件改成.module.css/.module.scss等**
+
+缺点：不支持my-title这种连字符写法，不支持动态样式
+
+```css
+/*app.module.css文件*/
+.title {
+    color: red;
+    font-size: 20px;
+}
+```
+
+```jsx
+import appstyle from './app.module.css'
+
+export class App extends PureComponent {
+    render() {
+        return <h2 className={appstyle.title}>我是标题</h2>
+    }
+}
+```
+
+
+
+#### CSS in JS (推荐)
+
+优点：没有样式冲突、非常灵活、可以插入state动态值
+
+利用第三方库实现, 目前流行的库： styled-components / emotion / glamorous
+
+**npm install styled-components**
+
+PS：vscode也要安装styled-components插件，编写时会有高亮提示
+
+##### 第三方库styled-components
+
+```jsx
+// style.js
+import styled from 'styled-components'
+import {smallSize} from './variables.js' // 导入全局公共变量
+
+// es6的模板字符串调用函数方式style.div``本质就是styled.div()，会返回一个组件
+// 对这个函数传参，传递的内容就是它包裹的元素的css样式
+// 获取动态值，通过props回调函数获得
+export const wrapper = styled.div`
+	.section {
+		.title {
+			color:blue;
+			border: 1px solid #fff;
+			font-size: ${smallSize}px;
+		}
+		.content {
+			color: ${props=> props.color};
+			font-size: ${props => props.size}px
+		}
+	}
+` 
+// 通过attrs给标签模板字符串提供属性
+// attrs可以传对象也可以传函数，传入的函数用于判断是否传了color,没有则设置为blue
+export const otherWrapper = styled.div.attrs(props => {
+    return {
+        textColor: props.color || 'blue'
+    }
+})`
+	.title {
+		color: ${props => props.textColor}
+}`
+
+// App.jsx 导入wrapper
+import {wrapper} from './style.js'
+export class App extends PureComponent {
+    constructor() {
+        super()
+        this.state = {
+            color: 'purple',
+			size: 20            
+        }
+    }
+    render() {
+        return (
+            {/* 1.用wrapper包裹要修改样式的内容*/}
+            {/* 2.因为wrapper本身也是组件，所以可直接对wrapper传参，使用state中的动态值*/}
+        	<wrapper color={this.state.color} size={this.state.size}>
+            	<div className="section">
+                	<h2 className="title">标题</h2>
+                    <div className="content">内容</div>
+                    <div className="foot">尾部</div>
+                </div>
+            </wrapper>
+        )
+    }
+}
+
+// variables.js 定义全局css变量
+const smallSize = 16
+const middleSize = 18
+const largeSize = 20
+export {
+	smallSize,
+    middleSize,
+    largeSize
+}
+```
+
+##### 样式继承
+
+通用样式可以用继承实现
+
+```js
+import styled from 'styled-components'
+const myButton = styled.button`
+	border: 1px solid red;
+	border-radius: 5px;
+`
+// 继承myButton的样式，不用重复编写
+const myBtton2 = styled(myButton)`
+	color: #fff;
+`
+```
+
+##### 动态添加class
+
+```jsx
+export class App extends PureComponent {
+    constructor() {
+        super()
+        this.state = {
+            isbbb: true
+        }
+    }
+    render() {
+        const {isbbb} = this.state
+        // 使用数组
+        let classList = []
+        if (isbbb) classList.push('bbb')
+        let className = classList.join(' ')
+        return (
+            {/* 1.使用三元运算符动态添加class */}
+        	<h2 className={`'aaa' ${isbbb} ? 'bbb':''`}>哈哈哈</h2>
+            {/* 2.使用数组,join转化为字符串 */}
+    		<div className={className}></div>
+        )
+    }
+}
+```
+
+##### 第三方库classnames
+
+以上的动态添加class都比较麻烦，使用第三方库classnames就可以实现和vue一样的动态添加
+
+**npm install classnames**
+
+```jsx
+// 导入库
+import classnames from 'classnames'
+export class App extends PureComponent {
+    constructor() {
+        super()
+        this.state = {
+            isbbb: true,
+            isccc: false
+        }
+    }
+    render() {
+        const {isbbb, isccc} = this.state
+        return (
+            // 使用classnames()函数传入参数
+            <h2 className={classnames('aaa', {bbb: isbbb, ccc: isccc})}>哈哈哈</h2>
+            // 数组形式,本质就是把数组最终转换成字符串传给className
+            <h2 className={classnames(['aaa', {bbb: isbbb, ccc: isccc}])}></h2>
+        )
+    }
+}
+```
+
+
+
+### Redux
+
+#### createStore
+
+初始化store过程：当 store 创建后，**Redux 会 dispatch 一个 action 到 reducer 上，用初始的 state 来填充 store。**你不需要处理这个 action。但要记住，如果第一个参数也就是传入的 state 是 undefined 的话，reducer 应该返回初始的 state 值
+
+初始化createStore(reducer) 做了什么？
+
+源码：createStore最后会调用**dispatch({type: actionTypes.INIT})**  派发一个初始化state的action
+
+dispatch(action)源码内会执行**reducer(currentState, action)**  , 因为我们定义的reducer内没有INIT这个type,所以会返回默认的**initialState**，也就实现state的初始化
+
+#### store
+
+想跟踪变化的初始数据，定义在store中
+
+```js
+const initialState = {
+    friends: [
+        {name:'david', age: 34},
+        {name: 'kashin', age: 28}
+    ]
+}
+```
+
+#### action
+
+所有数据变化，必须通过派发action来实现
+
+action是一个普通js对象，用来描述这次更新的type和content
+
+```js
+const action1 = {type: 'ADD_FRIEND', info: {name: 'david', age: 34}}
+const action2 = {type: 'INC_AGE', index: 0}
+```
+
+#### reducer
+
+将传入的state和action结合在一起，返回一个新state
+
+**reducer是一个纯函数**
+
+```js
+// reducer实例 传入state和action,返回新的state
+// 返回值：reducer的返回值会作为store之后储存的state
+// 第一次执行时传进来的state肯定是undefined,所以必须给state一个初始值
+function reducer(state = initialState, action) {
+    switch(action.type) {
+        case 'ADD_FRIEND':
+            return {...state, friends: [...state.friends, action.info]}
+        case 'INC_AGE':
+            return {
+                ...state, friends: state.friends.map((item, index) => {
+                    if (index === action.index) {
+                        return {...item, age: item.age + 1}
+                    }
+                    return item
+                })
+            }
+            // 未匹配到任何action(初始化执行时), 返回state
+        default:
+            return state
+    }
+}
+```
+
+
+
+#### store的4个方法
+
+dispatch: 派发action
+
+getState: 获取state
+
+subscribe: 订阅state回调
+
+replaceReducer
+
+#### redux的主要代码结构
+
+store/index.js ===> 创建store对象: createStore(reducer)
+
+store/reducer.js ===> action-type&action-state结合， 返回新的state
+
+store/actionCreators.js ===> action封装
+
+store/constants.js  ===>action.type常量定义
+
+#### redux核心流程
+
+![image-20221110203530324](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20221110203530324.png)
+
+
+
+#### react中使用redux
+
+**安装 npm install redux**
+
+
+
+#### react-redux（高阶组件库）
+
+**安装 npm install react-redux**
+
+这个库的目的就是将react和redux建立连接，结合在一起
+
+使用方法：
+
+```jsx
+// 1.index.js根文件引入store, 这样就不必每个页面都引入store了
+import App from './App'
+import {Provider} from 'react-redux'
+import store from './store'
+
+const root = ReactDOM.createRoot(document.querySelector('#root'))
+root.render(
+	<Provider store={store}>
+    	<App/>
+    </Provider>
+)
+
+// 2.要使用store的页面，引入connect高阶组件
+import {connect} from 'react-redux'
+```
+
+#### redux中进行异步请求
+
+![image-20221111170932877](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20221111170932877.png)
+
+本质就是在action中编写网络请求相关代码，在组件中直接调用，实现代码解耦
+
+action派发一个函数，在该函数中进行网络请求和dispatch操作
+
+
+
+#### redux中间件
+
+redux中间件目的：**在dispatch的action和最终达到的reducer之间，扩展一些自己的代码**
+
+比如日志记录，调用异步接口，添加代码调试等功能
+
+**中间件redux-thunk**
+
+store.dispatch默认只能传入object类型，要想使dispatch能接收函数类型，必须使用thunk中间件增强store
+
+这个中间件可以让dispatch(action函数), action可以是一个函数，该函数会被调用，并且会接收一个dispatch函数和getState函数
+
+**若派发的是函数则会被执行，若派发是对象，则会被传给reducer执行**
+
+disapatch用于再次派发action
+
+getState可以获取之前的一些状态
+
+****
+
+**安装： npm install redux-thunk**
+
+```js
+import {createStore, applyMiddleware} from 'redux'
+import thunk from 'redux-thunk' // 安装中间件thunk，使store.dispatch可以支持函数派发
+import reducer from './reducer'
+
+// createStore接收的第二个参数是enhancer，可以对store进行增强，传入要增强的中间件thunk
+const store = createStore(reducer, applyMiddleware(thunk))
+export default store
+```
+
+
+
+### react调试工具
+
+需要安装2个： react-devtool / redux-devtool (chrome市场或github中下载)
+
+注意：redux-devtool默认是关闭，打开操作如下
+
+```js
+// store根目录:index.js
+import {createStore,applyMiddleware, compose} from 'redux'
+import thunk from 'redux-thunk'
+import reducer from './reducer'
+
+// compose是一个合并函数, 用来合并中间件
+//这段意思就是用reduxdevTool合并中间件配置,若没有则使用redux自己的compose函数
+const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+// 使用composeEnhancer增强store, 支持redux调试工具
+const store = createStore(reducer, composeEnhancer(applyMiddleware(thunk)))
+export default store
+```
+
+
+
+### store模块化，合并reducer
+
+拆分store后，对多个reducer进行合并操作, 使用**combineReducer** API
+
+```js
+import {createStore, combineReducer} from 'redux'
+import homeReducer from './home'
+import counterReducer from './other'
+
+// 合并reducer
+const reducer = combineReducer({
+    home: homeReducer,
+    counter: counterReducer 
+})
+const store = createStore(reducer)
+```
+
+### combineReducer原理
+
+```js
+// 第一次执行时state为空，所以home和counter接收到的值是undefined，就会返回自己的默认值
+function combineReducer(state = {}, action) {
+    
+    // 返回一个对象
+	return {
+        // 初始化执行时state.home和state.counter都是undefined，就会去拿自己的默认值
+        home: homeReducer(state.home, action),
+        counter: counterReducer(state.counter, action)
+    }
+}
+```
+
+
+
+### Redux toolkit
+
+redux官方的工具包
+
+目的：解决redux编写繁琐的问题，标准化redux编写规范
+
+**安装： npm install @reduxjs/toolkit react-redux**  (依然要安装react-redux)
+
+**toolkit核心API：**
+
+**configureStore**: 包装createStore，简化配置，自动组合拆分的reducer, 默认包含了redux-thunk中间件，并启用了redux DevTools Extension
+
+```js
+// 替换了createStore，configureStore默认包含了thunk配置和redux-devtool配置
+import {configureStore} from '@reduxjs/toolkit'
+import counterReducer from './modules/counter'
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer
+  }
+})
+
+export default store
+```
+
+**createSlice**: 接收reducer函数的对象，切片名称和初始值，并自动生成切片reducer,并带有响应的actions，自动返回一个对象
+
+createSlice接收的参数： 
+
+​	name:用于标记slice的名称，在redux-devtool中显示对应的名称 (action中的type根据name生成)
+
+​	initialState: 第一次初始化的值
+
+​	reducers: 相当于之前的reducer函数，但是是对象类型，可以添加很多的函数, 函数类似原来reducer中的一个case语句，函数的参数: 	参数1:state  参数2：调用这个action时，传递的action参数
+
+​	extraReducers: 异步action
+
+```js
+import {createSlice} from '@reduxjs/toolkit'
+
+// createSlice作用：把之前actionCreators/reducer/结合到一起
+const counterSlice = createSlice({
+  name: 'counter',  // reducer的名字 action中的type根据这个name生成
+  initialState: {
+    counter: 365
+  },
+  reducers: { // 原来reducer中的switch语句的case判断，直接拆分到每个函数中
+    addNumber(state, action) {
+      console.log('addNumber Action', action) // action对象携带payload和type两个属性
+      // 此处不用使用{...state}浅拷贝方式创建新的state,toolkit内部会自动创建一个新的state
+      // toolkit底层通过immerjs库实现了新state创建
+      state.counter = state.counter + action.payload 
+    },
+    subNumber(state, action) {
+      console.log('subNumber===>')
+      state.counter = state.counter - action.payload
+    }
+  }
+})
+// actions对象中保存了reducers中的所有方法, 导出对应的action
+export const {addNumber, subNumber} = counterSlice.actions 
+// 注意：返回的是这个对象的reducer属性，用来和store进行合并
+export default counterSlice.reducer 
+```
+
+**createAsyncThunk**: 接收一个动作类型字符串和一个返回承诺的函数。并生成一个pending/fulfilled/rejected基于该承诺分派动作类型的thunk
+
+```js
+// 异步action需要单独写一个方法调用
+// createAsyncThunk有2个参数，第一个参数定义一个name，就是action中type的值， 第二个参数是一个回调函数，会进行异步执行
+// 第二个回调函数有3种状态，pending/fulfilled/rejected 类似promise, 需要在extraReducer监听3种状态再进行操作
+// 第二个回调函数的第二个参数会传入store对象，也可以直接在这个action中进行disptach操作，不走extraReducer
+export const fetchHomeDataAction = createAsyncThunk('fetch/homeData', async (extraInfo, store) => {
+  console.log('extraInfo', extraInfo)
+  console.log('store',store)
+  const res = await axios.get('http://123.207.32.32:8000/home/multidata')
+  return res.data // 返回即表示fulfilled
+})
+
+export const homeSlice = createSlice({
+    name: 'home',
+    initialState: {
+        banners: []
+    },
+    // 异步请求action在这里处理
+    extraReducers: {
+        [fetchHomeDataAction.fulfilled](state, action) {
+            state.banners = action.payload.data.data.list
+        }
+    }
+})
+```
+
+### connect源码实现
+
+```js
+// 思路：接收2个函数，返回一个高阶组件函数, 并且把接收到props传给高阶组件进行增强返回
+export default function connect(mapStateToProps, mapDispatchToProps) {
+    return function(wrapperComponent) {
+        
     }
 }
 ```
