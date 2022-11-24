@@ -669,6 +669,80 @@ class App extends React.Component {
 }
 ```
 
+### super(props)传参问题
+
+为了让 React.Component 构造函数能够初始化 this.props，将 props 传入 super 是必须的：
+
+```javascript
+// React 內部
+class Component {
+  constructor(props) {
+    this.props = props;
+    // ...
+  }
+}
+```
+
+这几乎就是真相了 — 确然，它是 这样做 的。
+
+但有些扑朔迷离的是，即便你调用 super() 的时候没有传入 props，你依然能够在 render 函数或其他方法中访问到 this.props。（如果你质疑这个机制，尝试一下即可）
+
+那么这是怎么做到的呢？事实证明，React 在调用构造函数后也立即将 props 赋值到了实例上
+
+```javascript
+// React 内部
+const instance = new YourComponent(props);
+instance.props = props;
+```
+
+因此即便你忘记了将 props 传给 super()，React 也仍然会在之后将它定义到实例上。这么做是有原因的。
+
+当 React 增加了对类的支持时，不仅仅是为了服务于 ES6。其目标是尽可能广泛地支持类抽象。当时我们 不清楚 `ClojureScript，CoffeeScript，ES6，Fable，Scala.js，TypeScript` 等解決方案是如何成功的实践组件定义的。因而 React 刻意地没有显式要求调用 super() —— 即便 ES6 自身就包含这个机制。
+
+这意味着你能够用 super() 代替 super(props) 吗？
+
+最好不要，毕竟这样写在逻辑上并不明确确然，React 会在构造函数执行完毕之后给 this.props 赋值。但如此为之会使得 this.props 在 super 调用一直到构造函数结束期间值为 undefined。
+
+```javascript
+// React 內部
+class Component {
+  constructor(props) {
+    this.props = props;
+    // ...
+  }
+}
+// 你的程式碼內部
+class Button extends React.Component {
+  constructor(props) {
+    super(); // ? 我们忘了传入 props
+    console.log(props);      // ✅ {}
+    console.log(this.props); // ? 未定义
+  }
+  // ...
+}
+```
+
+如果在构造函数中调用了其他的内部方法，那么一旦出错这会使得调试过程阻力更大。这就是我建议开发者一定执行 super(props) 的原因，即使理论上这并非必要：
+
+```javascript
+class Button extends React.Component {
+  constructor(props) {
+    super(props); // ✅ 传入 props
+    console.log(props);      // ✅ {}
+    console.log(this.props); // ✅ {}
+  }
+  // ...
+}
+```
+
+确保了 this.props 在构造函数执行完毕之前已被赋值。
+
+最后，还有一点是 React 爱好者长期以来的好奇之处。
+
+你会发现当你在类中使用 Context API （无论是旧版的 contextTypes 或是在 React 16.6 更新的新版 contextTypes）的时候，context 是作为第二个参数传入构造函数的。
+
+那么为什么我们不能转而写成 `super(props, context)` 呢？我们当然可以，但 context 的使用频率较低，因而并没有掘这个坑。
+
 
 
 ### 组件通信
@@ -916,7 +990,7 @@ function Children2() {
 
 #### 多个Context嵌套
 
-```react
+```jsx
 <MyContext.Provider value={{commonData: '123'}}>
     <OtherContext.Provider value={{otherData: 'aaa'}}>
     	<Children {...obj}/>
@@ -926,8 +1000,6 @@ function Children2() {
 // 子组件
 import MyContext from './context.js'
 import OtherContext from './other.js'
-// 关键：一个子组件只能指定一个contextType, 其他context就通过Consumer获取
-Children.contextType = MyContext 
 
 export class Children extends Component {
     render(){
@@ -944,6 +1016,8 @@ export class Children extends Component {
         )
     }
 }
+// 关键：一个子组件只能指定一个contextType, 其他context就通过Consumer获取
+Children.contextType = MyContext 
 ```
 
 
@@ -1435,6 +1509,7 @@ function enhancedCpn(OriginComponent) {
             return <OriginComponent {...this.state.message}/>
         }
     }
+    return newCpn
 }
 
 // 直接把函数式组件放到高阶组件中，返回的新组件即携带了通用数据,通过props传了进来
@@ -1889,7 +1964,7 @@ export class App extends PureComponent {
         let className = classList.join(' ')
         return (
             {/* 1.使用三元运算符动态添加class */}
-        	<h2 className={`'aaa' ${isbbb} ? 'bbb':''`}>哈哈哈</h2>
+        	<h2 className={`aaa ${isbbb ? 'bbb' : ''}`}>哈哈哈</h2>
             {/* 2.使用数组,join转化为字符串 */}
     		<div className={className}></div>
         )
@@ -2250,11 +2325,457 @@ export const homeSlice = createSlice({
 ### connect源码实现
 
 ```js
+// 导入context，传递store对象
+import StoreContext from './StoreContext.js'
 // 思路：接收2个函数，返回一个高阶组件函数, 并且把接收到props传给高阶组件进行增强返回
 export default function connect(mapStateToProps, mapDispatchToProps) {
-    return function(wrapperComponent) {
-        
+    return function(OriginComponent) {
+        class NewComponent extends PureComponent {
+            constructor(props, context) { // constructor传入第二个参数context
+                super(props)
+                this.state = mapStateToProps(context.getState())
+            }
+            componentDidMount() {
+                this.unSubscribe = this.context.subscribe(() => {
+                    this.setState({this.context.getState()}) // 调用了setState，就必须设置constructor
+                })
+            }
+    		componentWillUnmount() {
+                this.unSubscribe()
+            }
+            render() {
+                let stateObj = mapStateToProps(this.context.getState())
+	        	let dispatchObj = mapStateToProps(this.context.dispatch)
+                return <OriginComponent {...this.props} {...stateObj} {...dispatchObj}/>
+            }
+        }
+        NewComponent.contextType = StoreConetxt // NewComponent的静态属性上挂载contextType
+        return NewComponent
     }
 }
 ```
 
+
+
+### 中间件实现原理
+
+#### 日志打印中间件实现
+
+需求：store.dispatch派发前打印atcion日志，派发后打印state日志
+
+思路：对dispatch方法进行拦截和修改
+
+```js
+// index.js
+import {createStore, applyMiddleware} from 'redux'
+import thunk from 'redux-thunk'
+import reducer from './reducer'
+
+const store = createStore(reducer, applyMiddleware(thunk))
+
+// 给store.dispatch添加打印的功能，通过中间件实现
+function printLog(store) {
+    const next = store.dispatch // 保存原来的dispatch方法
+    
+    // 内部再定义一个新的函数，用来覆盖原来的dispatch方法, 在这里添加日志打印,这种操作称之为:monkey patch
+    function myDispatch(action) {
+        console.log('派发的action:', action)
+        next(action) // 执行原来的store.dispatch
+        console.log('派发后的state:', store.getState())
+    }
+    store.dispatch = myDispatch // 核心把该方法覆盖到原方法上， 之后调用store.dipatch都是通过这个方法
+}
+
+printLog(store) // 导出前执行函数
+export default store
+```
+
+#### thunk中间件实现
+
+```js
+// index.js
+import {createStore} from 'redux'
+import reducer from './reducer'
+
+const store = createStore(reducer)
+
+// 使disptach能接收函数作为参数
+function thunk(store) {
+    const next = store.dispatch
+    function dispatchThunk(action) {
+        if (typeof action === 'function') {
+            // 注意：这个dispatch是修改后的,因为需要支持函数
+            action(store.dispatch, store.getState) // action接收dipatch和getState2个方法作为参数
+        } else {
+            next(action)
+        }
+    }
+    store.dispatch = dispatchThunk // 覆写原disptach方法
+}
+export default thunk(store)
+```
+
+#### 合并中间件
+
+```js
+// 合并多个中间件，统一导出，入参接收store和多个中间件，中间件使用不定参数写法
+function applyMiddleware(store, ...fns) {
+    fns.forEach(fn => {
+        fn(store)
+    })
+}
+
+function thunk(store) {
+    const next = store.dispatch
+    function dispatchThunk(action) {
+        if (typeof action === 'function') {
+            action(store.dispatch, store.getState)
+        } else {
+            next(action)
+        }
+    }
+    store.dispatch = dispatchThunk
+}
+
+function printLog(store) {
+    const next = store.dispatch
+    
+    function myDispatch(action) {
+        console.log('派发的action:', action)
+        next(action)
+        console.log('派发后的state:', store.getState())
+    }
+    store.dispatch = myDispatch 
+}
+
+export default applyMiddleware
+export {thunk, printLog}
+```
+
+```js
+// 调用applyMiddleware
+import {createStore} from 'redux'
+import reducer from './reducer'
+import {thunk, printLog}, applyMiddleware from './middleware'
+
+const store = createStore(reducer)
+applyMiddleware(store, printLog, thunk) //传入中间件和store, 内部依次执行中间件
+
+export default store
+```
+
+
+
+### react-router
+
+**安装**： **npm install react-router-dom**
+
+react-router提供2种路由模式：BrowserRouter和HashRouter
+
+**路由核心概念：映射关系 path => component **
+
+#### 路由根页面
+
+```jsx
+import React, { PureComponent } from 'react'
+import {Route, Routes, Link, NavLink, Navigate} from 'react-router-dom'
+import Home from './views/home/Home'
+import Profile from './views/profile/Profile'
+import NotFound from './views/notFound/NotFound'
+import HomeRecommends from './views/home/HomeRecommends'
+import HomeBanners from './views/home/HomeBanners'
+import ProfileBanner from './views/profile/ProfileBanner'
+import ProfileDetail from './views/profile/ProfileDetail'
+import User from './views/user/User'
+export class App extends PureComponent {
+  render() {
+    return (
+      <div>
+        <div className="header">
+          <h2>header</h2>
+          {/* 路由跳转*/}
+          <Link to='/home'>首页</Link>
+          <Link to='/profile'>资料</Link>
+          {/* NavLink 作用是在选中时给该<a>元素自动添加一个'active'的className 可以用来定义样式 style接收一个函数，会传入一个对象包含isActive属性 */}
+          <NavLink to='/home' style={({isActive}) => ({color: isActive ? 'red' : ''})}>navLink</NavLink>
+          {/* 动态改样式名 */}
+          <NavLink to='/home' className={({isActive}) => isActive ? 'my-active' : ''}>navLink2</NavLink>
+          
+          {/* 跳转时传查询字符串 */}
+          <Link to='/user?name=guyufeng&age=34'>用户</Link>
+          <hr />
+        </div>
+        <div className='content'>
+          {/* 路由映射关系 path => component */}
+          <Routes>
+            {/* Navigate标签实现重定向 */}
+            <Route path='/' element={<Navigate to='/home'/>}/>
+            <Route path='/home' element={<Home/>}>
+              {/* 二级路由重定向：当匹配到/home时，默认匹配二级路由的/home/recomend */}
+              <Route path='/home' element={<Navigate to='/home/recommend'/>}/>
+              {/* home的二级路由 嵌套Route即可实现 二级路由需要配置占位符Outlet*/}
+              <Route path='/home/recommend' element={<HomeRecommends/>}/>
+              <Route path='/home/banner' element={<HomeBanners/>}/>
+            </Route>
+            <Route path='/profile' element={<Profile/>}>
+              <Route path='/profile/banner' element={<ProfileBanner/>}/>
+              {/* 传动态路由 */}
+              <Route path='/profile/detail/:id' element={<ProfileDetail/>}/>
+            </Route>
+            {/* 传查询字符串 */}
+            <Route path='/user' element={<User/>}/>
+            {/* 路径不存在时，匹配这个页面 */}
+            <Route path='*' element={<NotFound/>}/>
+          </Routes>
+        </div>
+        <div className="footer">
+          <hr />
+          <h2>footer</h2>
+        </div>
+      </div>
+    )
+  }
+}
+
+export default App
+```
+
+#### useNavigate(编程式跳转hook)
+
+Link标签跳转都默认渲染成a标签， 想使用其他标签进行跳转就要使用编程式跳转，给标签绑定事件
+
+**useNavigate是一个hook，会返回navigate跳转的方法，但只能在函数式组件或自定义hooks中使用，不能在类组件中使用**
+
+```jsx
+// Home.jsx 改写为函数式组件 才能使用useNavigate hook
+import {Outlet, Link, useNavigate} from'react-router-dom'
+export function Home(props) {
+  // 注意：hooks必须在顶层执行
+  const navigate = useNavigate() // useNavigate是一个hook, 返回一个跳转方法
+  // 定义跳转方法
+  const navigateTo = (path) => {
+    navigate(path)
+  }
+  return (
+    <div>
+      <h2>Home</h2>
+       {/* 1.标签式跳转 */}
+      <Link to='/home/recommend'>recomend页面</Link>
+      <Link to='/home/banner'>banner页面</Link>
+       {/* 2.编程式跳转 */}   
+      <button onClick={e => navigateTo('/home/recommend')}>button跳转1</button>
+      <button onClick={e => navigateTo('/home/banner')}>button跳转2</button>
+      {/* 路由占位符 */}
+      <Outlet/>
+    </div>
+  )
+}
+export default Home
+```
+
+
+
+#### ProfileBanner 携带动态参数跳转到==> ProfileDetail
+
+```jsx
+import React, { PureComponent } from 'react'
+import withRouter from '../hoc/withRouter'
+// ProfileBanner.jsx
+export class ProfileBanner extends PureComponent {
+  constructor(props) {
+    super(props)
+    this.state = {
+      list: [
+        {name: '热门歌单', id: '111'},
+        {name: '最新歌单', id: '222'},
+        {name: '畅销歌单', id: '333'}
+      ]
+    }
+  }
+  navigateTo(id) {
+    const {navigate} = this.props.router
+    navigate('/profile/detail/' + id)
+  }
+  render() {
+    return (
+      <div>
+        <h2>profile-二级页面-banner</h2>
+        <ul>
+          {
+            this.state.list.map((item, index) => {
+              return <li key={index} onClick={e => this.navigateTo(item.id)}>{item.name}</li>
+            })
+          }
+        </ul>
+      </div>
+    )
+  }
+}
+export default withRouter(ProfileBanner) 
+
+// ProfileDetail.jsx
+import React, { PureComponent } from 'react'
+import withRouter from '../hoc/withRouter'
+
+export class ProfileDetail extends PureComponent {
+  render() {
+    const {params} = this.props.router // 获得navigate传递的url参数
+    return (
+      <div>
+        <h2>profile-detail</h2>
+        <span style={{color: 'red'}}>id: {params.id}</span>
+      </div>
+    )
+  }
+}
+export default withRouter(ProfileDetail)
+```
+
+
+
+#### router hooks(封装高阶组件)
+
+```js
+import {useNavigate,useParams,useLocation,useSearchParams} from 'react-router-dom'
+
+function withRouter(OriginComponent) {
+	return function(props) {
+        const navigate = useNavigate() // 顶层调用hook
+        const params = useParams() // 获取动态路由参数 类似/home/:id
+        const location = useLocation() // 获取查询字符串
+        const [searchParams] = useSearchParams() // 获取URLSearchParams对象
+        const query = Object.fromEntries(searchParams) // 把查询字符串转成obj对象
+        const router = {navigate, params, location, query} // 包裹到router对象中
+        return <OriginComponent {...props} router={router} /> // 把增强方法传给原类组件
+    }    
+}
+```
+
+#### 路由配置型写法
+
+```jsx
+// react-router 5.x 需要react-router-config库才支持配置写法
+// react-router 6.x 开始不需要三方库即支持
+// router/index.js 单独路由配置文件
+import React from 'react'
+import {Navigate} from 'react-router-dom'
+import Home from '../views/home/Home'
+import HomeBanners from '../views/home/HomeBanners'
+import HomeRecommends from '../views/home/HomeRecommends'
+import NotFound from '../views/notFound/NotFound'
+import Profile from '../views/profile/Profile'
+import ProfileBanner from '../views/profile/ProfileBanner'
+import ProfileDetail from '../views/profile/ProfileDetail'
+// import User from '../views/user/User'
+// 路由懒加载写法 import是webpack的方法，返回一个Promise对象
+const User  = React.lazy(() => import('../views/user/User')) // 懒加载组件会被单独打包成一个js文件
+const routes = [
+  {
+    path: '/',
+    element: <Navigate to='/home' />
+  },
+  {
+    path: '/home',
+    element: <Home/>,
+    children: [
+      {
+        path: '/home',
+        element: <Navigate to='/home/recommend'/>
+      },
+      {
+        path: '/home/recommend',
+        element: <HomeRecommends/>
+      },
+      {
+        path: '/home/banner',
+        element: <HomeBanners/>
+      }
+    ]
+  },
+  {
+    path: '/profile',
+    element: <Profile/>,
+    children: [
+      {
+        path: '/profile/banner',
+        element: <ProfileBanner/>
+      },
+      {
+        path: '/profile/detail/:id',
+        element: <ProfileDetail/>
+      }
+    ]
+  },
+  {
+    path: '/user',
+    element: <User/>
+  },
+  {
+    path: '*',
+    element: <NotFound/>
+  }
+]
+
+export default routes
+      
+      
+// App.jsx内调用路由配置
+import { Link, NavLink, useRoutes} from 'react-router-dom'
+// 导入配置文件
+import routes from './router'
+
+export function App() {
+  return (
+    <div>
+      <div className="header">
+        <h2>header</h2>
+        {/* 路由跳转*/}
+        <Link to='/home'>首页</Link>
+        <Link to='/profile'>资料</Link>
+        <Link to='/user?name=guyufeng&age=34'>用户</Link>
+        <hr />
+      </div>
+      <div className='content'>
+        {/* useRoutes调用路由配置文件 */}
+        {useRoutes(routes)}
+      </div>
+      <div className="footer">
+        <hr />
+        <h2>footer</h2>
+      </div>
+    </div>
+  )
+}
+
+export default App
+```
+
+
+
+### React-hooks
+
+**目的：帮助函数式组件实现类组件的功能**
+
+**规则：**
+
+**1.必须在函数组件的顶层使用**
+
+**2.不能在普通函数中使用**
+
+**3.可以在自定义Hook中使用（use开头定义函数）**
+
+
+
+#### useState
+
+useState => 钩入state,  它与class里的this.state提供的功能完全相同
+
+useState接受唯一参数，在第一次被调用时使用作为初始化值（不传则初始化值为undefined）
+
+useState返回一个数组，通过解构数组来完成赋值
+
+
+
+#### useEffect
+
+useEffect => 钩入生命周期
