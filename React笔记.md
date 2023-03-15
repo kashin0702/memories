@@ -1007,11 +1007,21 @@ export class Children extends Component {
         return (
         	<div>
                 {/* 通过Consumer获取otherContext的数据 value通过回调函数传进来*/}
-            	<OtherContext.Consumer>
+            	<MyContext.Consumer>
                     {
-                        value => <h2>{value.otherData}</h2>
+                        value => {
+                            return (
+                            	<div>
+                                	<h2>{value.commonData}</h2>
+                                    {/*回调函数中嵌套回调函数,获取context*/}
+                                    <OtherContext.Consumer>
+                                        {value => <h2>value.otherData</h2>}
+                                    </OtherContext.Consumer>
+                                </div>
+                            )
+                        }
                     }
-                </OtherContext.Consumer>
+                </MyContext.Consumer>
             </div>
         )
     }
@@ -2772,10 +2782,713 @@ useState => 钩入state,  它与class里的this.state提供的功能完全相同
 
 useState接受唯一参数，在第一次被调用时使用作为初始化值（不传则初始化值为undefined）
 
+```js
+// 参数也可以是一个函数，该函数的返回值就是useState的初始化值（逻辑较长时可以使用）
+const [data, setData] = useState(() => {
+    return JSON.parse(localStorage.getItem(key))
+})
+```
+
+
+
 useState返回一个数组，通过解构数组来完成赋值
+
+##### useState储存对象类型
+
+```jsx
+import {useState} from 'react'
+function App () {
+    const [person, setPerson] = useState({name: 'david', age: 34})
+    const modPerson = () => {
+        setPerson({
+            ...person, // 修改对象类型时，必须浅拷贝后修改，否则视图不会更新
+            age: person.age + 1
+        })
+    }
+    return (
+    	<div>
+        	<h2>姓名: {person.name}</h2>
+            <h2>年龄: {person.age}</h2>
+            <button onClick={() => modPerson()}>年龄+1</button>
+        </div>
+    )
+}
+```
+
+
 
 
 
 #### useEffect
 
 useEffect => 钩入生命周期
+
+**重点1：useEffect可以存在多个**
+
+好处：每个useEffect有自己的逻辑，实现自定义hook，从而进行抽取复用
+
+**重点2：useEffect内回调函数执行顺序：**
+
+**1.首次渲染时会执行useEffect内的回调函数**
+**2.当数据更新或卸载时先执行return的返回函数**
+**3.视图更新后，执行useEffect的回调**
+
+```jsx
+import {memo} from 'react'
+import {useState, useEffect} from 'react'
+
+const App = memo(() => {
+    const [count, setCount] = useState(10)
+    
+    // useEffect接收函数作为参数，该函数会在组件首次渲染或更新后执行
+    useEffect(() => {
+        // 网络请求、DOM操作、事件监听、redux监听
+        store.subscribe() // 执行redux的监听
+        
+        // 返回一个函数，用来取消监听， 在组件更新或卸载时执行
+        return () => {
+            // 取消redux监听
+            store.unsubscribe()
+        }
+    })
+    return (
+    	<div>
+            <h2>当前计数: {count}</h2>
+        	<button onClick={() => setCount(count + 1)}>+1</button>
+        </div>
+    )
+})
+export default App
+```
+
+##### useEffect执行机制
+
+useEffect接收第二个参数，是一个数组，决定useEffect在哪些state发生变化时才重新执行(受谁的影响)
+
+不传则只要有更新就会执行
+
+如果一个函数不希望依赖任何的内容时，可传入一个空数组(只有首次渲染或卸载才执行，模拟生命周期)
+
+```jsx
+import {useState, useEffect, memo} from 'react'
+
+const App = memo(() => {
+    const [counter, setCounter] = useState(100)
+    useEffect(() => {
+        
+    }, [])
+    return (
+    	<div>
+        	<h2>当前计数:{counter}</h2>
+            <button onClick={e => setCounter(counter + 1)}>+1</button>
+        </div>
+    )
+})
+```
+
+
+
+#### useContext
+
+组件依赖的context数据发生改变时，该组件也会重新渲染
+
+```jsx
+// 使用context的组件
+import React, { memo, useContext } from 'react'
+import { counterContext, messageContext } from '../context/context'
+
+const Context = memo(() => {
+  // useContext的返回值可以直接获取到传入的context的值
+  const counter = useContext(counterContext)
+  const message = useContext(messageContext)
+  return (
+    <div>
+      <h2>counterContext: {counter.height}</h2>
+      <h2>messageContext: {message.name + ' ' + message.age}</h2>
+    </div>
+  )
+})
+export default Context
+
+// App.js
+import React from 'react'
+import Context from './pages/Context'
+
+function App() {
+  return (
+    <div>
+      <h2>useContext测试</h2>
+      <Context/>
+    </div>
+  )
+}
+
+export default App
+
+// index.js根文件
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { messageContext, counterContext } from './context/context';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <messageContext.Provider value={{name: 'david', age: 34}}>
+    <counterContext.Provider value={{height: '1.75'}}>
+      <App />
+    </counterContext.Provider>
+  </messageContext.Provider>
+);
+
+```
+
+
+
+#### useReducer(不常用)
+
+userReducer并不是redux中reducer的替代，仅仅是useState的一种替代方案
+
+```jsx
+import React, { memo } from 'react'
+import { useState } from 'react'
+import { useReducer } from 'react'
+
+// !注意useReducer虽然和redux内的reducer类似，但不能替代redux, 是useState的一种替代方案（定义和操作复杂数据时使用）
+// 定义一个reducer函数，传给useReducer 
+function reducer(state, action) {
+  switch (action.types) {
+    case 'increment':
+      return {...state, counter: state.counter + 1}  
+    case 'decrement':
+      return {...state, counter: state.counter - 1}
+    case 'add_number':
+      return {...state, counter: state.counter + action.num}
+    case 'sub_number':
+      return {...state, counter: state.counter - action.num}
+    default:
+      return state
+  }
+}
+const reducerTest = memo(() => {
+  // useReducer接收2个参数，一个是定义好的reducer函数，一个是初始化的state值
+  // useReducer返回的也是一个数组，第一个返回值是state,第二个返回值是dispatch方法
+  const [state, dispatch] = useReducer(reducer, {counter: 100, friends: [], user: {}}) // 复杂数据可以定义在一个useReducer中
+
+  // 使用useState就需要分开定义3个useState
+  // const [counter, setCounter] = useState(100)
+  // const [friends, setFriends] = useState([])
+  // const [user, setUser] = useState({})
+  return (
+    <div>
+      <h2>useReducer:</h2>
+      <h2>当前计数: {state.counter}</h2>
+      {/* disptach接收一个action对象 */}
+      <button onClick={() => dispatch({types: 'increment'})}>+1</button>
+      <button onClick={() => dispatch({types: 'decrement'})}>-1</button>
+      <button onClick={() => dispatch({types: 'add_number', num: 5})}>+5</button>
+      <button onClick={() => dispatch({types: 'sub_number', num: 5})}>-5</button>
+    </div>
+  )
+})
+
+export default reducerTest
+```
+
+
+
+#### useCallback
+
+useCallback替代普通的函数声明，普通函数声明每次重新渲染都会重新声明
+
+useCallback性能优化的意义：
+
+**当需要将一个函数传递给子组件时，使用useCallback进行优化，将优化后的函数传给子组件，子组件就不会被重新渲染**
+
+因为props属性发生改变时，组件本身会被重新渲染（必须包裹在memo函数内，否则子组件都会渲染）
+
+```jsx
+const App = memo(function() {
+    const [count, setCount] = useState(100)
+    // 当点击按钮时，页面每次重新渲染，increment函数就会反复的重新声明(旧的函数没有引用会被销毁)
+    function increment() {
+        setCount(count + 1)
+    }
+    // 使用useCallback能让每次调用的都是同一个函数(本质是闭包)
+    const increment2 = useCallback(function() {
+        setCount(count + 1)
+    }, [count]) // 第二个参数表示依赖对象，当这个值改变时，callback才会重新赋值，否则会产生闭包陷阱导致每次count都一样
+    
+    return (
+        <div>
+        	<h2>当前计数：{count}</h2>
+            <button onClick={increment}>+1</button>
+            <button onClick={increment2}>+1</button>
+        </div>
+    )
+})
+```
+
+**useCallback应用场景**
+
+```jsx
+// 将方法传递给子组件 若每次获取的都是新的increment那么子组件每次都会重新渲染
+const Cpn1 = memo(function(props) {
+    const {increment} = props
+    console.log('子组件被渲染')
+    return (
+    	<div>
+        	<button onClick={increment}>+1</button>
+        </div>
+    )
+})
+
+const App = memo(function() {
+    const [count, setCount] = useState(100)
+    const [message, setMessage] = useState('hello world')
+    
+    // useCallback定义函数 非count依赖时,返回的increment函数不会被更新
+    const increment = useCallback(function() {
+        setCount(count + 1)
+    }, [count])
+    
+    // 普通函数声明 如果把这个函数传给子组件cpn1,那么每次父组件其他数据更新时，increment也是新声明的，子组件也会被更新
+    //const increment = function(){
+      //  setCount(count + 1)
+    //}
+    return (
+        <div>
+        	<h2>当前计数：{count}</h2>
+            <button onClick={increment}>+1</button>
+      {/* 关键：把useCallback方法传递给子组件，当调用setMessage时increment不会改变，所以子组件不会每次都更新 */}
+            <Cpn1 increment={increment}/>
+            
+            <h2>当前文本：{message}</h2>
+            <button onClick={e => setMessage(Math.random())}>改变文本</button>
+        </div>
+    )
+})
+```
+
+
+
+#### useRef
+
+返回一个ref对象，这个对象在组件的整个生命周期保持不变
+
+常见用法：
+
+1.引入DOM元素（或者Class组件） 
+
+2.保存一个数据，这个对象在整个生命周期中可以保持不变
+
+```jsx
+// useRef创建的ref对象，在组件整个生命周期都不会改变
+// 操作DOM实例
+const App = memo(function(props) {
+    const countRef = useRef()
+    const getDom = function() {
+        console.log(countRef)
+    }
+    return (
+    	<div>
+        	<h2 ref={countRef}>我是标题</h2>
+            <button onClick={() => getDom()}>查看DOM</button>
+        </div>
+    )
+})
+```
+
+**利用不变特性对useCallback进一步优化**
+
+```jsx
+// 对useCallback做进一步优化=>依赖数据发生改变时，子组件也不会重新渲染
+const Cpn1 = memo(function(props) {
+    const {increment} = props
+    console.log('子组件被渲染')
+    return (
+    	<div>
+        	<button onClick={increment}>+1</button>
+        </div>
+    )
+})
+
+const App = memo(function() {
+    const [count, setCount] = useState(100)
+   
+    // useRef会返回一个ref对象
+    const countRef = useRef()
+    countRef.current = count // 保存count
+    
+    // 重点！setCount内传入countRef.current, 因为组件每次渲染的countRef是同一个对象，所以cuurent属性会自增
+    const increment = useCallback(function() {
+      setCount(countRef.current + 1)
+    }, []) // 这里设置为空数组，即increment不依赖任何数据，保证increment不会被更新
+    return (
+    	<div>
+        	<h2>当前计数：{count}</h2>
+            <button onClick={increment}>+1</button>
+            {/*子组件调用父组件传入方法increment修改count时，子组件自己也不会重新渲染*/}
+            <Cpn1 increment={increment}/>
+        </div>
+    )
+})
+```
+
+
+
+#### useMemo
+
+```jsx
+// useMemo和useCallback区别
+function fn() {}
+// useCallback优化的是传入的函数，返回值是一个函数，会根据依赖的数据更新而重新执行
+let increment1 = useCallback(fn, deps)
+// useMemo优化的是返回值(返回值可以是函数执行结果或一个函数)，会根据依赖的数据更新而重新执行
+let increment2 = useMemo(() => fn, deps)
+// 这两种写法是等效的 increment1 === increment2
+```
+
+
+
+#### useImperativeHandle
+
+子组件对父组件传入的ref进行处理(控制子组件暴露出去的方法和属性等)
+
+```jsx
+import React, { memo, useImperativeHandle } from 'react'
+import { forwardRef, useRef } from 'react'
+
+// forwardRef获取父组件传入的ref
+const InputCpn = memo(forwardRef((props, ref) => {
+  // 定义私有ref绑定到要暴露出去的DOM上
+  const privateRef = useRef()
+  // 接收2个参数，1.要控制的ref对象，2.一个回调函数，回调函数的返回值就是暴露给父组件的ref对象
+  useImperativeHandle(ref, () => {
+    return {
+        // 暴露给父组件的myFocus方法
+      myFocus() {
+        console.log('哈哈哈，我是暴露出去的focus')
+        privateRef.current.focus() // 通过自己的ref实现focus功能
+      }
+    }
+  })
+  // 绑定自己的ref, 帮助实现myFocus内的逻辑
+  return <input type='text' ref={privateRef} />
+}))
+
+const ImperativeHandle = memo(() => {
+  const inputRef = useRef()
+  function handleInput() {
+    inputRef.current.myFocus() // 父组件只能调用useImperativeHandle暴露出来的对象
+    inputRef.current.value = 'david无敌' // 这种操作无效，useImperativeHandle的目的就是控制父组件操作子组件ref时的权限
+  }
+  return (
+    <div>
+      <InputCpn ref={inputRef}/>
+      <button onClick={handleInput}>父组件操作Input输入框</button>
+    </div>
+  )
+})
+
+export default ImperativeHandle
+```
+
+
+
+#### useLayoutEffect
+
+和useEffect区别：
+
+useEffect会在渲染的内容更新到DOM上后执行，不会阻塞DOM的更新
+
+useLayoutEffect会在渲染的内容更新到DOM上之前执行，会阻塞DOM的更新
+
+较少使用，官方推荐使用useEffect
+
+
+
+#### 自定义Hooks
+
+react中的自定义hook必须用"use"开头，否则会报错
+
+```jsx
+import {useEffect} from 'react'
+
+// 自定义hook: 在组件加载或卸载时打印日志
+function useLogLife(cpnName) {
+  useEffect(() => {
+    console.log(cpnName + '已加载')
+    return () => {
+      console.log(cpnName + '已卸载')
+    }
+  }, [cpnName]) // 传空数组模拟生命周期，仅加载和卸载时执行
+}
+
+export default useLogLife
+```
+
+```js
+import { useContext } from 'react'
+import { tokenContext } from '../context/context'
+
+// 获取公共的contextToken数据
+export function useToken() {
+  const token = useContext(tokenContext)
+  return token
+}
+```
+
+```js
+import { useState,useEffect } from 'react'
+
+export function useScrollPosition() {
+  // 给scrollX scrollY设置初始化值
+  const [scrollX, setScrollX] = useState(0)
+  const [scrollY, setScrollY] = useState(0)
+  // 把监听事件放在useEffect中，卸载组件时要移除监听
+  useEffect(() => {
+    function handleScroll() {
+      setScrollX(window.scrollX) // 滚动值发生改变时调用第二个方法设置数据，一调用setScroll组件就会刷新
+      setScrollY(window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, []) // 仅在组件加载卸载时执行
+  return [scrollX, scrollY]
+}
+```
+
+```js
+import { useEffect, useState } from "react";
+
+export function useLocalStorage(key) {
+  // 把key的value作为state的初始化值 让两者产生联系
+  const [data, setData] = useState(JSON.parse(localStorage.getItem(key)))
+  // 监听当data改变时，调用setItem设置localStorage
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(data))
+  }, [data])
+  return [data, setData]
+} 
+```
+
+
+
+### redux-hooks
+
+redux7.1开始提供hooks方式,免去编写connect以及对应的映射函数
+
+
+
+#### useSelector
+
+作用：将state映射到组件中(类似connect函数中的mapStateToProps)
+
+参数1：将state映射到需要的数据中；
+
+参数2：可以进行比较来决定是否组件重新渲染(useSelector默认比较返回的两个对象是否相等)
+
+```js
+import {useSelector} from 'react-redux'
+
+const App = memo((props) => {
+    // 返回一个对象包含counter, 直接解构
+    // useSelector接收一个函数，函数的参数就是state,返回值就是要映射的state数据
+    // 优点：比connect/mapStateToProps写法更简洁
+    const {count} = useSelector(() => {
+        return {
+            count: state.counter.count
+        }
+    })
+})
+```
+
+
+
+#### useDispatch
+
+作用：直接获取dispatch函数，在组件中直接使用即可
+
+```jsx
+import {useSelector, useDispatch} from 'react-redux'
+import {addNumAction} from 'store/modules/counter'
+
+const App = memo((props) => {
+    const {count} = useSelector(() => {
+        return {
+            count: state.counter.count
+        }
+    })
+    const disptach = useDispatch()
+    function addCount(num) {
+        // 直接派发action 省去了mapDisptachToProps的写法
+        dispatch(addNumAction(num))
+    }
+    return (
+    	<div>
+        	<h2>当前计数: {count}</h2>
+            <button onClick={() => addCount(5)}>+5</button>
+        </div>
+    )
+})
+```
+
+
+
+#### useSelector性能优化
+
+```jsx
+import {useSelector, useDispatch, shallowEqual} from 'react-redux'
+import {addNumAction, changeMessageAction} from 'store/modules/counter'
+
+const App = memo((props) => {
+    const {count} = useSelector(() => {
+        return {
+            count: state.counter.count
+        }
+    }, shallowEqual) // 传入第2个参数shallowEqual进行浅层比较，当返回值相等时不会重新渲染组件
+    const disptach = useDispatch()
+    function addCount(num) {
+        // 直接派发action 省去了mapDisptachToProps的写法
+        dispatch(addNumAction(num))
+    }
+    return (
+    	<div>
+        	<h2>当前计数: {count}</h2>
+            <button onClick={() => addCount(count+5)}>+5</button>
+            <!--引入Home组件，当修改count时，Home组件也会重新渲染，可通过shallowEqual性能优化-->
+            <Home/>
+        </div>
+    )
+})
+
+
+const Home = memo((props) => {
+    const {message} = useSelector(() => {
+        return {
+            message: state.counter.message
+        }
+    }, shallowEqual)
+    // home组件渲染
+    console.log('Home render!')
+    const dispatch = useDispatch()
+    function changeMessage() {
+        dispatch(changeMessageAction('hello,david!'))
+    }
+	return (
+    	<div>
+        	<h2>home: {message}</h2>
+            <button onClick={() => changeMessage()}>修改message</button>
+        </div>
+    )    
+})
+```
+
+
+
+#### useId（SSR使用）
+
+当需要动态生成的id时，useId可保证服务端和客户端id一致
+
+```jsx
+import {memo, useState, useId} from 'react'
+
+//服务端也会运行这段代码，不管执行几次id一旦生成都不会变
+const App = memo((props) => {
+    const [count, setCount] = useState(0)
+    const id = useId()
+    return (
+    	<div>
+        	<button onClick={() => setCount(count+1)}>+1</button>
+            <!--保证客户端和服务器端ID是唯一的-->
+            <label htmlFor={id}>
+            	用户名: <input id={id} type="text"></input>
+            </label>
+        </div>
+    )
+})
+export default App
+```
+
+
+
+#### useTransition(延迟更新1)
+
+返回一个布尔值pending和一个函数，把要延迟更新的函数放在这个函数中回调
+
+
+
+#### useDeferredValue(延迟更新2)
+
+```jsx
+import {memo, useState, useDeferredValue} from 'react'
+import namesArray from './data'
+
+const App = memo(() => {
+    const [names, setNames] = useState(namesArray)
+    // 创建一个数组副本,这个副本会被延迟更新
+    const deferredArray = useDeferredValue(names)
+    
+    function handleInput(event) {
+        const keywords = event.target.value
+        let filters = namesArray.filter(item => item.includes(keywords))
+        setNames(filters)
+    }
+    return (
+        <!--效果就是输入框的文字会立刻更新，js执行完后再更新列表，否则输入框和列表更新是同步的，会有卡顿的感觉-->
+    	<div>
+        	<input type="text" onInput={handleInput}></input>
+            <h2>用户名列表：</h2>
+            <ul>
+            	{
+                    deferredArray.map((item, index) => {
+                        return (
+                        	<li key={index}>{item}</li>
+                        )
+                    })
+                }
+            </ul>
+        </div>
+    )
+})
+
+```
+
+
+
+### 项目(airbnb)
+
+#### 配置
+
+1.配置icon, 在public文件夹下
+
+2.配置title
+
+3.配置jsconfig.json, 方便vscode有更好的提示，如引用路径提示
+
+4.配置别名路径（使用craco.config.js配置）
+
+npm install @craco/craco
+
+5.支持less(使用craco.config.js配置)
+
+npm install craco-less
+
+6.样式重置--> normalize.css
+
+安装：npm install normalize.css
+
+index.js引入：import 'normalize.css'
+
+#### 路由
+
+npm install react-router-dom
+
+#### redux
+
+npm install @reduxjs/toolkit react-redux
+
+#### axios封装
+
