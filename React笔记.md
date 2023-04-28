@@ -1516,7 +1516,7 @@ function enhancedCpn(OriginComponent) {
             }
         }
         render() {
-            return <OriginComponent {...this.state.message}/>
+            return <OriginComponent {...this.state}/>
         }
     }
     return newCpn
@@ -2414,7 +2414,7 @@ function thunk(store) {
     const next = store.dispatch
     function dispatchThunk(action) {
         if (typeof action === 'function') {
-            // 注意：这个dispatch是修改后的,因为需要支持函数
+            // 注意：这个dispatch是修改后的新disptach,因为需要支持函数, next是原dispatch
             action(store.dispatch, store.getState) // action接收dipatch和getState2个方法作为参数
         } else {
             next(action)
@@ -2422,7 +2422,8 @@ function thunk(store) {
     }
     store.dispatch = dispatchThunk // 覆写原disptach方法
 }
-export default thunk(store)
+thunk(store)
+export default store
 ```
 
 #### 合并中间件
@@ -2455,7 +2456,7 @@ function printLog(store) {
         next(action)
         console.log('派发后的state:', store.getState())
     }
-    store.dispatch = myDispatch 
+    store.dispatch = myDispatch
 }
 
 export default applyMiddleware
@@ -2782,6 +2783,10 @@ useState => 钩入state,  它与class里的this.state提供的功能完全相同
 
 useState接受唯一参数，在第一次被调用时使用作为初始化值（不传则初始化值为undefined）
 
+**重点：useState的set方法是异步的，修改后的值在下次调用才会生效！和闭包陷阱概念有关**
+
+**重点：useState的初始化值只有在组件第一次渲染时有效，组件更新后的第二次渲染不会再被设置**
+
 ```js
 // 参数也可以是一个函数，该函数的返回值就是useState的初始化值（逻辑较长时可以使用）
 const [data, setData] = useState(() => {
@@ -2815,7 +2820,31 @@ function App () {
 }
 ```
 
+##### useState函数式更新
 
+如果新的 state 需要通过使用先前的 state 计算得出，那么可以将函数传递给 `setState`。**该函数将接收先前的 state，并返回一个更新后的值**
+
+```js
+// useState的两种更新方式
+function Counter() {
+  const [count, setCount] = useState(0);
+  function handleClick() {
+    setCount(count + 1)
+  }
+  function handleClickFn() {
+    setCount((prevCount) => {
+      return prevCount + 1
+    })
+  }
+  return (
+    <>
+      Count: {count}
+      <button onClick={handleClick}>+</button>
+      <button onClick={handleClickFn}>+</button>
+    </>
+  );
+}
+```
 
 
 
@@ -3221,7 +3250,7 @@ function useLogLife(cpnName) {
     return () => {
       console.log(cpnName + '已卸载')
     }
-  }, [cpnName]) // 传空数组模拟生命周期，仅加载和卸载时执行
+  }, []) // 传空数组模拟生命周期，仅加载和卸载时执行
 }
 
 export default useLogLife
@@ -3297,7 +3326,7 @@ const App = memo((props) => {
     // 返回一个对象包含counter, 直接解构
     // useSelector接收一个函数，函数的参数就是state,返回值就是要映射的state数据
     // 优点：比connect/mapStateToProps写法更简洁
-    const {count} = useSelector(() => {
+    const {count} = useSelector((state) => {
         return {
             count: state.counter.count
         }
@@ -3316,7 +3345,7 @@ import {useSelector, useDispatch} from 'react-redux'
 import {addNumAction} from 'store/modules/counter'
 
 const App = memo((props) => {
-    const {count} = useSelector(() => {
+    const {count} = useSelector((state) => {
         return {
             count: state.counter.count
         }
@@ -3344,7 +3373,7 @@ import {useSelector, useDispatch, shallowEqual} from 'react-redux'
 import {addNumAction, changeMessageAction} from 'store/modules/counter'
 
 const App = memo((props) => {
-    const {count} = useSelector(() => {
+    const {count} = useSelector((state) => {
         return {
             count: state.counter.count
         }
@@ -3366,7 +3395,7 @@ const App = memo((props) => {
 
 
 const Home = memo((props) => {
-    const {message} = useSelector(() => {
+    const {message} = useSelector((state) => {
         return {
             message: state.counter.message
         }
@@ -3491,4 +3520,22 @@ npm install react-router-dom
 npm install @reduxjs/toolkit react-redux
 
 #### axios封装
+
+
+
+
+
+### material UI 三方库
+
+官方地址：mui.com
+
+**安装： npm install @mui/material @emotion/react @emotion/styled** 
+
+
+
+### antd 三方库
+
+**安装: npm install antd**
+
+
 
