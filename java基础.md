@@ -71,7 +71,7 @@ jre:只需要运行，不需要开发时使用,就是java运行环境，包含�
 
 
 
-## java所有环境变量配置
+## java环境变量配置
 
 1、新建系统变量JAVA_HOME，变量值设置为jdk安装路径如E:\develop\jdk
 
