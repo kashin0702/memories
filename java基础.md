@@ -89,11 +89,9 @@ java属于混合型语言，java编译后产生的class文件是运行在java虚
 
 
 
-## 关键字
 
-java中关键字都是小写
 
-### class
+## class
 
 用于定义/创建一个类， 类是java最基本的组成单元
 
@@ -210,6 +208,14 @@ float z = 10.33F
 
 http://www.jetbrains.com/idea/
 
+**idea项目结构**
+
+idea开发目录按以下结构创建
+
+项目-模块-包(目录)-类
+
+project-->modules-->package-->class
+
 
 
 ## 导入工具类
@@ -221,11 +227,26 @@ public class myImport{
 	public static void main(String[] agrs){
 		Scanner sc = new Scanner(System.in);
 		System.out.println("请输入第一个数字");
-		int number1 = sc.nextInt(); // 保存键盘选择的数字
+		int number1 = sc.nextInt(); // 接收键盘选择的数字
 		
 		System.out.println("请输入第二个数字");
 		int number2 = sc.nextInt();
 		System.out.println(number1+number2); // 打印之和
+	}
+}
+```
+
+
+
+## 算术运算符
+
+注意点: java中整数参与运算,返回也是整数,小数同理
+
+```java
+public class Arithmetic{
+	public static void main(String[] agrs){
+        System.out.println(10/3) // 整数参与计算,返回整数3
+        System.out.println(10.0/3) // 小数参与计算,返回3.333333333333335
 	}
 }
 ```
