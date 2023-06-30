@@ -89,11 +89,9 @@ java属于混合型语言，java编译后产生的class文件是运行在java虚
 
 
 
-## 关键字
 
-java中关键字都是小写
 
-### class
+## class
 
 用于定义/创建一个类， 类是java最基本的组成单元
 
@@ -210,6 +208,14 @@ float z = 10.33F
 
 http://www.jetbrains.com/idea/
 
+**idea项目结构**
+
+idea开发目录按以下结构创建
+
+项目-模块-包(目录)-类
+
+project-->modules-->package-->class
+
 
 
 ## 导入工具类
@@ -221,7 +227,7 @@ public class myImport{
 	public static void main(String[] agrs){
 		Scanner sc = new Scanner(System.in);
 		System.out.println("请输入第一个数字");
-		int number1 = sc.nextInt(); // 保存键盘选择的数字
+		int number1 = sc.nextInt(); // 接收键盘选择的数字
 		
 		System.out.println("请输入第二个数字");
 		int number2 = sc.nextInt();
@@ -230,3 +236,139 @@ public class myImport{
 }
 ```
 
+
+
+## 算术运算符
+
+注意点:
+
+### 算术运算符+号
+
+1.char字符型会转换为ascii码对应数字,再进行计算
+
+2.byte,short,char类型参与计算,会统一提升为Int类型再参与计算
+
+3.任意类型与string字符串型相加都会变成字符串型(字符串拼接, +号理解为拼接符, 字符串只有加操作,没有减乘除)
+
+取值范围从小到大: **byte < short < int < long <float < double** 
+
+隐式转换: 不同数据类型相加, 取值范围小的会自动变大(自动类型提升)
+
+强制转换: 把大的范围类型赋值给小的范围,需要强制转换 (可能导致数据错误)
+
+
+
+隐式转换 如int提升为long 底层是在int(4字节32位)前补32个0, 变成long(8个字节64位)
+
+强制转换 如int降低为byte 底层是把int(32位)前的24位直接去掉, 变成byte(1个字节8位)
+
+```java
+public class Arithmetic{
+	public static void main(String[] agrs){
+        System.out.println(10/3) // 整数参与计算,返回整数3
+        System.out.println(10.0/3) // 小数参与计算,返回3.333333333333335
+        int a =5
+        double b = a
+        System.out.println(b) // double型5.0 自动提升为double型
+        char c = 'a';
+        int z = 12;
+        System.out.println(c+z) //int型109 字符型会转换为ascii码对应数字,再进行计算
+        byte b1 = 10;
+        byte b2 = 20;
+        System.out.println(b1+b2) // 统一转为int型,30
+        // 强制转换
+        int a = 300;
+        byte b = (byte) a; // 结果为负数,int范围超过了byte
+        
+        // 字符串拼接
+        System.out.println(1 + 2 + "abc" + 2 + 1) // 3abc21  从左往右先加法1+2,碰到字符串拼接,后面即都为字符串拼接
+	}
+}
+```
+
+
+
+
+
+### 赋值运算符
+
+=, +=, -=, *=, /=, %=
+
+```java
+public class Arithmetic {
+    int a = 10;
+    double b = 20.0;
+    a += b; // 等同于a = (int) (a + b)  +=,-=,*=,/=,%=底层都隐藏了一个强制类型转换 
+    System.out.println(b) // 30 b是double型,会强制转为a的int类型
+}
+```
+
+### 关系运算符
+
+关系运算符的结果都为Boolean型
+
+<  >= <=
+
+== 判断两边**值**是否相等
+
+!= 判断两边**值**是否不等
+
+
+
+### 逻辑运算符(不常用)
+
+**&| : 不管左侧true false 右侧都会执行**
+
+& 逻辑与(且),  并且,两边都为真,结果才为真
+
+| 逻辑或, 或者,两边都为假,结果才为假
+
+^ 逻辑异或 相同为false,不同为true
+
+! 逻辑非  取反 (java中只用一个!  不要用!!)
+
+### 短路逻辑运算符
+
+**含义:左侧表达式能确定最终结果,右侧就不会执行**
+
+&&  短路与  结果和&相同,但具有短路效果, 左侧为false时,右侧不执行 效率更高
+
+||   短路或  结果和|相同, 但具有短路效果, 左侧为true时,右侧不执行 效率更高
+
+
+
+### 运算符优先级
+
+![image-20230630164354777](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230630164354777.png)
+
+## 原码 补码 反码
+
+计算机的最小储存单位是byte, 即8位 所以1个字节的储存范围是**-128~127**
+
+正整数 :
+	原反补码相同，都是正整数的二进制表示
+负整数 :
+ 原码 :
+  数值的二进制
+ 反码:
+ 	原码各个位取反
+ 补码:
+  反码的基础上加1
+
+原码: 十进制数据的二进制表现,最左边是符号位,0为正, 1为负
+
+原码对正数计算没问题,但计算负数时,实际运算结果与预期是相反的
+
+反码:解决原码不能计算负数的问题
+
+反码计算规则: 正数的反码不变,负数的反码在原码的基础上,符号位不变,数值取反,0变1,1变0
+
+反码中0有两种表现形式, 负数跨0计算时会产生1的误差(正数计算不会产生误差)
+
+补码: 在反码的基础上+1 错开一位, 屏蔽误差
+
+补码产生一个特殊值-128, 该数据在一个字节下,没有原码和反码
+
+**数字的存储和计算都是以补码的形式来操作的**
+
+![image-20230630172727088](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230630172727088.png)
