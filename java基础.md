@@ -372,3 +372,173 @@ public class Arithmetic {
 **数字的存储和计算都是以补码的形式来操作的**
 
 ![image-20230630172727088](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230630172727088.png)
+
+
+
+### 循环for和while使用场景
+
+for循环：知道循环次数或者循环的范围
+
+**循环体语句执行后会执行条件控制语句，再进入下一次条件判断**
+
+for (初始化语句；条件判断语句；条件控制语句) ｛
+
+​	循环体语句；
+
+｝
+
+while循环：不知道循环次数或者范围，只知道循环结束的条件
+
+初始化语句；
+
+while (条件判断语句) ｛
+
+​	循环体语句；
+
+​	条件控制语句；
+
+｝
+
+### 回文数判断
+
+从左往右和从右往左读是一样的整数，121是回文数
+
+```java
+import java.util.Scanner;
+
+public class ChargeNumber {
+    public static void main(String[] args) {
+        // 思路：把数字倒过来和原来数字进行比较
+        Scanner sc = new Scanner(System.in);
+            System.out.println("请输入一个整数");;
+        int inNumber = sc.nextInt();
+        int temp = inNumber; // 保存输入值
+        int x = 0;
+        while(inNumber != 0) {  // 当截取输入数字为0时结束循环
+            // 每次循环获取输入数字的末位，进行拼接
+            int last = inNumber % 10; // 获取当前数的末位
+            inNumber = inNumber / 10; // 循环结束前截掉末位，给下次循环时使用
+            x = x * 10 + last // 把当前数拼到最右侧
+        }
+        System.out.println(x == temp);
+    }
+}
+```
+
+
+
+### 生成随机数
+
+```java
+import java.util.Random;
+
+public class random {
+    public static void main(String[] args) {
+        Random r = new Random();
+        for (int i = 0; i < 10; i++) {
+            int number = r.nextInt(100); // 随机数从0开始，不含末位 100表示随机数范围是0~99
+            System.out.println("随机数是:" + number);
+        }
+    }
+}
+```
+
+### 猜数字1~100
+
+```java
+public class random {
+    public static void main(String[] args) {
+        // 猜1~100数字
+        Random r2 = new Random();
+        int number2 = r2.nextInt(100); // 生成一个随时数
+        Scanner sc = new Scanner(System.in);
+        while (true) { // 利用无限循环比较猜的数字和随机数
+            System.out.println("请输入你要猜的数字"); // 每次进入循环重新输入数字
+            int guess = sc.nextInt();
+            if (guess > number2) {
+                System.out.println("太大了");
+            } else if (guess < number2) {
+                System.out.println("太小了");
+            } else if (guess == number2) {
+                System.out.println("猜对了！");
+                break;
+            }
+        }
+    }
+}
+```
+
+
+
+## 数组
+
+数组是一种容器，**在存储数据时要考虑存在隐式转换**，所以容器的类型和存储类型最好保持一致
+
+数组定义的2种格式
+
+格式1：数据类型[] 数组名
+
+格式2：数据类型 数组名[]
+
+静态初始化完整格式：数据类型[] 数组名 = new 数据类型[]{元素1，元素2，...};
+
+动态初始化：数据类型[] 数组名 = new 数据类型[数组长度];
+
+ int默认值是0，double默认0.0， char默认'/u0000'空格， 布尔默认false，引用类型默认null（String是引用类型） 
+
+静态初始化指定数组元素，系统根据元素个数计算数组长度
+
+动态初始知道数组长度，系统给出默认初始化值
+
+```java
+
+public class array01 {
+    public static void main(String[] args) {
+        // 数组静态初始化
+        // 定义数组写法1
+        int arr1[] = new int[]{11,22,33,44};
+        for (int i = 0; i < arr1.length; i++) {
+            System.out.println(arr1[i]);
+        }
+        // 写法2
+        String []arr2 = new String[]{"david", "kashin"};
+        for (int i = 0; i < arr2.length; i++) {
+            System.out.println(arr2[i]);
+        }
+        // 右侧new省略写法
+        String arr3[] = {"KING", "BILLY"};
+        System.out.println(arr3[1]);
+        
+        // 动态初始化
+        int[] arr4 = new int[10]; // 仅指定长度10，不指定具体初始化值
+    }
+}
+
+```
+
+### 取最值
+
+```java
+// 获取数组中的最大值
+public class array02 {
+    public static void main(String[] args) {
+        int[] arr = {11,34,56,100,92,234};
+        // 把第一个值作为初始化比较的值
+        int max = arr[0];
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i]; // 循环所有值，只要比上一个大就记录
+            }
+        }
+        System.out.println(max);
+    }
+}
+```
+
+### 数组元素交换
+
+```java
+// 数组12345变成54321
+// 思路：利用两个变量循环头和尾，遍历数组进行交换
+```
+
