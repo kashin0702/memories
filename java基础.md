@@ -172,7 +172,7 @@ double b = 10.2;
 
 ## 数据类型
 
-1、基本数据类型
+### 1、基本数据类型
 
 ```java
 //定义long,float类型要加后缀标识L,F
@@ -183,9 +183,9 @@ float z = 10.33F
 
 
 
-2、引用数据类型
+**基本类型(整数/浮点/布尔/字符)**
 
-**基本类型**
+数据值存储在变量自己的内存空间, 变量保存的是真实值(栈内存)
 
 | 数据类型 | 关键字  |
 | -------- | ------- |
@@ -199,6 +199,16 @@ float z = 10.33F
 | 布尔     | boolean |
 
 ![image-20230628170513944](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230628170513944.png)
+
+
+
+### 2、引用数据类型
+
+除了基本4个类型的,都是引用数据类型
+
+1. **new关键词创建的都是引用数据类型(变量保存的是内存地址,数据存在堆内存中)**
+
+   
 
 
 
@@ -258,9 +268,9 @@ public class myImport{
 
 
 
-隐式转换 如int提升为long 底层是在int(4字节32位)前补32个0, 变成long(8个字节64位)
+隐式转换底层: 如int提升为long 底层是在int(4字节32位)前补32个0, 变成long(8个字节64位)
 
-强制转换 如int降低为byte 底层是把int(32位)前的24位直接去掉, 变成byte(1个字节8位)
+强制转换底层: 如int降低为byte 底层是把int(32位)前的24位直接去掉, 变成byte(1个字节8位)
 
 ```java
 public class Arithmetic{
@@ -540,5 +550,173 @@ public class array02 {
 ```java
 // 数组12345变成54321
 // 思路：利用两个变量循环头和尾，遍历数组进行交换
+public class looptest01 {
+    public static void main(String[] args) {
+        // 把数组12345变成54321
+        int[] arr = {1,2,3,4,5};
+        int[] newArr = new int[5];
+        // 定义2个索引,从头尾同时遍历,进行数据互换 实现倒排
+        for(int i = 0, j = arr.length - 1; i == j || j > i; i++, j--) {
+            int temp = arr[i];
+            newArr[i] = arr[j];
+            newArr[j] = temp;
+        }
+        for(int i = 0; i < newArr.length; i++) {
+            System.out.print(newArr[i] + " ");
+        }
+    }
+}
+```
+
+
+
+## 方法
+
+形参: 方法定义中的参数
+
+实参: 方法调用中的参数
+
+**return含义:**  
+
+**必须写在方法中**
+
+**方法没有返回值时可省略,不省略的话不能跟返回值, 表示结束方法**
+
+**方法有返回值时不能省略, 表示结束方法和返回结果**
+
+```java
+public class module01{
+    public static void main(String[] args) {
+        
+    }
+    
+    // 方法定义和主程序main是平级关系
+    //定义方法格式: 无参数
+    public static void getData() {}
+    // 带参数
+    public static void getSum(int num1,int num2) {
+        int res = num1 + num2;
+        System.out.print(res);
+    }
+    // 带返回值 定时写上返回值类型
+    public static int getSum2(int num1, int num2) {
+        int res = num1 + num2;
+        return res; // 返回数据
+    }
+}
+
+
+```
+
+### 方法重载
+
+**重载的含义: 同一个类中,方法名相同,参数不同的方法, 与返回值无关**
+
+不用定义太多名字不同的方法, 方便调用
+
+```java
+public class Demo {
+    public staic void main(Stirng[] args) {
+        compare(10, 20) // 第一个compare方法会被调用
+        compare((byte)10, (byte) 20) // 第3个方法会被调用
+    }
+    
+    // 这3个就是方法的重载,在同一个类,方法名相同,参数不同
+    public static void compare(int num1, int num2) {
+        System.out.print(num1 == num2);
+    }
+    public static void compare(double num1, double num2) {
+        System.out.print(num1 == num2);
+    }
+    public static void compare(byte num1, byte num2) {
+        System.out.print(num1 == num2);
+    }
+}
+```
+
+### 数组拷贝
+
+```java
+public class Demo {
+    public static void main(String[] args) {
+        int[] arr = {1,2,3,4,5,6,7,8};
+        int[] copyArr = copyOfRange(arr, 3, 7); // 获取索引值3~7的数组
+    }
+    // 根据指定索引返回新数组
+    public static int[] copyOfRange(int[] arr, int from, int to) {
+        if (to > arr.length) to = arr.length;
+        int len = to - from;
+        int[] newArr = new int[len]; // 计算新数组长度
+        int idx = 0;
+        for (int i = from; i < to; i++) {
+            newArr[idx] = arr[i];
+            idx++;
+        }
+        return newArr;
+    }
+}
+```
+
+
+
+### 质数判断
+
+```java
+
+public class Demo {
+    public static void main(String[] agrs) {
+        int result = getPrimeNum();
+        System.out.print("101~200一共有" + result + "个质数");
+    }
+    // 判断质数个数并列出
+    public static int getPrimeNum() {
+        int count = 0;
+        for (int i = 101; i <= 200; i++) {
+            boolean flag = true;
+            // 判断质数,如101 循环2~100能否整除101
+            for (int j = 2; j < i; j++) {
+                if (i % j == 0) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                count++;
+                System.out.print(i + " ");
+            }
+        }
+        return count;
+    }
+}
+
+```
+
+### 随机验证码生成
+
+```java
+public static void getRandomCode() {
+    // 思路: 利用acs码表把数字强转成字母,创建一个52位字母的数组, 再利用随机索引实现字母的随机
+    char[] codes = new char[52];
+    for (int i = 0; i < codes.length; i++) {
+        // 大写字母asc 65~90
+        if (i <= 25) {
+            codes[i] = (char)(i + 65); // 数字强制转换为字符
+        } else {
+            // 小写字母 97~122
+            codes[i] = (char)(i + 71);
+        }
+    }
+    // 第二步 生成前4个随机字母
+    Random ran = new Random();
+    String checkCode = ""; // 验证码
+    for (int i = 0; i < 4; i++) {
+        int idx = ran.nextInt(52);
+        checkCode += codes[idx];
+    }
+    // 生成最后一位数字
+    int num = ran.nextInt(10);
+    checkCode += num;
+    System.out.println(checkCode);
+}
 ```
 
