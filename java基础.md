@@ -208,7 +208,6 @@ float z = 10.33F
 
 1. **new关键词创建的都是引用数据类型(变量保存的是内存地址,数据存在堆内存中)**
 
-   
 
 
 
@@ -511,7 +510,7 @@ public class array01 {
             System.out.println(arr1[i]);
         }
         // 写法2
-        String []arr2 = new String[]{"david", "kashin"};
+        String[] arr2 = new String[]{"david", "kashin"};
         for (int i = 0; i < arr2.length; i++) {
             System.out.println(arr2[i]);
         }
@@ -567,6 +566,38 @@ public class looptest01 {
     }
 }
 ```
+
+
+
+### 二维数组
+
+定义方式
+
+```java
+// 静态初始化
+int[][] arr = new int[][]{{元素1， 元素2}, {元素1，元素2}}
+// 简化
+int[][] arr = {{元素1，元素}，｛元素1，元素}}
+
+// 动态初始化
+int[][] arr = new int[m][n] //m表示可以存放多少个一维数组 n表示每个一维数组可以存放多少个元素
+    
+// 特殊动态初始化 
+int[][] arr = new int[2][] // 一维数组长度不定义 好处是一维数组长度可以不一样
+int[] arr2 = {11,22,33}
+int[] arr3 = {44,55}
+arr[0] = arr2
+arr[1] = arr3
+
+// 特殊情况2 定义了二维数组中一维数组的长度为2
+int[][] arr = new int[2][2]
+int[] arr2 = {11,22,33}
+int[] arr3 = {44,55}
+arr[0] = arr2
+arr[1] = arr3 // 本质是arr3内存地址给了arr[1], 原来初始化时的内存地址被替换
+```
+
+
 
 
 
@@ -717,6 +748,81 @@ public static void getRandomCode() {
     int num = ran.nextInt(10);
     checkCode += num;
     System.out.println(checkCode);
+}
+```
+
+### 数字加密
+
+```java
+public class encodingPwd {
+    public static void main(String[] args) {
+        int res = changeNum(1983);
+        System.out.println();
+        System.out.println("加密后数字为:" + res);
+    }
+
+    // 数字加密
+    // 规则：1、每位数字+5 2、取10余数 3、数字反转
+    public static int changeNum(int num) {
+        // 1、先计算Num的个数 用于创建数组长度
+        int count = 0;
+        int tempNum = num;
+        while(num != 0) {
+            num /= 10;
+            count++;
+        }
+        // 2、创建数组并对每位数字赋值
+        int[] arr = new int[count];
+        int idx = count - 1;
+        while (tempNum != 0) {
+            int ge = tempNum % 10;
+            tempNum /= 10;
+            arr[idx] = ge;
+            idx--;
+        }
+        // 3、执行加密规则
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] += 5;
+            arr[i] %= 10;
+        }
+        // 4、反转数组
+        for (int i = 0, j = arr.length - 1; i < j; i++, j--) {
+            int arrTemp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = arrTemp;
+        }
+        // 5、数组转回数字
+        int newNum = 0;
+        for (int i = 0; i < arr.length; i++) {
+            newNum = newNum * 10 + arr[i];
+        }
+        return newNum;
+    }
+}
+```
+
+
+
+## 面向对象
+
+javabean类：用来面熟一类事物的类叫javabean类； javabean类中不写main方法
+
+测试类：编写main方法的类叫测试类，**在测试类中可以创建javabean类的对象并进行赋值调用**
+
+一个java文件内可以定义多个类，但只能有一个public类， pubic修饰的类名必须和文件名一样。
+
+ 
+
+```java
+// 定义类
+public class Student {
+    // 成员变量 完整格式:修饰符 数据类型 变量名 = 初始化值 一般不指定初始化值，在创建实例时赋值
+    String name;
+    double height;
+    
+    // 成员方法(行为) 
+    public void study() {}
+    public void sleep() {}
 }
 ```
 
