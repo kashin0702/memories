@@ -591,6 +591,20 @@ public class looptest01 {
 }
 ```
 
+### 数组打乱
+
+```java
+// 打乱数据 本质也是元素交换
+    int[] arr = {1,2,3,4,5};
+    Random ran = new Random();
+    for (int i = 0; i < arr.length; i++) {
+        int rIndex = ran.nextInt(arr.length);
+        int temp = arr[i]; // 临时变量保存数据，方便下面互换元素
+        arr[i] = arr[rIndex];
+        arr[rIndex] = temp;
+    }
+```
+
 
 
 ### 二维数组
@@ -1309,12 +1323,10 @@ public class userLogin {
 字符串通过length()方法获取长度, 和数组的length属性直接获取有区别
 
 ```java
-// 字符串统计
-package com.david.demo02;
-
 import java.util.Scanner;
 
-public class StringPractise {
+// 字符串统计
+public class StringTest {
     public static void main(String[] args) {
         // 根据输入的字符串,统计出现了多少个大写字母,小写字母,数字
         Scanner sc = new Scanner(System.in);
@@ -1324,11 +1336,11 @@ public class StringPractise {
         int smallCount = 0, bigCount = 0, numCount = 0;
         for (int i = 0; i < strLen; i++) {
             char c = str.charAt(i); // 根据索引获取对应的字符
-            if (c > 'a' && c < 'z') { // 字符型在参与计算时会查asc码表,转成int再进行比较
+            if (c >= 'a' && c <= 'z') { // 字符型在参与计算时会查asc码表,转成int再进行比较
                 smallCount++;
-            } else if (c > 'A' && c < 'Z') {
+            } else if (c >= 'A' && c <= 'Z') {
                 bigCount++;
-            } else if (c > '0' && c < '9') { // 注意 比较的是字符的0~9 转成对应的asc值
+            } else if (c >= '0' && c <= '9') { // 注意 比较的是字符的0~9 转成对应的asc值
                 numCount++;
             }
         }
@@ -1338,5 +1350,81 @@ public class StringPractise {
     }
 }
 
+```
+
+### 字符串反转
+
+```java
+public class StringTest02 {
+    public static void main(String[] args) {
+        // 字符串反转
+        String str = reverse("abcdefg");
+        System.out.println(str);
+    }
+    public static String reverse(String str) {
+        int len = str.length();
+        // 从末位索引遍历
+        String turnStr = "";
+        for (int i = len - 1; i >= 0; i--) {
+            char c = str.charAt(i);
+            turnStr += c;
+        }
+        return turnStr;
+    }
+}
+```
+
+
+
+### 数字转大写汉字
+
+```java
+import java.util.Scanner;
+
+public class StringTest03 {
+    public static void main(String[] args) {
+        // 字符串数字转大写汉字数字， 汉子要求7位，不足的补零，每位要显示汉字金额单位
+        Scanner sc = new Scanner(System.in);
+        System.out.println("请输入金额");
+        int money = sc.nextInt();
+        if (money >= 0 && money <= 9999999) {
+            String res = "";
+            while(true) {
+                int ge = money % 10;
+                money = money / 10;
+                String c = strToCapital(ge);
+                // 1、数字转汉字
+                res = c + res; // 上一次结果res放在右边，因为数字是从右边开始获取
+                if (money == 0) {
+                    break;
+                }
+            }
+            System.out.println(res);
+            // 2、金额前补零
+            int len = res.length();
+            for (int i = 0; i < 7 - len; i++) {
+                res = "零" + res;
+            }
+            System.out.println(res);
+            // 3、插入汉字单位
+            String[] arr = {"佰","拾","万","仟","佰","拾","元"};
+            int resLen = res.length();
+            String finalMoney = "";
+            for (int i = 0; i < resLen; i++) {
+                char c = res.charAt(i); // 获取每个索引对应的字符
+                finalMoney = finalMoney + c + arr[i];
+            }
+            System.out.println(finalMoney);
+        } else {
+            System.out.println("输入金额不合法！");
+        }
+    }
+
+    // 根据索引返回对应的大写汉字
+    public static String strToCapital(int index) {
+        String[] caps = {"零","壹","贰","叁","肆","伍","陆", "柒", "捌", "玖"};
+        return caps[index];
+    }
+}
 ```
 
