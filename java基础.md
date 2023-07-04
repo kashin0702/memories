@@ -117,6 +117,20 @@ java中有6种字面量类型：整数，小数，字符串，字符，布尔，
 
 
 
+## 输出语句占位符
+
+```java
+public class Demo {
+    public static void main() {
+        System.out.printf("%s,你好啊", "张三"); // %s就是后面张三的占位符
+    }
+}
+```
+
+
+
+
+
 ## 变量定义格式
 
 数据类型 变量名= 数据值
@@ -493,8 +507,6 @@ public class random {
 
 动态初始化：数据类型[] 数组名 = new 数据类型[数组长度];
 
- int默认值是0，double默认0.0， char默认'/u0000'空格， 布尔默认false，引用类型默认null（String是引用类型） 
-
 静态初始化指定数组元素，系统根据元素个数计算数组长度
 
 动态初始知道数组长度，系统给出默认初始化值
@@ -524,6 +536,18 @@ public class array01 {
 }
 
 ```
+
+### 初始化值
+
+ int默认值是0
+
+double默认0.0
+
+char默认'/u0000' (空格)
+
+布尔默认false
+
+引用类型默认null（String是引用类型） 
 
 ### 取最值
 
@@ -811,10 +835,8 @@ javabean类：用来面熟一类事物的类叫javabean类； javabean类中不�
 
 一个java文件内可以定义多个类，但只能有一个public类， pubic修饰的类名必须和文件名一样。
 
- 
-
 ```java
-// 定义类
+// javabean类
 public class Student {
     // 成员变量 完整格式:修饰符 数据类型 变量名 = 初始化值 一般不指定初始化值，在创建实例时赋值
     String name;
@@ -824,5 +846,497 @@ public class Student {
     public void study() {}
     public void sleep() {}
 }
+
+public class Demo {
+    public static void main(String[] args) {
+        // main中创建类
+        Student stu = new Student();
+        stu.name = "david";
+        stu.height = "1.75";
+    }
+}
+```
+
+
+
+### 封装
+
+**对象代表什么,就要封装对应的数据,并提供数据对应的行为**
+
+
+
+### 成员变量和局部变量
+
+成员变量和局部变量重名,不使用this就会触发就近原则, 谁离得近就用谁
+
+**形参也是局部变量**
+
+使用this使用成员变量
+
+若没有局部变量, 不使用this也会查找成员变量(成员变量作用域在整个类中有效)
+
+this作用: 区分成员变量和局部变量
+
+this本质: 方法调用者的内存地址
+
+Friend f = new Friend();  此时f获得一个Friend对象的内存地址
+
+f.xxFn()  xxFn中的this就是f的内存地址
+
+```java
+public class Friend {
+    private int age; // 成员变量
+    public void xxFn() {
+        int age = 10; // 局部变量
+        System.out.println(age) // 直接使用,触发就近原则(我认为本质还是作用域)
+        System.out.println(this.age) // 打印成员变量
+    }
+}
+```
+
+![image-20230704115804563](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230704115804563.png)
+
+
+
+### private修饰符
+
+权限修饰符, 可以修饰成员变量和方法,被修饰的成员只能在本类中访问,需提供get/set方法让外部访问
+
+```java
+// javabean类
+public class Friend {
+    private String name;
+    private int age;
+
+    // private权限修饰符的属性只能在本类中访问,需提供对应方法,外部才能访问
+    // 对应get/set方法获取和设置属性
+    public void setAge(int age) {
+        if (age >= 18 || age < 50) {
+            this.age = age;
+        } else {
+            System.out.println("年龄不合法!");
+        }
+    }
+    public int getAge() {
+        return age;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+// 测试类
+public class FriendTest {
+    public static void main(String[] args) {
+        Friend david = new Friend();
+        david.setAge(35);
+        david.setName("大卫");
+        david.setAge(40);
+        System.out.print(david.getAge() + " " + david.getName());
+    }
+}
+```
+
+
+
+### 构造方法
+
+也叫构造函数
+
+作用: 创建对象时给成员变量进行赋值
+
+规则: 方法名和类名相同,大小写也要一致, 没有返回值, 没有void
+
+**构造方法在创建对象时由虚拟机自动调用,每次创建都会调用一次**
+
+若没写构造方法,程序也会自动创建一个空参构造方法
+
+建议: 创建类时有参构造和无参构造都要写, 方便使用 ,  若只写一个有参构造,不传参时就会报错
+
+```java
+public class Student {
+    private int age;
+    private String name;
+    
+    // 空参构造方法
+    public Student() {} 
+    
+    // 带全部参数构造方法
+    public Student(String name, int age) {
+        this.name = name
+        this.age = age
+    }
+}
+
+// 测试类中创建
+public class Demo {
+    public static void main(String[] args) {
+        Student s = new Student("david", 35); // 利用构造方法直接对成员变量赋值
+    }
+}
+```
+
+
+
+### 标准javabean类
+
+1.成员变量使用private修饰
+
+2.提供空参构造和全参构造2个构造方法
+
+3.提供每一个成员变量的get/set方法
+
+```java
+package com.david.demo02;
+
+// IDEA中使用alt+insert可以快速创建构造方法和get/set方法
+
+public class Goods {
+    private String id;
+    private String name;
+    private double price;
+    private int count;
+
+    public Goods() {
+    }
+
+    // 创建对象时, 选中方法的括号按ctrl+p 查看方法接收的参数
+    public Goods(String id, String name, double price, int count) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.count = count;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+}
+
+```
+
+
+
+### 键盘接收方法区别
+
+**nextInt(), nextDouble(), next() 在遇到空格/制表符/回车就会停止接收, 这些符号后面的数据会被自动放到第二个next接收**
+
+**nextLine() 也接收字符串, 遇到空格也能接收, 不建议和上面混用**
+
+```java
+Scanner sc = new Scanner(System.in)
+
+int num1 = sc.nextInt(); // 接收整数 如果输入123 456  num1=123 num2=456
+int num2 = sc.nextInt(); 
+double num3 = sc.nextDouble(); // 接收小数
+String str = sc.next(); // 接收字符串
+
+
+
+```
+
+
+
+### 复杂对象数组处理
+
+```java
+// javabean-student类
+public class Student {
+    String id;
+    String name;
+    int age;
+
+    public Student() {
+    }
+
+    public Student(String id, String name, int age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+}
+
+
+// 测试类
+public class StudentTest {
+    public static void main(String[] args) {
+        // 创建student类对象
+        Student[] arr = new Student[3];
+        Student stu1 = new Student("001", "zhangsan", 15);
+        Student stu2 = new Student("002", "lisi", 14);
+        Student stu3 = new Student("003", "wangwu", 17);
+
+        arr[0] = stu1;
+        arr[1] = stu2;
+        arr[2] = stu3;
+        // 需求1: 再添加一个学生对象,添加时要求Id唯一
+        Student stu4 = new Student("007", "zhaoliu", 20);
+        //校验Id
+        if (contains(arr, stu4)) {
+            System.out.println("当前学生id已存在,请重新录入!");
+        } else {
+            // 可添加2种情况 1. 原数组已存满 2.原数组未存满
+            int count = checkArr(arr);
+            // 已存满
+            if (count == arr.length) {
+                // 建新数组 原数组长度+1
+                Student[] newArr = new Student[arr.length + 1];
+                for (int i = 0; i < arr.length; i++) {
+                    newArr[i] = arr[i];
+                }
+                newArr[count] = stu4;
+                System.out.println("已存满====>");
+                printArr(newArr);
+            } else {
+                // 未存满, 直接添加即可
+                arr[count] = stu4; // count也代表最后一个空着的索引值
+                System.out.println("未存满=====>");
+                printArr(arr);
+            }
+        }
+        // 需求2: 删除指定id的学生
+        // 查找id对应的索引
+        int idx = getIndex(arr, "002");
+        if (idx >= 0) {
+            arr[idx] = null; // 删除索引对应的数据
+            System.out.println();
+            printArr(arr);
+        } else {
+            System.out.println("没找到对应Id的学生");
+        }
+
+    }
+
+    // 定义校验id的方法,返回布尔
+    public static boolean contains(Student[] arr, Student stu) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] != null) {
+                if (arr[i].getId() == stu.getId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    // 计算数组是否存满,并返回长度
+    public static int checkArr(Student[] arr) {
+        int count = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+    public static void printArr(Student[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] != null) {
+                System.out.println(arr[i].getId()+" "+arr[i].getName()+" "+arr[i].getAge());
+            }
+        }
+    }
+    public static int getIndex(Student[] arr, String id) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].getId() == id) {
+                return i;
+            }
+        }
+        return -1; // 没找到则返回-1
+    }
+}
+
+```
+
+
+
+## String字符串
+
+String类是java定义好的一个类,定义在java.lang包中,是java的核心包, 使用时不需要导包
+
+java中所有的字符串都被实例为此类对象
+
+**字符串创建后,它的值不会改变**
+
+String name = "david";
+
+name = "kashin";  // 创建了一个新的字符串类赋给了name,之前的字符串没有变
+
+```java
+// 直接赋值创建
+String name = "david";
+String lastName = "king";
+System.out.print(name + lastName); // 字符串拼接后会产生一个新的字符串,对原来的字符串没有影响
+
+// new关键词创建
+String str = new String("abc");
+
+// 传字符数组创建
+char[] chs = {'a', 'b', 'c'};
+String str2 = new String(chs); // abc
+
+// 传字节数组创建
+byte[] bytes = {97,98,99};
+String str3 = new String(bytes) //abc 在asc码表中查对应数字的asc码
+```
+
+
+
+### String中内存关系
+
+**使用直接赋值创建的字符串,如果值相等,是会复用的, 变量记录的是字符串池的地址**
+
+**使用new关键词创建的字符串,每次创建是新的对象,内存地址不同, 变量记录的是堆内存中的地址**
+
+```java
+String name = "abc";
+String name2 = "abc";
+System.out.print(name == name2) // true 直接赋值的字符串指向串池地址, 地址相同
+
+// new创建的内存地址在堆内存中, 地址不同
+String name3 = new String("abc");
+String name4 = new String("abc");
+System.out.print(name3 == name4) // false  new方式创建会开辟新的内存空间,所以内存地址不相等
+```
+
+### 
+
+### 字符串比较
+
+**基本类型使用==号比较的是值**
+
+**引用类型使用==号比较的是内存地址**
+
+```java
+// 要比较字符串值, 使用equals()方法
+String name = "abc";
+String name2 = "abc";
+System.out.print(name.equals(name2)) // true 方法返回一个布尔值, 比较值是否相等
+```
+
+```java
+// 登录测试
+import java.util.Scanner;
+
+public class userLogin {
+    public static void main(String[] args) {
+        // 已知正确的用户名密码, 验证输入的用户名密码,3次机会
+        String userName = "david";
+        int userPwd = 123456;
+        Scanner sc = new Scanner(System.in);
+        for (int i = 0; i < 3; i++) {
+            System.out.println("请输入用户名");
+            String name = sc.next();
+            System.out.println("请输入密码");
+            int pwd = sc.nextInt();
+            // equals方法比较字符串值是否相等
+            if (userName.equals(name) && userPwd == pwd) {
+                System.out.println("登录成功!");
+                break;
+            } else {
+                if (i == 2) {
+                    System.out.println("错误次数过多,账号已锁定!");
+                } else {
+                    System.out.println("用户名或密码错误,你还有"+(2-i)+"次机会");
+                }
+            }
+        }
+    }
+}
+
+```
+
+
+
+### 字符串获取长度
+
+字符串通过length()方法获取长度, 和数组的length属性直接获取有区别
+
+```java
+// 字符串统计
+package com.david.demo02;
+
+import java.util.Scanner;
+
+public class StringPractise {
+    public static void main(String[] args) {
+        // 根据输入的字符串,统计出现了多少个大写字母,小写字母,数字
+        Scanner sc = new Scanner(System.in);
+        System.out.println("请输入一个字符串");
+        String str = sc.next();
+        int strLen = str.length(); // 获取字符串长度
+        int smallCount = 0, bigCount = 0, numCount = 0;
+        for (int i = 0; i < strLen; i++) {
+            char c = str.charAt(i); // 根据索引获取对应的字符
+            if (c > 'a' && c < 'z') { // 字符型在参与计算时会查asc码表,转成int再进行比较
+                smallCount++;
+            } else if (c > 'A' && c < 'Z') {
+                bigCount++;
+            } else if (c > '0' && c < '9') { // 注意 比较的是字符的0~9 转成对应的asc值
+                numCount++;
+            }
+        }
+        System.out.println("小写字母有" + smallCount + "个");
+        System.out.println("大写字母有" + bigCount + "个");
+        System.out.println("数字有" + numCount + "个");
+    }
+}
+
 ```
 
