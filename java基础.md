@@ -1232,6 +1232,8 @@ String name = "david";
 
 name = "kashin";  // 创建了一个新的字符串类赋给了name,之前的字符串没有变
 
+### 字符串创建
+
 ```java
 // 直接赋值创建
 String name = "david";
@@ -1269,7 +1271,7 @@ String name4 = new String("abc");
 System.out.print(name3 == name4) // false  new方式创建会开辟新的内存空间,所以内存地址不相等
 ```
 
-### 
+
 
 ### 字符串比较
 
@@ -1283,6 +1285,8 @@ String name = "abc";
 String name2 = "abc";
 System.out.print(name.equals(name2)) // true 方法返回一个布尔值, 比较值是否相等
 ```
+
+### 登录字符串校验
 
 ```java
 // 登录测试
@@ -1381,6 +1385,7 @@ public class StringTest02 {
 ```java
 import java.util.Scanner;
 
+// 8324 ---> 零佰零拾零万捌仟叁佰贰拾肆元
 public class StringTest03 {
     public static void main(String[] args) {
         // 字符串数字转大写汉字数字， 汉子要求7位，不足的补零，每位要显示汉字金额单位
@@ -1424,6 +1429,321 @@ public class StringTest03 {
     public static String strToCapital(int index) {
         String[] caps = {"零","壹","贰","叁","肆","伍","陆", "柒", "捌", "玖"};
         return caps[index];
+    }
+}
+```
+
+
+
+### substring
+
+substring(int beginIndex, int endIndex) 包头不包尾, 返回一个截取后的字符串,不修改原字符串, 和js一样
+
+### 身份证截取
+
+```java
+// 身份证信息截取
+public class StringP02 {
+    // 截取身份证生日和性别, 输出信息
+    // 7~14位生日 17位性别(男奇数,女偶数)
+    public static void main(String[] args) {
+        String id = "330102198807021816";
+        String birth = id.substring(6, 14);
+        char gender = id.charAt(16);
+        // 字符"1"-->数字1
+        // 利用字符参与计算转成asc码对应的数值
+        System.out.println('0' + 0); // 48 查'0'对应的acs值
+        System.out.println(gender + 0); // 字符'1'对应49, 所以49-48就能得到数字1
+        int num = gender - 48; // 字符转成数字
+        char cGender = num % 2 == 0 ?  '女' : '男';
+        System.out.println("当前用户生日为" + birth + "性别为:" + cGender);
+    }
+}
+```
+
+
+
+### replace
+
+replace(旧值, 新值)
+
+
+
+### StringBuilder
+
+字符串创建容器, 提升字符串各种操作效率(拼接,反转)
+
+**实例化后打印sb对象,打印的是属性值,不是地址值(java底层处理过)**
+
+![image-20230705092724087](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230705092724087.png)
+
+```java
+StringBuilder sb = new StringBuilder("abc");
+// 添加内容
+sb.append(123);
+sb.append(true); //abc123true
+
+sb.reverse(); // 反转内容
+int len = sb.length() // 获取长度
+    
+String str = sb.toString() // sb对象转换为String
+```
+
+
+
+### StringJoiner
+
+jdk8后出现, 实际作用和Stringbuilder一样, 代码编写比StringBuilder更简洁
+
+![image-20230705095054242](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230705095054242.png)
+
+```java
+StringJoiner sj = new StringJoiner(", ", "[", "]"); // 指定间隔符,开始符(可选), 结束符(可选)
+sj.add("aaa").add("ccc").add("bbb") // [aaa, ccc, bbb]
+```
+
+
+
+### 字符串数字变罗马数字
+
+```java
+import java.util.Scanner;
+import java.util.StringJoiner;
+
+public class stringbuilder {
+    public static void main(String[] args) {
+        // 录入一个字符串,返回对应的罗马数字, 罗马数字内没有0,0可以变成""
+        // 长度小于等于9, 只能是数字
+        Scanner sc = new Scanner(System.in);
+        StringBuilder sb = new StringBuilder();
+        char c;
+        String str;
+        while (true) {
+            System.out.println("请输入一个数字");
+            String strNum = sc.next();
+            boolean flag = true;
+            for (int i = 0; i < strNum.length(); i++) {
+                c = strNum.charAt(i);
+                if (c < '0' || c > '9') {
+                    System.out.println("存在非数字字符,请重新输入");
+                    flag = false;
+                    break;
+                } else {
+                    // 字符数字->数字
+                    int num = c - 48; // 48->字符'0' 就是把字符数字转化为数字
+                    String luoma = toLuoma(num);
+                    sb.append(luoma + ", ");
+                }
+            }
+            if (flag) {
+                str = sb.toString();
+                System.out.println(str);
+                break;
+            }
+        }
+    }
+    public static String toLuoma (int number) {
+        String[] luoma = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
+        return luoma[number];
+    }
+}
+
+```
+
+### 字符串比较
+
+```java
+public class stringP03 {
+    public static void main(String[] args) {
+        // ab字符串比较
+        // 把a字符串头位放到末位,执行若干次后,如果能和b字符串一样,返回true,否则返回false
+        String strA = "abcde";
+        String strB = "eabcd";
+        boolean result = checkStr(strA, strB);
+        System.out.println("是否可以一样:" + result);
+    }
+
+
+    //定义一个旋转字符串的方法, 返回旋转后的字符串
+    public static String rotate (String str) {
+        char first = str.charAt(0);
+        String last = str.substring(1);
+        String newStr = last + first;
+        return newStr;
+    }
+
+    public static boolean checkStr (String str1, String str2) {
+        // 思路: 最大循环次数就是字符串自己的长度,循环结束后不满足相等条件,则返回false
+        for (int i = 0; i < str1.length(); i++) {
+            str1 = rotate(str1); // 重点: 每次执行旋转后赋值给自己,带入下次循环
+            if (str1.equals(str2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+```
+
+### toCharArray
+
+字符串转成字符数组
+
+```java
+String str = "abcd";
+char[] chs = str.toCharArray(); // 返回一个字符数组, 可以用new String(chs) 再变回字符串
+```
+
+
+
+### 字符串数字相乘
+
+```java
+public class stringP04 {
+    public static void main(String[] args) {
+        // 给定两个非负字符串表示的num1,num2 ,返回num1,num2的成绩, 乘积也用字符串表示
+        // 用已学知识完成
+        // 字符串--> 整数数字
+        String str1 = "345";
+        String str2 = "666";
+        // 1.转成字符数组
+        int num1 = stringToInt(str1);
+        int num2 = stringToInt(str2);
+        int sum = num1 * num2;
+        String sumStr = sum + ""; // 任意数字+字符串 都会转成字符串
+        System.out.println(sumStr);
+    }
+    public static int stringToInt(String str) {
+        char[] chs = str.toCharArray();
+        int num = 0;
+        for (int i = 0; i < chs.length; i++) {
+            num = num * 10 + (chs[i] - 48); // 关键语句: 字符转数字再利用*10拼成整数
+        }
+        return num;
+    }
+}
+
+```
+
+
+
+## 集合
+
+和数组区别:
+
+1. 数组长度固定, **集合长度可变**
+2. 数组可以存基本数据类型和引用数据类型, 集合只能存引用数据类型,**要存基本类型必须是包装类**
+
+
+
+### 包装类
+
+集合添加基本类型,要使用包装类, 泛型中传入包装类
+
+```java
+ArrayList<Integer> list = new ArrayList<>();
+ArrayList<Short> list2 = new ArrayList<>();
+```
+
+
+
+![image-20230705145708622](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230705145708622.png)
+
+### ArrayList
+
+```java
+package com.david.demo03;
+
+import java.util.ArrayList;
+
+public class ArrayListTest1 {
+    public static void main(String[] args) {
+        // 定义一个集合 集合必须传入泛型,定义集合的类型
+        ArrayList<String> list = new ArrayList<>();
+        // 增add
+        list.add("david");
+        list.add("billy");
+        list.add("king");
+
+        // 删remove
+//        String el = list.remove(0); // 返回被删除的元素
+//        System.out.println(el);
+
+        // 改set
+        list.set(0, "leon");
+        // 查get
+        String item = list.get(2); // 根据索引查询
+        // 获取长度 size() 用于遍历
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print(list.get(i));
+        }
+        System.out.println();
+        System.out.println(list); // ArrayList底层有处理不会返回地址值, 返回的是数据内容
+    }
+}
+
+```
+
+
+
+### 集合查数据
+
+```java
+package com.david.demo03;
+
+import java.util.ArrayList;
+
+public class ArrayListTest02 {
+    public static void main(String[] args) {
+        // 定义一个集合存入3个用户对象, 用户属性为id,username,password
+        // 要求:定义一个方法,根据id查找对应的用户信息, 存在返回true 不存在返回false
+
+        // 泛型传入User类
+        ArrayList<User> userList = new ArrayList<>();
+        User u1 = new User("001", "david", 123456);
+        User u2 = new User("002", "kashin", 123456);
+        User u3 = new User("003", "leon", 123456);
+        userList.add(u1);
+        userList.add(u2);
+        userList.add(u3);
+
+        // 判断集合中是否有该id对应的用户
+        System.out.println(hasUser(userList,"001")); // true
+        System.out.println(hasUser(userList,"004")); // false
+    }
+    public static boolean hasUser(ArrayList<User> arr, String id) {
+        for (int i = 0; i < arr.size(); i++) {
+            String uid = arr.get(i).getId();
+            if (uid.equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+
+
+### break跳出外层循环
+
+循环内嵌套switch语句时, switch使用默认Break, 退出的是switch语句,并不能退出外层while循环
+
+```java
+// 给循环指定一个名字
+loop: while(true) {
+    // xxx
+    switch(value) {
+        case val1 -> 
+        case val2 -> 
+            //...
+        case val5: -> {
+            break loop; // 跳出外层循环loop
+        } 
+            
+        }
+        default:
     }
 }
 ```
