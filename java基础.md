@@ -873,6 +873,25 @@ public class Demo {
 
 
 
+### main方法
+
+main方法是java程序的主入口
+
+**因为main方法是静态的, 所以测试类中其他方法也必须静态(静态方法只能访问静态方法和变量)**
+
+```java
+public class xxSystem { 
+    // main方法其实也是属于xxSystem类中的一个静态方法, 所以main调用其他方法也必须是静态的
+    public static void main(String[] args) {
+        // xxx...
+    }
+}
+```
+
+
+
+
+
 ### 封装
 
 **对象代表什么,就要封装对应的数据,并提供数据对应的行为**
@@ -909,6 +928,12 @@ public class Friend {
 ```
 
 ![image-20230704115804563](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230704115804563.png)
+
+
+
+### public修饰符
+
+被jvm调用, 权限修饰符 访问权限足够大
 
 
 
@@ -1220,6 +1245,68 @@ public class StudentTest {
 
 
 
+## 面向对象进阶
+
+### static
+
+静态属性修饰符static  
+
+静态属性
+
+1. 对象可共享该属性,
+2. 不属于对象, 属于类
+3. 随类加载而加载,优先于对象存在, 对象在new以后才会存在
+
+静态方法
+
+1.多用在测试类或工具类中, javabean类中很少用
+
+2**.静态方法只能访问静态变量和静态方法, 静态方法中没有this关键字**
+
+**非静态方法可以访问静态方法和变量, 也可以访问非静态的成员方法和变量(访问所有内容)**
+
+调用: 属性和方法都推荐用类名.调用 
+
+**当给静态变量赋值时, 内存中, 会在堆内存中单独创建静态变量的储存区**
+
+```java
+public class Student {
+    private String name;
+    private int age;
+    public static String teacherName; // 所有实例对象共享该属性 1.直接用类名调用Student.teacher 2.用对象调用
+}
+
+// 测试类
+public class StudentTest {
+    public static void main () {
+        Student.teacherName = "david"; // 静态变量赋值, 此时会在堆内存单独创建一个静态变量区保存
+        Student stu = new Student();
+    }
+}
+```
+
+
+
+### 工具类
+
+帮助我们做一些事情,但不描述任何事物的类
+
+```java
+public class ArrUtil{
+    private ArrUtil(){} // 关键: 私有化工具类本身,不让外部调用new创建对象, 工具类没有必要创建对象
+   
+    // 提供各种静态方法
+    public static int getMax(){}
+    public static int getMin(){}
+}
+```
+
+
+
+
+
+
+
 ## String字符串
 
 String类是java定义好的一个类,定义在java.lang包中,是java的核心包, 使用时不需要导包
@@ -1466,6 +1553,12 @@ public class StringP02 {
 ### replace
 
 replace(旧值, 新值)
+
+
+
+### startsWith
+
+startsWith("xx")   以某个字符串开头, 返回布尔值
 
 
 
@@ -1746,5 +1839,38 @@ loop: while(true) {
         default:
     }
 }
+```
+
+
+
+## IDEA快捷键
+
+定义还没创建的方法后, 选中方法alt+回车, 快速创建
+
+alt+insert可以快速创建构造方法和get/set方法
+
+创建对象时, 选中方法的括号按ctrl+p 查看方法接收的参数
+
+
+
+
+
+## 继承
+
+子类可以得到父类的属性和方法
+
+子类可以在父类基础上增加功能
+
+可以继承哪些?
+
+构造方法: public/private都不能
+
+成员变量: public/private都能
+
+成员方法: public能, private不能
+
+```java
+// 子类 extends父类
+pubic class Student extends Person{}
 ```
 
