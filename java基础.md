@@ -186,6 +186,16 @@ double b = 10.2;
 
 ## 数据类型
 
+### JAVA内存结构
+
+栈内存：方法执行的地方(main方法等)，基本数据类型都保存在栈内存
+
+堆内存：new关键词创建的引用数据类型保存的地方
+
+方法区：各种字节码文件保存的地方, 一个类想要被使用，这个类的字节码文件就要加载到方法区中临时存储
+
+
+
 ### 1、基本数据类型
 
 ```java
@@ -199,7 +209,9 @@ float z = 10.33F
 
 **基本类型(整数/浮点/布尔/字符)**
 
-数据值存储在变量自己的内存空间, 变量保存的是真实值(栈内存)
+数据值存储在变量自己的内存空间,在栈内存中开辟一个独立空间
+
+ 变量保存的是真实值(栈内存)
 
 | 数据类型 | 关键字  |
 | -------- | ------- |
@@ -939,7 +951,7 @@ public class Friend {
 
 ### private修饰符
 
-权限修饰符, 可以修饰成员变量和方法,被修饰的成员只能在本类中访问,需提供get/set方法让外部访问
+权限修饰符, 可以修饰成员变量和方法,**被修饰的成员只能在本类中访问**,需提供get/set方法让外部访问
 
 ```java
 // javabean类
@@ -1857,20 +1869,219 @@ alt+insert可以快速创建构造方法和get/set方法
 
 ## 继承
 
+**1.java只能单继承，一个类只能继承一个直接父类**
+
+**2.java不能多继承，但支持多层继承， （可以继承父类的父类）**
+
+**3.java中所有类都直接或间接继承于Object类**
+
 子类可以得到父类的属性和方法
 
 子类可以在父类基础上增加功能
 
-可以继承哪些?
 
-构造方法: public/private都不能
 
-成员变量: public/private都能
+### 继承的范围
 
-成员方法: public能, private不能
+继承和调用概念不要混淆， 继承是拷贝了一份父类的方法或属性，复制到了子类中
+
+构造方法: 非私有/private都不能
+
+成员变量: 非私有/private都能 **(private會被继承，但不能直接调用，一样要用set/get方法调用)**
+
+成员方法: 非私有能, private不能  **只有虚方法会被继承(非private/非static/非final就是虚方法)**
 
 ```java
 // 子类 extends父类
 pubic class Student extends Person{}
+```
+
+
+
+### super
+
+super()就是执行父类的无参构造函数
+
+super可以直接调用父类的变量和方法
+
+```java
+class Student extends Person {
+    String name;
+    int age;
+    
+    public Stundent() {
+        super(); //子类创建时默认调用父类的无参构造，程序默认会加在第一行 写不写都行
+    }
+    public Student(String name, int age) {
+        super(name, age); // 想给父类构造传值，就要手动写在子类带参构造函数中
+    }
+}
+```
+
+
+
+### 空参构造附初始值
+
+```java
+class Student extends Person{
+    String name;
+    int age;
+    String school;
+    
+    public Student(){
+    	this(null, 0, "xx大学")  // school赋了初始值，this()表示调用本类其他构造方法
+    }
+    public Student(String name, int age, String school) {
+        this.name = name;
+        this.age = age;
+        this.school = school;
+    }
+}
+
+// 测试类创建Student
+public class Demo{
+    public static void main(){
+        Student stu = new Student(); // 调用的是空参构造，但是有一个school的初始化值
+    }
+}
+```
+
+
+
+
+
+
+
+### 成员变量访问特性
+
+遵循就近原则，局部变量--》成员变量--》父类变量
+
+```java
+public class Extends01 {
+    public static void main(String[] args) {
+        Son s = new Son();
+        s.show();
+    }
+}
+
+
+class Father{
+    String name = "father";
+}
+class Son extends Father {
+    String name = "son";
+    public void show(){
+        String name = "show";
+        System.out.println(name); // show
+        System.out.println(this.name); // son
+        System.out.println(super.name); // father
+    }
+
+}
+```
+
+
+
+### 方法重写 Override
+
+子类中出现和父类名字一样的方法，就是重写方法 重写的方法必须和父类保持一致，形参，方法名,返回值（小于等于父类）
+
+**不被继承的方法不能重写**
+
+@override 重写注解，加在重写方法后面，让虚拟机校验重写语法是否正确
+
+
+
+
+
+## 多态
+
+表现形式：
+
+**子类对象赋值给父类类型 => 父类类型 名称 = 子类对象;**
+
+前提：
+
+1、必须是继承关系 
+
+2、必须有方法重写 
+
+```java
+public class duotaiTest {
+    public static void main(String[] args) {
+        Student stu = new Student();
+        stu.setName("大卫");
+        stu.setAge(35);
+        register(stu); // 调用register 并传学生
+
+        Teacher t = new Teacher();
+        t.setName("顾老师");
+        t.setAge(45);
+        register(t);// 调用register 并传老师
+
+        Admin ad = new Admin();
+        ad.setName("管理员大佬");
+        ad.setAge(27);
+        register(ad);// 调用register 并传admin
+    }
+
+    // 该方法需要接受student,teacher,admin3个类型参数，需要使用多态传父类作为参数，否则就要写3个方法
+    public static void register(Person p){
+        p.show(); // 多态根据传入对象, 分别调用对应对象中的show方法
+    }
+}
+
+
+
+```
+
+```java
+public class Person {
+    private String name;
+    private int age;
+
+    public Person() {
+    }
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+    public void show(){
+        System.out.println("我是person,我的名字是" + name);
+    }
+}
+
+
+public class Admin extends Person{
+    @Override
+    public void show(){
+        System.out.println("我是admin，我的名字是" + this.getName());
+    }
+
+}
+
+public class Student extends Person{
+    public void show(){
+        System.out.println("我是student，我的名字是" + this.getName());
+    }
+}
+
 ```
 
