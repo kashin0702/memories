@@ -943,6 +943,16 @@ public class Friend {
 
 
 
+## 全部权限修饰符
+
+权限范围由小到大:  private < 空着不写 < protected < public
+
+实际开发中常用private和public
+
+![image-20230707162000404](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230707162000404.png)
+
+
+
 ### public修饰符
 
 被jvm调用, 权限修饰符 访问权限足够大
@@ -991,6 +1001,10 @@ public class FriendTest {
     }
 }
 ```
+
+
+
+
 
 
 
@@ -1259,7 +1273,7 @@ public class StudentTest {
 
 ## 面向对象进阶
 
-### static
+### static修饰符
 
 静态属性修饰符static  
 
@@ -1296,6 +1310,46 @@ public class StudentTest {
     }
 }
 ```
+
+
+
+
+
+### final修饰符
+
+final可以修饰方法, 类, 变量
+
+修饰方法: 最终方法,不能被重写
+
+修饰类: 最终类, 不能被继承
+
+修饰量: 变成常量, 只能被赋值一次(常用)
+
+```java
+class Father{
+    public final void show(){
+        
+    }
+}
+class Son extends Father {
+    @Override
+    public void show(){} // 此处报错, 不能被重写
+}
+
+// 不能被继承
+public final class Person {
+    
+}
+// final修饰的基本类型,数据值不能修改, 引用类型的内存地址不能修改,但是内部数据可以修改
+final int num = 123;
+num = 456; // 报错, 不能修改
+final Student S = new Student("david", 25);
+S.setName("张三") // 不会报错, 内存地址没变
+```
+
+
+
+
 
 
 
@@ -1956,6 +2010,8 @@ public class Demo{
 
 遵循就近原则，局部变量--》成员变量--》父类变量
 
+**个人理解: 变量重名不会被继承重写, 父类变量和子类变量都存在, 通过不同方式调用**
+
 ```java
 public class Extends01 {
     public static void main(String[] args) {
@@ -1990,7 +2046,7 @@ class Son extends Father {
 
 @override 重写注解，加在重写方法后面，让虚拟机校验重写语法是否正确
 
-
+**个人理解:方法重写是重写从父类虚方法表中复制过来的方法, 不会影响父类的方法**
 
 
 
@@ -2078,10 +2134,353 @@ public class Admin extends Person{
 }
 
 public class Student extends Person{
+    @Override
     public void show(){
         System.out.println("我是student，我的名字是" + this.getName());
     }
 }
 
 ```
+
+
+
+### 多态创建子类
+
+成员变量==> 堆内存中的一个对象中,会分别创建一个父类变量和一个子类变量, 当用父类类型调用时,查的就是父类的变量
+
+成员方法==> 编译看左边, 运行看右边, 运行被重写的方法, 也就是成员方法
+
+![image-20230707113119742](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230707113119742.png)
+
+```java
+public class duotai {
+    public static void main(String[] args) {
+        // 用多态Animal父类类型创建一个子对象
+        Animal a = new Dog();
+        System.out.println(a.name); // 动物  调用变量,调用的是父类变量
+        a.show(); // dog==>狗 调用方法 调用的是子类方法
+    }
+}
+
+class Animal {
+    String name = "动物";
+    public void show(){
+        System.out.println("animal====>"+ name);
+    }
+}
+class Dog extends Animal {
+    String name = "狗";
+    @Override
+    public void show(){
+        System.out.println("dog===>" + name);
+    }
+}
+class Cat extends Animal {
+    String name = "猫";
+
+    @Override
+    public void show(){
+        System.out.println("cat===>" + name);
+    }
+}
+
+```
+
+
+
+
+
+### 多态优点
+
+1,多态形式下,实现右边对象解耦,便于扩展和维护
+
+```java
+Person p = new Teacher(); // 比如想调用 student.work 直接把new teacher改成new Student即可
+p.work() // 业务逻辑改变时,后续代码无需修改
+```
+
+
+
+2.**重要:**定义方法的时候,使用父类型作为形参,可以接收所有子类对象,体现多态扩展性
+
+```java
+ArrayList<Person> list = new ArrayList<>(); // 把父类作为对象类型传给集合, 集合可接收所有子类
+```
+
+
+
+
+
+### 多态缺点
+
+当多态定义的对象调用的方法在父类中不存在时,就会报错
+
+此时就要使用强制类型转换转成子类,再调用
+
+```java
+class Animal {
+    
+}
+class Dog extends Animal{
+    public void show(){}
+}
+
+Animal a = new Dog();
+Dog d = (Dog) a; // animal强制转换成dog类型, 调用show方法才不会报错
+a.show();
+```
+
+
+
+### instancof
+
+类型判断
+
+```java
+class Animal {
+    
+}
+class Dog extends Animal{
+    public void show(){}
+}
+
+Animal a = new Dog();
+if (a instanceof Dog d) { // 新特性 a是不是Dog类型, 是的话转换并赋值变量d 
+    // Dog d = (Dog) a 老写法
+}
+```
+
+
+
+### 多态应用
+
+```java
+package com.david.demoDuotai04;
+
+// 多态应用场景
+// 需求 调用keepPet输出饲养员信息,饲养的动物信息,喂的东西信息
+public class duotai02 {
+    public static void main(String[] args) {
+        Person p1 = new Person("大卫", 35);
+        Tiger tiger = new Tiger("黄", 3);
+        p1.keepPet(tiger, "骨头"); // 定义时用的是多态父类, 可以直接传入不同类型的子类
+
+        Person p2 = new Person("老李", 50);
+        Fish fish = new Fish("蓝", 5);
+        p2.keepPet(fish, "饲料");
+    }
+}
+
+// 动物类-父类
+class Dongwu {
+    private String color;
+    private int age;
+
+    public void eat(String food) {
+        System.out.println("动物在吃" + food);
+    }
+    public Dongwu() {
+    }
+
+    public Dongwu(String color, int age) {
+        this.color = color;
+        this.age = age;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+// 动物子类
+class Tiger extends Dongwu {
+
+    public Tiger() {
+    }
+
+    // 子类自己的构造函数
+    public Tiger(String color, int age) {
+        super(color, age); // 有参构造, 执行父类构造函数
+    }
+
+    @Override
+    public void eat(String food) {
+        System.out.println("一只"+getColor()+"颜色的"+getAge()+"岁的老虎在抱着"+food+"猛吃");
+    }
+}
+// 动物子类2
+class Fish extends Dongwu{
+
+    @Override
+    public void eat(String food) {
+        System.out.println("一只"+getColor()+"颜色的"+getAge()+"岁的鱼在吃"+food);
+    }
+    public Fish() {
+    }
+
+    public Fish(String color, int age) {
+        super(color, age);
+    }
+}
+// 饲养员类
+class Person {
+    private String name;
+    private int age;
+
+    // 重点方法: 利用多态,形参传父类, 只写一个keepPet方法就行
+    public void keepPet(Dongwu a, String food) {
+        // 强制类型转换 把父类转成子类, 这样就可以调用子类的成员变量
+        if (a instanceof Tiger t) {
+            System.out.println(age+"岁的"+name+"养了一只"+t.getColor()+"颜色"+t.getAge()+"岁的老虎");
+        } else if (a instanceof Fish f) {
+            System.out.println(age+"岁的"+name+"养了一只"+f.getColor()+"颜色"+f.getAge()+"岁的鱼");
+        }
+        a.eat(food); // 直接调用子类重写的方法
+    }
+    public Person() {
+    }
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+
+```
+
+
+
+## 抽象类
+
+当使用多态时, 子类不重写父类方法,父类就无法调用, 所以定义抽象类和抽象方法可以让子类强制重写抽象方法
+
+**抽象类不能创建对象**
+
+**有抽象方法的类一定是抽象类, 抽象类可以没有抽象方法**
+
+**抽象类可以有构造方法**
+
+子类继承抽象类时需满足2个要求其中1个
+
+  1.重写抽象类的所有抽象方法
+
+2. 自己也定义成一个抽象类
+
+```java
+// 定义抽象类
+public abstract class Person{
+    // 抽象方法, 子类必须强制重写
+    public abstract void work(); // 不写方法体,只需要形参
+}
+
+// 继承抽象类
+class Student extends Person{
+    @Override
+    public void work(){ // 必须重写抽象方法
+        
+    } 
+}
+```
+
+
+
+
+
+
+
+## 导包
+
+包就是文件夹,用来管理不同功能的java类
+
+写法: 域名反写+包的作用, 全部小写
+
+不需要导包的情况
+
+1.使用同一个包中的类
+
+2.使用java.lang包中的类
+
+**同时使用两个包中相同名字的类时, 要使用全类名**
+
+```java
+package com.david.demoDuotai04; // 导包
+
+// 全类名
+com.david.demoDuotai04.Person p1 = new com.david.demoDuotai04.Person();
+```
+
+
+
+## 代码块
+
+局部代码块(已淘汰, 没必要)
+
+构造代码块(不灵活, 建议把构造代码块内容抽取到独立方法中, 在构造方法中再调用)
+
+静态代码块(重点, static修饰, 随类加载而加载, 并且自动触发, **只执行一次, new创建不会再执行**)
+
+静态代码块作用: 在类加载中, 做一些数据初始化
+
+```java
+public class Demo{
+    public class void main(){
+        // 局部代码块 a只能在局部代码块中使用, 运行结束后a就会被销毁
+        {
+            int a = 0;
+            System.out.println(a);
+        }
+    }
+}
+
+public class Person{
+    String name;
+    int age;
+    // 构造代码块 写在成员位置,在构造函数前 作用: 把构造函数中重复代码提取出来 执行时机:创建类时先执行构造代码块,再执行构造方法
+    {
+        System.out.println("先执行构造代码块");
+    }
+    
+    // 静态代码块 类加载时执行一次
+    static {
+        // 做一些数据初始化处理
+    }
+    
+    public Student() {}
+    public Student(String name, int age) {}
+    
+    
+}
+```
+
+
+
+
+
+
 
