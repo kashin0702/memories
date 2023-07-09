@@ -2392,6 +2392,8 @@ class Person {
 
 2. 自己也定义成一个抽象类
 
+抽象类的好处：强制重写子类，也就统一了子类的方法名参数和返回，方便统一维护
+
 ```java
 // 定义抽象类
 public abstract class Person{
@@ -2410,7 +2412,249 @@ class Student extends Person{
 
 
 
+## 接口
 
+ 接口是一种规则， 是对行为的抽象，使用implements关键词表示
+
+接口不能实例化
+
+接口的子类（实现类）
+
+1.要么重写接口中的所有抽象方法
+
+2.要么自己也是抽象类
+
+```java
+// 定义接口
+public interface swim{
+    public abstract void swim(); // 定义抽象方法
+}
+public interface play{
+    public abstract void play();
+}
+
+// 接口和类之间是实现关系，通过implements关键词表示 学生拥有了swim这个接口，实现了swim的功能
+public class Student implements swim {
+    @Override
+    public void swim(){}; // 重写接口的抽象方法
+}
+// 接口和类可以多实现
+public class Student implements swim, play{
+    
+}
+// 实现类在继承一个类的同时实现多个接口
+public class Student extends Person implements swim, play{
+    
+}
+
+```
+
+
+
+### 接口中成员的特点
+
+成员变量：只能是常量，用public static final修饰
+
+构造方法:  没有
+
+成员方法：jdk7之前：只能是抽象方法，默认用public abstract修饰。  
+
+ jdk8后可以添加默认方法（有方法体）**不需要强制重写，但如果重写需要去掉default关键词**
+
+jdk9后可以添加私有方法（普通私有，静态私有）
+
+目的：默认方法中有重复代码，不想让外部调用又想抽取，定义到私有方法中
+
+```java
+// 接口中允许定义默认方法，解决接口升级时，实现类全部要重写的兼容性问题
+public interface inter{
+    // 定义默认方法 必须用default修饰， 表示默认方法
+    public default void show() {
+        
+    }
+    // 定义静态方法 不能重写 只能通过接口名调用，不能通过实现类或者对象名调用
+    public static void show2(){
+        
+    }
+    // 定义普通私有方法（服务默认方法）
+    private void show3(){
+        
+    }
+    // 静态私有方法（服务静态默认方法）
+    private static void show4(){
+        
+    }
+}
+
+
+```
+
+
+
+### 接口的多态
+
+当一个方法的参数是接口时，可以传递接口所有实现类的对象，这种方式就叫接口多态
+
+```java
+// 接口
+public interface inter1{
+    
+}
+// 实现类1
+public class Person implements inter1{
+    
+}
+// 实现类2
+public class Company implements inter1{
+    
+}
+
+// 定义一个方法，接收一个接口类型参数
+public void methods(inter1 inter){
+    
+}
+Person p = new Person()
+Company c = new Company()
+
+//方法参数可以传实现类
+methods(p);
+methods(c);
+```
+
+
+
+
+
+### 接口和类之间的关系
+
+类和类：继承关系，只能单继承，但可以多层继承
+
+类和接口：实现关系，可以单实现也可以多实现，还可以在继承一个类同时实现多个接口
+
+接口和接口：继承关系，可以单继承，也可以多继承
+
+```java
+// 接口继承
+public interface inter1{
+    public abstract void methods1();
+}
+public interface inter2{
+    public abstract void methods2();
+}
+public interface inter3 extends inter1,inter2{
+    public abstract void methods3();
+}
+// 实现类
+public class Person implements inter3{
+    // inter3继承了inter1和2， 实现类必须重写所有接口的抽象方法
+    @Override
+    public void methods1(){};
+    @Override
+    public void methods2(){};
+    @Override
+    public void methods3(){};
+}
+```
+
+
+
+### 适配器设计模式
+
+当一个接口有非常多抽象方法时，实现类就需要重写所有方法，很不方便
+
+添加一个中间类，重写所有抽象方法为空方法，再用实现类继承这个中间类，重写要用到的方法即可
+
+```java
+public interface inter{
+    public abstract void methods1();
+    public abstract void methods2();
+    public abstract void methods3();
+    public abstract void methods4();
+}
+// 中间类，空实现接口所有抽象方法 这个类不需要被创建，定义成抽象类
+public abstract class adapter implements inter{
+    @Override
+    public void methods1(){};
+     @Override
+    public void methods2(){};
+     @Override
+    public void methods3(){};
+     @Override
+    public void methods4(){};
+}
+// 真正的实现类 继承这个中间类
+public class interImpl extends adapter{
+    // 要用哪个方法就重写哪个即可
+    @Override
+    public void methods3(){};
+}
+```
+
+
+
+## 内部类
+
+定义：在类里面定义的类，就叫内部类
+
+**内部类可以访问外部类成员，包括私有**
+
+**外部类不能访问内部类，必须创建对象**
+
+```java
+// 外部类
+public class Car{
+    private String carName;
+    String carColor;
+    public void show(){
+        Engine e = new Engine();
+        System.out.print(e.engineName); // 必须创建对象才能获取
+    }
+    // 内部类
+    class Engine{
+        String engineName;
+        int engineAge;
+        public void show(){
+            System.out.print(carName); // 可以直接获取外部类
+        }
+    }
+}
+```
+
+
+
+### 内部类分类
+
+1.成员内部类 ：
+
+写在成员位置，属于外部类的成员，地位和成员变量方法一样
+
+```java
+public class Car{
+    String carName;
+    int carAge;
+    class Engine{ // 成员内部类
+        String engineName;
+    }
+    // 私有内部类
+    private class Inner{
+        
+    }
+    // 定义一个返回私有内部类对象的方法供外部调用
+    public Inner getInstance(){
+        return new Inner();
+    }
+}
+// 直接创建成员内部类语法 Outer.Inner.oi = new Outer().new Inner()
+// 外部类和内部类变量重名时，内部类调用Outer.this.变量名
+```
+
+
+
+2.静态内部类
+
+3.局部内部类
+
+4.匿名内部类（常用）
 
 
 
