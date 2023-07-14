@@ -943,7 +943,7 @@ public class Friend {
 
 
 
-## 全部权限修饰符
+### 权限修饰符范围
 
 权限范围由小到大:  private < 空着不写 < protected < public
 
@@ -1359,7 +1359,7 @@ S.setName("张三") // 不会报错, 内存地址没变
 
 ```java
 public class ArrUtil{
-    private ArrUtil(){} // 关键: 私有化工具类本身,不让外部调用new创建对象, 工具类没有必要创建对象
+    private ArrUtil(){} // 关键: 私有化构造函数,不让外部调用new创建对象, 工具类没有必要创建对象
    
     // 提供各种静态方法
     public static int getMax(){}
@@ -1913,11 +1913,25 @@ loop: while(true) {
 
 定义还没创建的方法后, 选中方法alt+回车, 快速创建
 
-alt+insert可以快速创建构造方法和get/set方法
+alt+insert 可以快速创建构造方法和get/set方法
 
-创建对象时, 选中方法的括号按ctrl+p 查看方法接收的参数
+ctrl+p  选中方法的括号按查看方法接收的参数
+
+ctrl+b 选中方法, 跟进方法
+
+ctrl+alt+M 把选中的内容抽取成一个方法
+
+**ctrl+n  全局搜索, 可以搜索查看类的源码**
+
+​	**ctrl+f12  查看类的构造方法(一个类可能有很多个不同参数的构造方法)**
+
+alt+回车 重写接口方法
 
 
+
+## 第三方包引入
+
+引入的第三方jar包一般放在lib文件夹中, 右键 jar包选择: **add as libary** 即可展开
 
 
 
@@ -2054,7 +2068,7 @@ class Son extends Father {
 
 表现形式：
 
-**子类对象赋值给父类类型 => 父类类型 名称 = 子类对象;**
+**子类对象赋值给父类类型 , 格式: 父类类型 名称 = 子类对象;**
 
 前提：
 
@@ -2624,7 +2638,7 @@ public class Car{
 
 ### 内部类分类
 
-1.成员内部类 ：
+### **1.成员内部类 **
 
 写在成员位置，属于外部类的成员，地位和成员变量方法一样
 
@@ -2644,17 +2658,132 @@ public class Car{
         return new Inner();
     }
 }
-// 直接创建成员内部类语法 Outer.Inner.oi = new Outer().new Inner()
+// 直接创建成员内部类语法:Outer.Inner oi = new Outer().new Inner()
 // 外部类和内部类变量重名时，内部类调用Outer.this.变量名
 ```
 
 
 
-2.静态内部类
+### **2.静态内部类**
 
-3.局部内部类
+```java
+public class Outer{
+    String carName;
+    int carAge;
+    static Stirng carBrand;
+    
+    
+    // 静态内部类 静态内部类只能访问静态的变量或方法
+    static class Engine{
+        String engineName;
+        int engineAge;
+        public void show1(){
+            System.out.print(carBrand); // 只能访问静态变量
+        }
+        public void show2(){
+    		Outer o = new Outer();
+            System.out.print(o.carName); // 创建外部类对象后可以访问非静态变量
+        }
+    }
+}
+// 创建静态内部类语法:Outer.Inner oi = new Outer.Inner()
+// 调用静态内部类方法 也可以通过oi.show1()调用, 但不推荐
+Outer.Inner.show1()
+```
 
-4.匿名内部类（常用）
+
+
+### **3.局部内部类**
+
+定义在方法内的类, 类似方法内定义的变量
+
+```java
+public class Outer{
+    
+    
+    public void methods1(){
+    	
+        // 方法内的类
+        class Inner{
+            
+        }    
+    }
+}
+```
+
+
+
+### **4.匿名内部类（最常用）**
+
+隐藏了名字的内部类, 可以现在成员位置,也可以写在局部位置
+
+格式: new 类名or接口名() {
+
+​		重写方法;
+
+};
+
+```java
+// 定义接口
+public interface swim(){
+    public abstract void swim();
+}
+
+// 正常的实现类
+public class Person implements swim{
+    @Override // 重写接口的抽象方法
+    public void swim(){}
+}
+
+// 匿名内部类实现接口 {}整体就是匿名内部类
+// 关键理解: swim是被实现的接口, new关键词创建的是{}的匿名类,  {}内的部分才是真正的匿名内部类 
+new swim(){
+    @Override
+    public void swim(){}
+};
+
+
+
+// 定义父类
+public abstract class Father{
+    public abstract void methods();
+}
+// 匿名内部类继承父类, 代码理解: new创建了{}内的匿名类, 并且继承了Father这个父类
+new Father(){
+    // 重新方法
+    @Override;
+    public void methods(){}
+};
+```
+
+**应用场景**
+
+```java
+// 前提:有一个Animal的抽象类
+public class Demo{
+    public static void main(){
+        // 常规调用
+        Dog d = new Dog();
+        method(d);
+        
+        // 使用匿名内部类, 直接创建一个匿名内部类,作为参数传给method, 本质就是创建了一个继承Animal的子类给了method, 形成了多态
+        method(
+        	new Animal(){
+                @Override
+                public void eat(){}
+            };
+        )
+    }
+    
+    
+    // 正常要调用这个方法,只能先创建animal子类如dog,再继承animal,重新eat方法, 然后new Dog();再通过Dog对象调用eat
+    public static void method(Animal a){
+        a.eat();
+    }
+}
+```
+
+
 
 
 
@@ -2726,5 +2855,329 @@ public class Person{
 
 
 
+## GUI(图形化界面)
 
+**JAVA一般做服务器开发,比较少用图形化界面**
+
+指采用图形化的方式显示操作界面
+
+定义在AWT包和Swing包中
+
+java的图形组件:
+
+**JFrame** 最外层窗体主窗体
+
+**JMenuBar** 最外层菜单 --- **JMenu** 二层菜单 -- **JMenuItem** 最底层菜单
+
+**JLabel** 管理文字和图片的容器, 图片必须添加到JLabel中
+
+**ImageIcon**  添加图片
+
+**JButton** 按钮
+
+**JTextField** 文本输入框(明文) 
+
+**JPasswordField** 密文输入框
+
+**JDialog** 弹窗窗体
+
+
+
+## 监听
+
+KeyListener 键盘监听
+
+MouseListener 鼠标监听
+
+ActionListener 动作监听(只能监听鼠标左键和空格)
+
+### 实现监听1 
+
+implements实现监听接口
+
+```java
+
+package com.david.test;
+
+import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+public class test03 {
+    public static void main(String[] args) {
+        testFrame3 f3 = new testFrame3();
+    }
+}
+
+
+// 方法1: 继承对象, 同时实现鼠标监听的接口
+class testFrame3 extends JFrame implements MouseListener {
+    public testFrame3() {
+        this.setSize(600, 800);
+        this.setTitle("test"); // 设置标题
+        this.setLocationRelativeTo(null); // 窗体居中显示
+        this.setDefaultCloseOperation(3); // 点击关闭按钮时直接关闭jvm虚拟机
+
+        JButton btn = new JButton("我是jbutton");
+        btn.setBounds(0,0,100,50);
+        btn.addMouseListener(this); // 重点: 因为实现类, 在这里直接传入当前对象即可 事件触发时执行本类中的代码,即下面重写的方法
+
+        // 取消隐藏容器的居中布局, 传空
+        this.setLayout(null);
+        this.getContentPane().add(btn);
+
+        this.setVisible(true);
+    }
+
+    // 重写接口所有方法
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        System.out.println("mouseclick!");
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        System.out.println("mouseEnter");
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+}
+
+```
+
+### 实现监听2
+
+传匿名内部类
+
+```java
+package com.david.test;
+
+import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+public class test02 {
+    public static void main(String[] args) {
+        TestFrame frame = new TestFrame();
+
+    }
+}
+
+class TestFrame extends JFrame{
+    public TestFrame() {
+        // 初始化窗体
+        this.setSize(600, 800);
+        this.setTitle("test"); // 设置标题
+        this.setLocationRelativeTo(null); // 窗体居中显示
+        this.setDefaultCloseOperation(3); // 点击关闭按钮时直接关闭jvm虚拟机
+
+        JButton btn = new JButton("我是jbutton");
+        btn.setBounds(0,0,100,50);
+
+        // 重点: 给对象添加监听方法, 该方法接收一个MouseListener接口类型, 直接传匿名内部类实现接口
+        btn.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("mouseClick!");
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                System.out.println("mousePressed");
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                System.out.println("mouseReleased!");
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                System.out.println("mouseEntered");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                System.out.println("mouseExited");
+            }
+        });
+        // 取消隐藏容器的居中布局, 传空
+        this.setLayout(null);
+        this.getContentPane().add(btn);
+
+        this.setVisible(true);
+    }
+}
+
+```
+
+## java游戏打包
+
+前提: 必须包含图形化界面,  代码, 图片, jdk都要打包
+
+1.把所有代码打包成.jar后缀的压缩包(jar就是java格式的压缩包)
+
+2.把jar包转成exe安装包(只有代码)
+
+3.把2的exe再和图片和jdk整合在一起, 变成最终的exe安装包
+
+
+
+
+
+## 常用API
+
+### Math 
+
+常用方法和js中基本一样
+
+
+
+
+
+### System
+
+ 入参 0: 正常停止   非0: 异常停止
+
+System.exit(int status) // 退出虚拟机 
+
+System.currentTimeMillis() // 获取时间戳
+
+System.arraycopy(arr1, srcPos, arr2, destPos, length) // 把数组1中的数据拷贝到数组2中
+
+
+
+
+
+### Runtime
+
+Runtime.getRuntime()   //Runtime的静态方法,获取当前系统的运行环境对象
+
+exit(int status) // 停止虚拟机, System.exit底层调用的就是这个方法
+
+availableProcessors() // 获得cpu线程数
+
+maxMemory //jvm能从系统中获取总内存的大小(单位byte)
+
+exec() // 运行cmd命令
+
+```java
+Runtime.getRuntime().exec("notepad") // 用命令行打开记事本
+Runtime.getRuntime().exec("shutdown -s -t 3600") // 3600秒后关机
+```
+
+
+
+### Object
+
+object类是java顶级父类,所有类都直接或间接继承于Object
+
+#### toString()  
+
+返回对象的字符串表示形式
+
+```java
+// **System.out.println() 底层也会调用toString方法**
+Student stu = new Student("张三", 25);
+
+System.out.println(stu) // 默认会打印stu的地址值
+    
+// 重写Object toString方法, 打印具体的属性值
+// class Student类内部,重写toString
+@Override
+public String toString(){
+    return name + "," + age
+}
+
+```
+
+
+
+#### equals(Object obj) 
+
+比较两个对象是否相等**(Object的equals方法使用==比较两个对象的地址值, 可以重写方法比较属性值)**
+
+#### clone(int a) 
+
+对象克隆(浅拷贝)
+
+```java
+// 实现cloneable接口, 这是一个标记性接口,表示当前对象可被克隆
+class User implements cloneable {
+    
+    // Object中的clone方法是protected修饰, 需要重写才能调用
+    @Override
+    protected Object clone() throws CloneNotSupportedException{
+        // 调用父类中的clone方法
+        return super.clone()
+    }
+    
+    // 重写2: 深拷贝
+    @Override
+    protected Object clone() throws CloneNotSupportedExceoption{
+        // 获取被克隆对象数组
+        int[] data = this.data;
+        // 创建新数组
+        int[] newData = new int[data.length];
+        for(int i = 0; i< data.length; i++){
+            newData[i] = data[i];
+        }
+        // 调用父类方法克隆对象
+        User u = (User) super.clone();
+        // 因为父类中的克隆方法是浅拷贝,替换克隆出来对象中的数组地址值
+        u.data = newData;
+        return u;
+    }
+}
+
+
+// 调用clone
+User u1 = new User();
+// 克隆u1赋值给u2
+User u2 = (User) u1.clone(); // 返回的是object, 需要转成User
+```
+
+
+
+### Objects(工具类)
+
+Objects是一个工具类, 提供一些操作对象的方法
+
+equals(Object a, Object b) // 先做非空判断,比较两个对象, 返回boolean
+
+isNull(Object obj) // 判断对象是否为null, 为null返回ture 
+
+nonNull(Object obj) // 判断对象是否为Null, 跟isNull的结果相反
+
+
+
+### BigInteger
+
+1.如果biginteger没有超过Long取值范围, 可以用静态方法BigInteger.valueOf()创建
+
+2.如果超出了, 则用构造方法new BigInteger() 创建
+
+3.对象一旦创建,内部值不会改变
+
+```java
+// 所有构造方法
+public BigInteger(int num, Random rnd) // 获取随机大整数 范围:[0~2的num次方-1]
+public BigInteger(String val) // (常用)获取指定的大整数
+public BigInteger(String val, int radix) // 获取指定进制的大整数
+public static BigInteger valueOf(long val) // (常用)静态方法获取BigInteger对象, 内部有优化(提前创建-16~16对象)
+    
+```
 
