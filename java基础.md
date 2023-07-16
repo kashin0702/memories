@@ -3351,3 +3351,94 @@ boolean b = Boolean.parseBoolean(str)
 
 ### 查找算法
 
+#### 基本查找（顺序查找）
+
+```java
+package com.demo03;
+
+import java.util.ArrayList;
+
+public class suanfa01 {
+    public static void main(String[] args) {
+        // 顺序查找
+        // 需求：根据给定的数组和数字，返回数字在数组中的索引，数字存在重复要返回所有索引
+        int[] arr1 = {131,127,148,81,103,81,23,7,79,92,81};
+        ArrayList<Integer> list = getAllIndex(arr1, 81);
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print(list.get(i) + " ");
+        }
+    }
+    public static ArrayList<Integer> getAllIndex(int[] arr, int num) {
+        // 定义一个集合，用来存放int型索引
+        ArrayList<Integer> list = new ArrayList<>();
+        for (int i = 0; i < arr.length; i++) {
+            if(arr[i] == num) {
+                list.add(i);
+            }
+        }
+        return list;
+    }
+}
+```
+
+
+
+**前提：数组中数据必须是有序的**
+
+二分、插值、斐波那契都是通过不断缩小范围来查找数据， 不同点就是对mid计算方式的不同**
+
+
+
+#### 二分查找
+
+核心逻辑：每次排除一半的查找范围
+
+```java
+package com.demo03;
+
+public class suanfa02 {
+    public static void main(String[] args) {
+        // 二分查找（前提是数据必须有序）
+        int[] arr = {23,42,55,65,88,99,323,754,1042};
+        int idx = binarySearch(arr, 55);
+        System.out.println(idx);
+    }
+    public static int binarySearch(int[] arr, int num) {
+        // 定义头尾索引
+        int begin = 0;
+        int end = arr.length - 1;
+        while(true) {
+            // 查找数据不存在的情况，begin会跑到end右边
+            if (begin > end) {
+                return -1;
+            }
+            int mid = (begin + end) / 2;
+            // 查找数据大于中间值,在mid右侧
+            if(arr[mid] < num) {
+                begin = mid + 1; // 排除左边所有数据，begin从mid+1开始
+            }
+            // 查找的数据小于中间值， 在mid左侧
+            if(arr[mid] > num) {
+                end = mid - 1;
+            }
+            if(arr[mid] == num) { // 表示找到 返回该索引
+                return mid;
+            }
+        }
+    }
+}
+```
+
+
+
+#### 插值查找
+
+
+
+
+
+#### 斐波那契查找
+
+根据黄金分割点计算Mid位置
+
+mid = min + 黄金分割点左半边长度 - 1
