@@ -1,3 +1,5 @@
+
+
 # java基础
 
 ## java版本
@@ -253,7 +255,7 @@ project-->modules-->package-->class
 
 
 
-## 导入工具类
+## 工具类Scanner
 
 ```java
 import java.util.Scanner; // 导入Scanner类,该类的作用是记录键盘选择的数字
@@ -267,6 +269,9 @@ public class myImport{
 		System.out.println("请输入第二个数字");
 		int number2 = sc.nextInt();
 		System.out.println(number1+number2); // 打印之和
+        
+        // nextLine() 无视空格接受所有输入，直到回车结束 建议所有键盘接收事件都用nextLine()方法
+        String str = sc.nextLine() // 输入123 123 可以全部被接收到
 	}
 }
 ```
@@ -3164,7 +3169,7 @@ nonNull(Object obj) // 判断对象是否为Null, 跟isNull的结果相反
 
 
 
-### BigInteger
+### BigInteger大整数
 
 1.如果biginteger没有超过Long取值范围, 可以用静态方法BigInteger.valueOf()创建
 
@@ -3177,7 +3182,172 @@ nonNull(Object obj) // 判断对象是否为Null, 跟isNull的结果相反
 public BigInteger(int num, Random rnd) // 获取随机大整数 范围:[0~2的num次方-1]
 public BigInteger(String val) // (常用)获取指定的大整数
 public BigInteger(String val, int radix) // 获取指定进制的大整数
+// 静态方法
 public static BigInteger valueOf(long val) // (常用)静态方法获取BigInteger对象, 内部有优化(提前创建-16~16对象)
     
 ```
+
+
+
+**BigInteger是对象， 不能直接对两个对象使用算术运算符**
+
+```java
+// BigInteger部分方法 
+public BigInteger add(BigInteger val) // 加法 
+public BigInteger substract(BigInteger val) //减法
+public BigInteger multiply(BigInteger val) // c乘法
+public BigInteger divide(BigInteger val) // 除法 获取商
+public BigInteger[] divideAndRemainder(BigInteger val) //除法 获取商和余数
+public boolean equals(Object x) // 比较是否相同
+    
+    // 用法
+    BigInteger bd1 = BigInteger.valueOf(10)
+    BigInteger bd2 = BigInteger.valueOf(5)
+    BigInteger sum = bd1.add(bd2) 
+```
+
+
+
+### BigDecimal
+
+表示较大的小数，  解决精度丢失问题
+
+```java
+// 0.09+0.01 0.899999999
+// 通过字符串形式创建对象，结果一定精确
+BigDecimal bd1 = new BigDecimal("0.09")
+BigDecimal bd2 = new BigDecimal("0.01")
+BigDecimal result = bd1.add(bd2) // 0.1
+    
+ // 部分方法
+public static BigDecimal valueOf(double val) //获取对象
+public BigDecimal add(BigDecimal val) // 加法 
+public BigDecimal substract(BigDecimal val) //减法
+public BigDecimal multiply(BigDecimal val) // c乘法
+public BigDecimal divide(BigDecimal val) // 除法
+public BigDecimal divide(BigDecimal val, 精确几位，舍入模式) // 除法（除不尽使用）
+```
+
+
+### Date
+
+```java
+// format格式化 返回String（日期对象->字符串）
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss")
+Date d1 = new Date(0L);
+String str = sdf.format(d1) // 根据上面格式进行格式化 str输出1970年01月01日 08:00:00
+
+// parse解析 返回Date对象（字符串->日期对象）
+String str2 = "2023-11-11 11:11:11"
+    // 这个格式必须和字符串格式完全一致
+SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+Date d2 = sdf2.parse(str2) // 返回一个Date对象
+```
+
+### Calendar
+
+ 操作年月日的对象
+
+```java
+// calendar是抽象类，通过调用静态方法创建实例
+Calendar c = Calendar.getInstance()
+int year = c.get(Calendar.YEAR)
+int month = c.get(Calendar.MONTH) + 1
+    
+c.set(Calendar.YEAR, 2008)
+
+```
+
+
+
+### LocalDate&LocalTime
+
+```java
+    // LocalDate获取年月
+    LocalDate lcDate = LocalDate.of(2023, 1, 1)
+    int year = lcDate.getYear()
+    // 获取月对象
+    Month m = lcDate.getMonth()
+    // 月对象获取值
+    int monthVal = m.getValue()
+    
+    
+    // 判断今天是不是你生日
+    LocalDate birDate = LocalDate.of(2000, 1, 1) // 获取指定日期对象
+    LocalDate nowDate = LocalDate.now()
+    MonthDay birMd = MonthDay.of(birDate.getMonthValue(), birDate.getDayOfMonth())
+    MonthDay nowMd = MonthDay.from(nowDate)
+    
+    System.out.print("今天是你生日吗" + birMd.equals(nowMd)) 
+        
+        
+        // 获取本地时间的日历对象（包含时分秒）
+        LocalTime nowTime = LocalTime.now()
+        int hour = nowTime.getHour()
+        int min = nowTime.getMinute()
+        
+        // with系列方法 只能修改时分秒
+        nowTime.withHour(10)
+```
+
+
+
+## 包装类
+
+基本数据类型对应的对象
+
+int ->Integer
+
+char -> Character
+
+long -> Long
+
+float -> Float
+
+...
+
+### 自动装箱和自动拆箱
+
+```java
+// JDK5之前
+// 构造方法创建Integer对象
+Integer i1 = new Integer(100);
+Integer i2 = new Integer("100");
+// 静态方法获取
+Integer i3 = Integer.valueOf(123)
+Integer i4 = Integer.valueOf("123")
+    
+
+	// JDK5之后，自动装箱和自动拆箱概念
+    // 自动装箱：把基本数据类型自动变成其对应的包装类
+    // 自动拆箱：把包装类自动变成其对象的基本数据类型
+    // 在底层会自动调用静态方法valueOf得到一个Integer对象，不需要手动调用
+    // 自动装箱动作
+    Integer i5 = 10;
+
+	// 自动拆箱动作 jdk5之后 int和Integer可以看作同一个东西，因为内部会自动转化
+	int i6 = i5;
+
+	// 自动拆箱+自动装箱 java底层自动操作
+	Integer i1 = 10;
+	Integer i2 = 20;
+	Integer i3 = i1 + i2; // 自动拆箱后相加，再自动装箱后变成对象赋值给i3
+```
+
+### 包装类成员方法
+
+```java
+//parseInt 最常用的方法， 字符串转成整数， 只能传数字类型字符，有其他字符就会报错 
+int num = Integer.parseInt("123")
+
+// boolean包装类 字符串转布尔 除了Character 其他包装类都有parseXX转化方法
+String str = "true"
+boolean b = Boolean.parseBoolean(str)
+```
+
+
+
+## 算法
+
+### 查找算法
 
