@@ -3385,7 +3385,7 @@ public class suanfa01 {
 
 **前提：数组中数据必须是有序的**
 
-二分、插值、斐波那契都是通过不断缩小范围来查找数据， 不同点就是对mid计算方式的不同**
+**二分、插值、斐波那契都是通过不断缩小范围来查找数据， 不同点就是对mid计算方式的不同**
 
 
 
@@ -3442,3 +3442,129 @@ public class suanfa02 {
 根据黄金分割点计算Mid位置
 
 mid = min + 黄金分割点左半边长度 - 1
+
+
+
+#### 分块查找
+
+前提1：每个块之间没有交集（块内无序，块间有序）
+
+前提2：块数量一般等于数字的个数开根号，比如16个数字一般分为4块
+
+**核心逻辑：确定要查找的元素在哪一块，然后在块内挨个查找**
+
+```java
+package com.demo03;
+
+public class suanfa03 {
+    public static void main(String[] args) {
+        // 分块查找
+        // 无序数组arr, 把无序数组分成4块，4块之间的数值没有交集
+        int[] arr = {
+                27,22,30,40,36,
+                13,19,16,20,
+                7,10,
+                43,50,48
+        };
+        // 分成4个块对象
+        Block b1 = new Block(40, 22, 0, 4);
+        Block b2 = new Block(20, 13, 5,8);
+        Block b3 = new Block(10,7,9,10);
+        Block b4 = new Block(50,43,11,13);
+        // 确定要查找的数字在哪一个块中 查找48
+        int num = 48;
+        Block[] blockArr = new Block[]{b1, b2, b3, b4};
+        // 获取目标块
+        Block block = getBlock(blockArr, num);
+        // 获取要查找元素的索引
+        int index = getIndex(block, arr, num);
+        System.out.println(index);
+    }
+    public static Block getBlock(Block[] blockArr, int num) {
+        for (int i = 0; i < blockArr.length; i++) {
+            // 表示在这个块内
+            if(blockArr[i].getMax() >= num && blockArr[i].getMin() <= num) {
+                return blockArr[i];
+            }
+        }
+        return null;
+    }
+    public static int getIndex(Block block, int[] arr, int num) {
+        // 用目标块的索引遍历原数组
+        for (int i = block.getStartIndex(); i <= block.getEndIndex(); i++) {
+            if(arr[i] == num) {
+                return i;
+            }
+        }
+        return -1;
+    }
+}
+// 定义一个块对象，保存每一个块数组，块数组内记录最大值，最小值，原始数组的开始索引和结束索引
+class Block{
+    private int max;
+    private int min;
+    private int startIndex;
+    private int endIndex;
+
+    public Block() {
+    }
+
+    public Block(int max, int min, int startIndex, int endIndex) {
+        this.max = max;
+        this.min = min;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+    }
+
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
+    }
+
+    public int getMin() {
+        return min;
+    }
+
+    public void setMin(int min) {
+        this.min = min;
+    }
+
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    public void setStartIndex(int startIndex) {
+        this.startIndex = startIndex;
+    }
+
+    public int getEndIndex() {
+        return endIndex;
+    }
+
+    public void setEndIndex(int endIndex) {
+        this.endIndex = endIndex;
+    }
+}
+```
+
+
+
+### 排序算法
+
+#### 冒泡排序
+
+```java
+// 相邻元素两两比较，大的放右边，每轮循环结束，最大的就会在最右边，下一轮只循环剩余元素 （n个元素，总共执行n-1轮）
+```
+
+
+
+#### 选择排序
+
+逻辑和冒泡类似，也是双重循环
+
+从索引0开始，和后面的每个元素比较，小就交换，第一轮结束，最小的就会在最左边，下一轮从索引1开始
+
