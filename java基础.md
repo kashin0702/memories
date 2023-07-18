@@ -3558,6 +3558,32 @@ class Block{
 
 ```java
 // 相邻元素两两比较，大的放右边，每轮循环结束，最大的就会在最右边，下一轮只循环剩余元素 （n个元素，总共执行n-1轮）
+package com.david.demo05suanfa;
+
+public class suanfa01 {
+    public static void main(String[] args) {
+        // 冒泡排序
+        int[] arr = {3,2,4,5,1};
+
+        // 核心逻辑:相邻元素两两比较，大的放右边，每轮循环结束，最大的就会在最右边，下一轮只循环剩余元素 （n个元素，总共执行n-1轮）
+        for (int i = 0; i < arr.length - 1; i++) { // arr.length-1 表示最后一个元素无需和自己比较,少比较一轮
+            // 内循环:每次结束,最大元素到最右侧 注意-1 防止最后一个元素下标越界
+            for (int j = 0; j < arr.length -1 - i; j++) {
+                // 比相邻元素, 交换位置
+                if(arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+            for (int i1 = 0; i1 < arr.length; i1++) {
+                System.out.print(arr[i1] + " ");
+            }
+            System.out.println(); // 打印4轮, 每一轮比较剩余元素, 并把最大元素放到右侧
+        }
+    }
+}
+
 ```
 
 
@@ -3567,4 +3593,154 @@ class Block{
 逻辑和冒泡类似，也是双重循环
 
 从索引0开始，和后面的每个元素比较，小就交换，第一轮结束，最小的就会在最左边，下一轮从索引1开始
+
+```java
+package com.david.demo05suanfa;
+
+public class suanfa01 {
+    public static void main(String[] args) {
+        int[] arr = {3,2,4,5,1,6,7};
+
+        // 2.选择排序 逻辑和冒泡类似，也是双重循环
+        //从索引0开始，和后面的每个元素比较，小就交换，第一轮结束，最小的就会在最左边，下一轮从索引1开始
+        for (int i = 0; i < arr.length; i++) {
+            // 内循环第一个元素是i, 从1+i开始
+            for (int j = 1 + i; j < arr.length; j++) {
+                // 用第一个跟后面每一个元素比较, 小的放到第一个
+                if(arr[i] > arr[j]) {
+                    int temp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = temp;
+                }
+            }
+        }
+        for (int i1 = 0; i1 < arr.length; i1++) {
+            System.out.print(arr[i1] + " ");
+        }
+    }
+}
+```
+
+
+
+#### 递归
+
+```java
+// 递归 必须有一个退出条件
+package com.david.demo05suanfa;
+
+public class digui01 {
+    public static void main(String[] args) {
+        // 递归求100+99+98...+1之和
+        int total = getSum(100);
+        System.out.println(total);
+    }
+    private static int getSum(int num) {
+        if(num > 0) {
+            return num + getSum(num - 1);
+        }
+        // num == 0 时退出递归
+        return 0;
+    }
+}
+```
+
+
+
+#### 快速排序（效率最高的排序）
+
+第一轮：把索引0的数字作为基准数，确定基准数在数组中的位置(基准数归位)，比基准数小的全部在左，比基准数大的全部在右
+
+第二轮：对基准数左侧和右侧进行递归调用
+
+```java
+package com.david.demo05suanfa;
+
+public class kuaipai {
+    public static void main(String[] args) {
+        // 快速排序
+        int[] arr = {2,7,3,5,1,4,0,9,10,12};
+        quickSort(arr,0,arr.length - 1);
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print(arr[i] + " "); // 第一轮结束，2是基准数，左侧比2小，右侧比2大： 1 0 | 2 | 5 3 4 7 9 10 12
+        }
+        // 2,0,3,5,1,4,7,9,10,12  --> 7,0互换
+        // 2,0,1,5,3,4,7,9,10,12 -->  3,1互换
+        // 1,0,2,5,3,4,7,9,10,12 --> 基准数归位 2，1互换
+    }
+
+
+    // 入参排序数组，排序开始索引，排序结束索引
+    private static void quickSort(int[] arr, int i, int j) {
+        // 定义两个变量确定查找范围
+        int start = i;
+        int end = j;
+        // 记录基准数
+        int baseNum = arr[i];
+
+        // 递归退出条件
+        if(start >= end) {
+            return;
+        }
+
+        // 指向同一个位置时退出循环
+        while (start != end) {
+            // 注意：从0开始的基准数，必须先从后往前循环，否则基准数归位会有问题
+            // 从后往前循环 数组末尾往前比较，遇到比基准数小的，停止
+            while (true) {
+                if(arr[end] < baseNum || start >= end) {
+                    break;
+                }
+                end--;
+            }
+            // 从前往后循环 数组开头往后比较, 遇到比基准数大的，停止
+            while (true) {
+                if(arr[start] > baseNum || start >= end) {
+                    break;
+                }
+                start++;
+            }
+            // 交换索引指向的数据
+            int temp = arr[start];
+            arr[start] = arr[end];
+            arr[end] = temp;
+        }
+        // start，end指向同一个元素时退出循环， 表示已找到基准数要存放的位置
+        // 基准数归位
+        int temp = arr[i];
+        arr[i] = arr[end];
+        arr[end] = temp;
+
+        // 用递归继续比较基准数左侧和右侧的数据
+        quickSort(arr, i, end - 1);
+        quickSort(arr, end + 1, j);
+    }
+}
+```
+
+
+
+### Arrays工具类
+
+```java
+// Arrays静态方法
+// String toString(数组)  //把数组拼接陈一个字符串
+// int binarySearch(数组, 查找的元素)  // 二分法查找元素
+// int[] copyOf(原数组， 新数组长度) // 拷贝数组
+// int[] copyOfRange(原数组, from, to) // 拷贝指定范围数组
+// void fill(数组， 元素) //填充数组
+// void sort(数组)
+// void sort(数组，排序规则)
+
+
+// 排序写法
+// 简单理解 o1-o2：升序排列  o2-o1:降序排列
+Integer[] arr = {2,5,1,0,13,43,33,44,5,8};
+Arrays.sort(arr, new Comparator<Integer>() { // 第二个参数接收一个接口， 用匿名类实现该接口
+    @Override
+    public int compare(Integer o1, Integer o2) { // 重写接口compare方法
+        return o1 - o2;
+    }
+});
+```
 
