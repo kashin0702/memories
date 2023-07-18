@@ -3734,6 +3734,7 @@ public class kuaipai {
 
 
 // 排序写法
+// 根据返回值判断 元素应该放在比较元素的左侧还是右侧
 // 简单理解 o1-o2：升序排列  o2-o1:降序排列
 Integer[] arr = {2,5,1,0,13,43,33,44,5,8};
 Arrays.sort(arr, new Comparator<Integer>() { // 第二个参数接收一个接口， 用匿名类实现该接口
