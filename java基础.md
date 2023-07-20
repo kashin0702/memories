@@ -1914,6 +1914,159 @@ loop: while(true) {
 
 
 
+## 集合进阶
+
+集合体系结构
+
+集合分为两类：单列集合（一次添加一个数据），双列集合（一次添加一对数据）
+
+单列集合顶层接口是**Collection**，子类是List和Set
+
+List和Set区别：
+
+List：添加元素有序（指存放和获取有序），可重复，有索引
+
+Set：添加元素无序，不重复，无索引
+
+![image-20230720141356522](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230720141356522.png)
+
+### Collection集合
+
+```java
+package com.david.demo06Collection;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+public class CollectionTest {
+    public static void main(String[] args) {
+        // 多态方式创建ArrayList对象
+        Collection<String> coll = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
+        // add 返回一个布尔值表示添加是否成功，List一定true，如果是Set集合，添加相同元素就会返回false
+        coll.add("david");
+        coll.add("superMan");
+        System.out.println(coll);
+
+        // clear 清空集合
+//        coll.clear();
+//        System.out.println(coll);
+
+        // remove 删除指定元素
+        coll.remove("david");
+        System.out.println(coll);
+
+        // contains 判断元素是否包含
+        System.out.println(coll.contains("david"));
+
+        // 获取长度
+        int size = coll.size();
+        System.out.println(size);
+    }
+}
+
+```
+
+### Collection遍历
+
+有3种遍历方式：迭代器、增强for、Lambda表达式遍历
+
+常用成员方法：add,clear,remove,contains,isEmpty,size
+
+在遍历中想删除元素，使用迭代器
+
+仅想遍历元素使用增强for和Lambda表达式
+
+
+
+#### 迭代器
+
+特点：迭代器不依赖索引
+
+```java
+package com.david.demo06Collection;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class IteratorTest {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("david");
+        list.add("king");
+        list.add("kashin");
+
+        // 注意1：迭代器遍历完后指针不会复位，若要再次遍历就要再次创建对象
+        Iterator<String> it = list.iterator();// 返回一个迭代器对象，默认指向0索引
+        while (it.hasNext()) { // hasNext() 返回布尔值，判断当前位置是否有元素
+            // 注意2：在循环中next只能使用一次，不能多次调用，因为next会移动指针，指针越界就会报错
+            // 注意3：迭代器中不能使用集合的方法增删元素，会报错，删除要用迭代器方法删it.remove()，迭代器不能增加元素
+            System.out.println(it.next()); // 获取当前位置元素，并将指针指向下一个对象
+        }
+    }
+}
+```
+
+
+
+#### 增强for遍历
+
+底层也是Iterator原理，简化迭代器书写
+
+**单列集合和数组才能用增强for遍历**
+
+格式：for(元素数据类型 变量名：数组or集合) {}
+
+```java
+for (String s : list) { 
+	System.out.println(s)  // s就是集合中的每个元素
+}
+```
+
+
+
+#### Lambda表达式遍历
+
+用forEach方法遍历
+
+forEach(Consumer) // 接收一个Consumer接口，要传实现类
+
+```java
+Collection<String> coll = new ArrayList<>();
+    coll.add("LEON DE ORIAD");
+    // lambda表达式遍历 接收一个Consumer接口，传匿名类实现该接口
+    coll.forEach(new Consumer<String>() {
+        @Override
+        public void accept(String s) { // 方法forEach会把集合中的每个元素传给accept方法
+            System.out.println("===>" + s);
+        }
+    });
+
+
+	// Lambda表达式简写
+	coll.forEach(s -> {
+        System.out.println("===>" + s);
+    })
+```
+
+### List集合
+
+list也是接口，继承了Collection所有方法
+
+List特有方法：
+
+**void add(int index, E element)**  在指定位置插入指定元素
+
+**E remove(int index)** 删除指定索引元素，返回被删除的元素
+
+**E set(int index, E elment)** 修改指定索引元素，返回被修改的元素
+
+**E get(int index)** 返回指定索引元素
+
+
+
+
+
 ## IDEA快捷键
 
 定义还没创建的方法后, 选中方法alt+回车, 快速创建
