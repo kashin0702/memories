@@ -355,25 +355,27 @@ public class Arithmetic {
 
 
 
-### 逻辑运算符(不常用)
+### 位运算符（也可参与逻辑运算但不常用）
 
 **&| : 不管左侧true false 右侧都会执行**
 
-& 逻辑与(且),  并且,两边都为真,结果才为真
+&： 二进制数按位与，两个位都为1，结果为1；逻辑运算时：两边都为真,结果才为真
 
-| 逻辑或, 或者,两边都为假,结果才为假
+| ：二进制数按位或，两个位都为0，结果为0； 逻辑运算时：两边都为假,结果才为假
 
-^ 逻辑异或 相同为false,不同为true
+^ ：两个位相同为0，不同为1；逻辑运算时： 相同为false,不同为true
 
 ! 逻辑非  取反 (java中只用一个!  不要用!!)
+
+
 
 ### 短路逻辑运算符
 
 **含义:左侧表达式能确定最终结果,右侧就不会执行**
 
-&&  短路与  结果和&相同,但具有短路效果, 左侧为false时,右侧不执行 效率更高
+&&  短路与  结果和&相同,但具有短路效果, 左侧为false时,右侧不执行
 
-||   短路或  结果和|相同, 但具有短路效果, 左侧为true时,右侧不执行 效率更高
+||   短路或  结果和|相同, 但具有短路效果, 左侧为true时,右侧不执行 
 
 
 
@@ -1849,6 +1851,24 @@ public class ArrayListTest1 {
 
 ```
 
+### ArrayList底层原理
+
+集合的底层也是数组
+
+1.用空参构造创建ArrayList时，底层默认创建一个长度为0的数组
+
+2.当添加第一个元素时，底层创建一个新的长度为10的数组
+
+3.集合存满时，自动扩容为1.5倍(每次存满都会自动扩容)
+
+4.若一次性存多个元素存满，自动扩容为当前实际长度
+
+集合每添加一个元素，size++
+
+集合的size方法有2层含义：1.集合的元素个数  2.下次存入的位置
+
+
+
 
 
 ### 集合查数据
@@ -2088,6 +2108,65 @@ while(it.hasNext()) {
 ```
 
 
+
+#### LinkedList集合
+
+**底层数据结构是双向链表**，是查询慢，增删快的模型 （操作首尾元素极快，含特有操作首尾元素的API）
+
+```java
+// LinkedList部分源码
+public class LinkedList<E> extends AbstractSequentialList<E> implements .... {
+    // 初始化操作
+    transient int size = 0;
+    transient Node<E> first; // 单独维护头结点，是一个Node类型， 这个Node是一个内部类
+    transient Node<E> last;  // 单独维护尾结点
+    
+    //other Code....
+    
+    // 内部类Node，表示结点对象，内部维护自己数据、前一个结点地址、后一个结点地址
+    private static class Node<E> {
+        E item;
+        Node<E> next; // 前一结点地址值
+        Node<E> prev; // 后一结点地址值
+        
+        // 构造函数
+        Node(Node<E> prev, E element, Node<E> next) {
+            this.item = element;
+            this.prev = prev;
+            this.next = next;
+        }
+    }
+}
+
+// 链表添加元素
+LinkedList<String> list = new LinkedList<>();
+list.add("david");
+
+// 添加元素内部逻辑
+public boolean add(E e) {
+    modCount++; // 集合每变化一次就自增一次，和并发修改异常相关（迭代器会同步这个modCount数并校验）
+    linkLast(e); // add调用linkLast传入元素
+    return true
+}
+
+void linkLast(E e) {
+    final Node<E> l = last; // 获取上一个结点地址值
+    // 调构造函数创建结点，传入3个参数:上一个结点地址值，当前添加的元素，下一个结点地址值默认null
+    final Node<E> newNode = new Node<>(l, e, null); 
+    last = newNode; // 把当前结点记录为上一个结点
+    if (l == null) { // l==null表示没有上一个结点，是首结点，直接赋值给first保存
+        first = newNode;
+    } else { // 非首结点，把当前结点赋值给上一个结点的next属性，即上一个结点指向下一个的地址值
+        l.next = newNode;
+    }
+    size++;
+    modCount++;
+}
+```
+
+
+
+### Set集合
 
 
 
@@ -2410,6 +2489,8 @@ ArrayList<Person> list = new ArrayList<>(); // 把父类作为对象类型传给
 
 
 ### 多态缺点
+
+**多态不能访问子类的特有方法**
 
 当多态定义的对象调用的方法在父类中不存在时,就会报错
 
@@ -4039,7 +4120,9 @@ public class suanfa04 {
 
 ### 链表
 
-查询慢，增删快的模型，和数组相反
+**查询慢，增删快的模型，和数组相反**
+
+
 
 **单向链表**
 
@@ -4056,3 +4139,211 @@ public class suanfa04 {
 **双向链表**
 
 记录前一个结点和后一个结点两个地址值，支持从两个方向查找，查询效率比单向链表高
+
+
+
+### 二叉树
+
+二叉树中每个节点保存自己的值，还保存父节点地址，左子节点地址，右子节点地址
+
+度：每个节点的子节点数量
+
+二叉树中，任意节点的子节点的度<=2
+
+高度：树的总层数
+
+#### 二叉查找树(有2,3规则)
+
+1、每个节点上最多2个子节点
+
+2、任意节点左子树上的值都小于当前节点
+
+3、任意节点右子树上的值都大于当前节点
+
+**添加节点时，当节点大于当前节点时，存右边，小于当前节点，存左边，若已有节点，再继续比较。**
+
+
+
+**二叉树遍历**
+
+前序遍历：从根节点开始，按当前节点-->左子节点-->右子节点顺序遍历
+
+中序遍历：从最左边的子节点开始，按左子节点-->当前节点-->右子节点顺序遍历 (左中右，获取出的数据是从小到大排列)
+
+后序遍历：左右中，最后根节点
+
+层序遍历：从根节点开始一层一层遍历
+
+
+
+#### 平衡二叉树
+
+优化二叉查找树的缺点，若添加的数据一直很大或很小，那二叉查找树就会一直往一侧添加，导致左右子树高度差很大
+
+规则：**任意节点左右子树高度差不超过1， 注意是任意节点，不能只看根节点**
+
+
+
+
+
+## 泛型
+
+在集合中：
+
+优点：统一数据类型，在编译阶段确定数据类型，避免强制转换可能出现的异常。
+
+泛型不能写基本数据类型，必须写包装类
+
+集合若不写泛型，类型默认是Object类型
+
+```java
+ArrayList list = new Arraylist(); // 不传泛型，默认为Object类型，接收任意数据类型
+list.add(123);
+list.add("david");
+list.add(new Person(name: "kashin", age:35));
+
+// 不传泛型最大缺陷：多态的Object类型不能使用子类的特有方法
+Iterator it = list.iterator();
+while(it.hasNext()) {
+    Object obj = it.next(); // 多态定义的list元素都是Object类型
+    obj.length() // 报错， object类没有length方法，强制转换也不行，因为不知道转成什么类型
+}
+```
+
+### 泛型类
+
+```java
+// 创建对象时才确定类型
+public class MyArrayList<E> {
+    Object[] obj = new Object[10]; // 长度为10的object类型数组
+    int size; // 保存长度
+    
+    
+    // 定义该类的add方法，接收一个E类型的元素
+    public boolean add(E e) {
+        obj[size] = e;
+        size++;
+        return true;
+    }
+    
+    // 获取指定索引元素
+    public E get(int index) {
+        return (E)obj[index] // 注意：因为不确定类型，要强转为E类型
+    }
+    
+    @Override
+    public String toString() {
+        return Arrays.toString(obj) // 重写toStirng, 打印数组
+    }
+}
+
+// 创建一个接收字符串类型的集合对象
+MyArrayList<String> list = new MyArrayList<>();
+list.add("abc");
+MyArrayList<Integer> list2 = new MyArrayList<>();
+list.add(123);
+```
+
+### 泛型方法
+
+1.泛型加在类上，类中的方法全部可用
+
+2.泛型单独加在方法上，本方法可用
+
+```java
+import java.util.ArrayList;
+// 工具类
+public class ListUtil {
+    // 私有化构造方法
+    private ListUtil(){
+
+    }
+    // 定义一个添加N个元素的泛型方法，接收被添加的集合，要添加的元素
+    public static <E>void addAll(ArrayList<E> list, E...e) {// 不定参数
+        // 不定参数e会变成数组，遍历数组进行添加即可
+        for (E e1 : e) {
+            list.add(e1);
+        }
+    }
+}
+
+// 调用
+import java.util.ArrayList;
+
+public class ListUtilTest {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("david");
+        list.add("billy");
+        // 泛型方法在接收第一个list参数时类型就被确定
+        ListUtil.addAll(list, "DAVID","KING");
+        System.out.println(list); // [david, billy, DAVID, KING]
+    }
+}
+```
+
+### 泛型接口
+
+```java
+// 创建语法
+public interface List<E> {}
+
+// 调用方式1：实现类传入类型
+public class MyArrayList implements List<String> {
+    @Override
+    //... 重写List所有方法，此时所有方法接收参数都是String类型
+}
+// 此时创建对象不用传入类型，已默认String类型
+MyArrayList list = new MyArrayList();
+list.add("123") // 必须传String
+    
+
+    
+    // 调用方式2： 实现类不能确定类型，延续泛型
+public class MyArrayList2<E> implements List<E> {
+    // 此时重写方法的参数仍是E，不确定类型
+}
+
+// 调用时和调用泛型类一样，需传入类型
+MyArrayList2<String> list2 = new MyArrayList2<>();
+```
+
+
+
+### 泛型通配符
+
+**泛型没有继承性，泛型只接受确定的类型**
+
+**泛型通配符用来限定泛型的范围**
+
+?： 表示不确定类型，和直接写泛型没区别
+
+**? extends E**：表示可以传E或E的子类类型
+
+**? super E**：表示可以传递E或者E的父类类型
+
+```java
+import java.util.ArrayList;
+
+public class tongpeifu {
+    public static void main(String[] args) {
+        ArrayList<Ye> list1 = new ArrayList<>();
+        ArrayList<Fu> list2 = new ArrayList<>();
+        ArrayList<Zi> list3 = new ArrayList<>();
+//        methods(list1); //这个会报错，因为通配符限制只能传Fu或Fu的子类
+        methods(list2);
+        methods(list3);
+    }
+    
+    // 泛型通配符，限定传入的类型，单独写泛型其实什么类型都可以传
+    public static void methods(ArrayList<? extends Fu> list) {}
+}
+
+
+class Ye {}
+class Fu extends Ye {}
+class Zi extends Fu {}
+```
+
+
+
