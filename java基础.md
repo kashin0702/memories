@@ -2168,6 +2168,186 @@ void linkLast(E e) {
 
 ### Set集合
 
+无序、不重复、无索引
+
+同样继承Collection的所有方法
+
+```java
+Set<String> s = new HashSet<>()
+    
+s.add("david")
+s.add("david") // 不会被添加，返回false
+s.add("kashin")
+
+// set除了含索引的方法，其他都支持
+// 增强for遍历
+for (String s1 : s) {
+    System.out.println(s1);
+}
+// 迭代器遍历
+Iterator<String> it = s.iterator();
+while(it.hasNext()) {
+    String str = it.next();
+    System.out.println(str);
+}
+
+// forEach遍历
+s.forEach(new Consumer<String>() {
+    @Override
+    public void accept(String s) {
+        System.out.print(s + " ");
+    }
+});
+// Lambda简写
+s.forEach(s1 -> {
+    System.out.println(s1 + " lambda ");
+});
+ 
+```
+
+
+
+#### HashSet
+
+Hashset底层采用**哈希表**存储数据
+
+jdk8之后：**哈希表由数组+链表+红黑树组成**
+
+核心概念-->哈希值：对象的整数表现形式
+
+哈希值是根据hashCode方法计算出来的int型整数，该方法定义在Object类中，所有对象都可以调用，默认采用地址值进行计算
+
+一般会重写hashCode方法，利用对象内部属性值计算哈希值，不同对象只要属性值相同哈希值也一样。
+
+小概率情况，不同的属性值或地址值计算出的哈希值也有可能一样（哈希碰撞）
+
+```java
+Student s1 = new Student("david", 25);
+Student s2 = new Student("david", 25);
+s1.hashCode() // 一串int整数
+s2.hashCode() // 若在类中重写了hashCode方法，此时两个值相等
+
+// 哈希碰撞  字符串会根据内部属性计算哈希值
+"abc".hashCode() //96354 
+"acD".hashCode() //96354
+```
+
+扩容：加载因子就是扩容时机，当16个数组存了16*0.75=12个元素时，数组自动扩容为之前的2倍
+
+当链表长度大于8且数组长度大于等于64，链表自动转为红黑树
+
+存储方式：
+
+创建一个长度16，默认加载因子0.75的数组，根据哈希值和数组长度计算存储的位置
+
+1.计算出的存储位置是null, 直接存入
+
+2.计算出的存储位置已有元素，用**equals**方法判断：
+
+​	1）属性值一样，舍弃
+
+​	2）属性值不同，挂在已有元素下形成链表
+
+
+
+**重要结论：因为hashCode使用地址值比较，所以当要使用HashSet保存自定义对象时，必须重写hashCode和equals方法**
+
+
+
+#### LinkedHashSet
+
+**有序（数据存储和读取的顺序一致）**、不重复、无索引
+
+每个元素比hashSet多一个双向链表机制记录存储的位置
+
+遍历时，遍历的是双向链表，所以读取的顺序和存入顺序一致
+
+
+
+#### TreeSet
+
+基于红黑树进行存储
+
+不重复、无索引、**可排序**
+
+```java
+public class treeSetTest {
+    public static void main(String[] args) {
+        TreeSet<Integer> ts = new TreeSet<>();
+        ts.add(1);
+        ts.add(10);
+        ts.add(7);
+        ts.add(21);
+        System.out.println(ts); //[1,7,10,21] 数字默认升序排列，字符和字符串按照asc码表对应的数字升序排列
+        
+        // 自定义对象保存到TreeSet时，必须实现一个Comparable接口，再重写compareTo方法，才能实现排序
+        TreeSet<Person> ts = new TreeSet<>();
+        Person p1 = new Person("david", 35);
+        Person p2 = new Person("kashin", 24);
+        Person p3 = new Person("king", 33);
+        ts.add(p1);
+        ts.add(p2);
+        ts.add(p3);
+        System.out.println(ts); // 按年龄排序战神
+    }
+}
+// Person自定义对象
+package com.demo05.SetTest;
+
+public class Person implements Comparable<Person> {
+    private String name;
+    private int age;
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Person() {
+    }
+
+    // 重写比较方法，根据年龄排序
+    @Override
+    public int compareTo(Person o) {
+        // this是当前对象，入参o是已存在于红黑树中的对象
+        return this.getAge() - o.getAge();
+    }
+}
+
+```
+
+
+
+### 双列集合
+
+每次添加一对数据，一一对应（也叫键值对对象，Entry对象）
+
+
+
 
 
 
@@ -4122,8 +4302,6 @@ public class suanfa04 {
 
 **查询慢，增删快的模型，和数组相反**
 
-
-
 **单向链表**
 
 链表由结点组成，由前一个结点记录后一个结点的地址值，连接而成
@@ -4154,6 +4332,8 @@ public class suanfa04 {
 
 #### 二叉查找树(有2,3规则)
 
+查找效率比普通二叉树高
+
 1、每个节点上最多2个子节点
 
 2、任意节点左子树上的值都小于当前节点
@@ -4180,9 +4360,29 @@ public class suanfa04 {
 
 优化二叉查找树的缺点，若添加的数据一直很大或很小，那二叉查找树就会一直往一侧添加，导致左右子树高度差很大
 
-规则：**任意节点左右子树高度差不超过1， 注意是任意节点，不能只看根节点**
+规则：**任意节点左右子树高度差不超过1， 注意是任意节点的子树**
+
+**（难点）平衡旋转机制：**旋转的前提：当添加结点导致树不平衡，就需要旋转， 有左旋、右旋两种方式
 
 
+
+#### 红黑树
+
+是一种自平衡的二叉查找树，每个结点上都有存储位表示结点的颜色
+
+每个结点可以是红或黑，**红黑树不是高度平衡，而是通过“红黑规则”实现平衡**
+
+红黑规则：
+
+1、每个节点是红色或黑色，根节点必须是黑色
+
+2、如果一个节点没有子节点或父节点，则该节点相应的指针属性值为Nil,这些Nil视为叶节点（叶节点是空节点），叶节点是黑色
+
+简单理解：一个节点若没有子节点，会挂2个Nil节点，Nil的值是空的
+
+3、不能出现两个红色结点相连
+
+4、每个节点到其后代叶节点的路径上，包含相同数目的黑色节点
 
 
 
