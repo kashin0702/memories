@@ -2260,7 +2260,7 @@ s2.hashCode() // 若在类中重写了hashCode方法，此时两个值相等
 
 扩容：加载因子就是扩容时机，当16个数组存了16*0.75=12个元素时，数组自动扩容为之前的2倍
 
-当链表长度大于8且数组长度大于等于64，链表自动转为红黑树
+**当链表长度大于8且数组长度大于等于64，链表自动转为红黑树**
 
 存储方式：
 
@@ -2502,9 +2502,31 @@ public class HashMapTest {
 
 #### HashMap底层原理
 
+HashMap底层是数组+链表+红黑树结构
+
 ```java
 // 内部类Node， 每个hashMap的元素都是一个Node对象, 实现了Entry接口， 所以一个元素就是一个Entry对象（键值对对象）
+// 底层会调用new Node()创建键值对对象，放入数组
 static class Node<K,V> implements Map.Entry<K,V> {
+    
+}
+
+// 返回值：被覆盖元素的值，如果没有覆盖，返回null
+public V put(K key, V value) {
+    return putVal(hash(key), key, value, false, true);
+}
+
+// 生成hash值的方法
+static final int hash(Object Key) {
+    int h;
+    return (key == null) ? 0 : (h = key.hashCode()) ^ (h>>>16); // 获取hash值，进行一些异或运算
+}
+
+//参数1:键的哈希值
+//参数2：键
+//参数3：值
+//参数4：键重复时是否保留 true保留不覆盖，false不保留覆盖
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
     
 }
 ```
