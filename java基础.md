@@ -255,6 +255,32 @@ project-->modules-->package-->class
 
 
 
+## IDEA快捷键
+
+定义还没创建的方法后, 选中方法alt+回车, 快速创建
+
+alt+insert 可以快速创建构造方法和get/set方法
+
+ctrl+p  选中方法的括号按查看方法接收的参数
+
+ctrl+b 选中方法, 跟进方法
+
+ctrl+alt+M 把选中的内容抽取成一个方法
+
+**ctrl+n  全局搜索, 可以搜索查看类的源码**
+
+​	**ctrl+f12  查看类的构造方法(一个类可能有很多个不同参数的构造方法)**
+
+alt+回车 重写接口方法
+
+
+
+## 第三方包引入
+
+引入的第三方jar包一般放在lib文件夹中, 右键 jar包选择: **add as libary** 即可展开
+
+
+
 ## 工具类Scanner
 
 ```java
@@ -1950,7 +1976,7 @@ Set：添加元素无序，不重复，无索引
 
 ![image-20230720141356522](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230720141356522.png)
 
-### Collection集合
+### 单列集合Collection
 
 ```java
 package com.david.demo06Collection;
@@ -2288,7 +2314,7 @@ public class treeSetTest {
         ts.add(p1);
         ts.add(p2);
         ts.add(p3);
-        System.out.println(ts); // 按年龄排序战神
+        System.out.println(ts); // 按年龄排序
     }
 }
 // Person自定义对象
@@ -2342,39 +2368,162 @@ public class Person implements Comparable<Person> {
 
 
 
-### 双列集合
+### 双列集合Map
 
-每次添加一对数据，一一对应（也叫键值对对象，Entry对象）
+![image-20230724152057608](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230724152057608.png)
 
+map特点：无序，不重复、无索引，每次添加一对数据，一一对应，键不能重复，值可以重复（也叫键值对对象/Entry对象）
 
+双列集合顶层接口是Map
 
-
-
-
-
-## IDEA快捷键
-
-定义还没创建的方法后, 选中方法alt+回车, 快速创建
-
-alt+insert 可以快速创建构造方法和get/set方法
-
-ctrl+p  选中方法的括号按查看方法接收的参数
-
-ctrl+b 选中方法, 跟进方法
-
-ctrl+alt+M 把选中的内容抽取成一个方法
-
-**ctrl+n  全局搜索, 可以搜索查看类的源码**
-
-​	**ctrl+f12  查看类的构造方法(一个类可能有很多个不同参数的构造方法)**
-
-alt+回车 重写接口方法
+```java
+// map要传2键和值的类型
+HashMap<String, String> map = new HashMap<>();
+map.put("david", "kashin"); // 添加键值对
+map.put("david", "king"); // 若键已存在，put会覆盖原来的值，并返回被覆盖的值
+// 删除
+map.remove("david")
+// 清空
+map.clear();
+// 是否包含,用key判断
+boolean result = map.containsKey("david");
+// 是否包含，用value判断
+boolean result2 = map.containsValue("king");
+// 长度， size()
+```
 
 
 
-## 第三方包引入
+#### map遍历
 
-引入的第三方jar包一般放在lib文件夹中, 右键 jar包选择: **add as libary** 即可展开
+三种遍历方式
+
+1.键找值
+
+2.遍历键值对对象
+
+3.Lambda表达式
+
+```java
+public class MapTest {
+    public static void main(String[] args) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("david", "kashin");
+        map.put("leon", "naduo");
+        map.put("king", "billy");
+
+        // 1.获取键再遍历, keySet方法返回一个含所有的键的Set集合
+        Set<String> keys = map.keySet();
+        for (String key : keys) {
+            String val = map.get(key); // 利用键获取值
+            System.out.println(key + " = " + val);
+        }
+        
+        // 2.键值对遍历 entrySet返回Map对象的所有键值对
+        Set<Map.Entry<String, String>> entries = map.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            String key = entry.getKey();
+            String val = entry.getValue();
+            System.out.println(key + " : " + val);
+        }
+        
+        // 3.lambda表达式forEach
+    }
+}
+```
+
+
+
+#### HashMap
+
+底层结构也是哈希表，利用键计算哈希值，计算出存放在数组中的位置
+
+依赖hashCode, equals方法保证键的唯一
+
+**键是自定义对象时，必须重写上面两个方法**
+
+#### HashMap练习
+
+```java
+package com.david.demo08Map;
+
+import java.util.*;
+
+public class HashMapTest {
+    public static void main(String[] args) {
+        // A,B,C,D 四个景点，有80个学生，每人投票一次，统计投票最多的景点
+
+        // 创建景点
+        String[] places = {"A", "B", "C", "D"};
+        // 随机数生成80个学生的投票结果
+        ArrayList<String> votes = new ArrayList<>();
+        Random r = new Random();
+        for (int i = 0; i < 80; i++) {
+            int rdx = r.nextInt(places.length);
+            votes.add(places[rdx]); // 随机投给一个景点
+        }
+        // 计算每个景点的投票数
+        // 创建一个map集合，键值对是：景点名-投票数
+        HashMap<String, Integer> map = new HashMap<>();
+        for (String vote : votes) {
+            // 存在该景点，count+1
+            if (map.containsKey(vote)) {
+                int count = map.get(vote);
+                count += 1;
+                map.put(vote, count); // 修改count值+1
+            } else {
+                // 不存在，添加
+                map.put(vote, 1);
+            }
+        }
+        System.out.println(map);
+        // 遍历map对象，获取count最大值
+        Set<Map.Entry<String, Integer>> entries = map.entrySet();
+        int max = 0;
+        for (Map.Entry<String, Integer> entry : entries) {
+            if (entry.getValue() > max) {
+                max = entry.getValue();
+            }
+        }
+        System.out.println(max);
+        String bestPlace = null;
+        for (Map.Entry<String, Integer> entry : entries) {
+            if (entry.getValue() == max) {
+                bestPlace = entry.getKey();
+            }
+        }
+        System.out.println("最佳景点是：" + bestPlace);
+    }
+}
+
+```
+
+
+
+#### HashMap底层原理
+
+```java
+// 内部类Node， 每个hashMap的元素都是一个Node对象, 实现了Entry接口， 所以一个元素就是一个Entry对象（键值对对象）
+static class Node<K,V> implements Map.Entry<K,V> {
+    
+}
+```
+
+
+
+
+
+#### LinkedHashMap
+
+有序（由键决定）、无重复、无索引
+
+双向链表保存存储时的位置，保证存储和取出的顺序一致
+
+
+
+#### TreeMap
+
+底层和TreeSet一样，都是红黑树结构，可以自定排序规则（默认按键的升序排列）
 
 
 
