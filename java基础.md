@@ -277,6 +277,8 @@ ctrl+alt+M 把选中的内容抽取成一个方法
 
 alt+回车 重写接口方法
 
+ctrl+alt+v 自动生成方法的接收类型
+
 
 
 ## 第三方包引入
@@ -2586,7 +2588,7 @@ Set<Map.Entry<String, String>> entries = hm.entrySet();
 Map.Entry[] arr = entries.toArray(new Map.Entry[0]) // toArray接收一个数组对象，传入一个长度0的Entry数组，即可返回一个entry数组
     
 // 创建不可变map
-Map map = Map.ofEntries(arr) // ofEnntries接收一个可变参数，即数组也可以
+Map map = Map.ofEntries(arr) // ofEntries接收一个Map类型不定参数...entries, 传入转换后数组
 ```
 
 
@@ -2635,7 +2637,7 @@ public class randomDianming {
 
 ```
 
-### 斗地主集合练习
+### 扑克游戏集合练习
 
 ```java
 package com.david.Gamedoudizhu;
