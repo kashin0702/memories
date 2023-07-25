@@ -2,6 +2,10 @@
 
 # java基础
 
+## 微服务架构
+
+![image-20230725121557135](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230725121557135.png)
+
 ## java版本
 
 javaSE: java标准版，用于桌面应用开发
@@ -2557,6 +2561,215 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
 
 
 
+### 不可变集合
+
+场景：某个数据不能被修改，可把它防御性拷贝到不可变集合中
+
+```java
+// 一旦创建，只能查询，不能增删
+// 不可变list
+List<String> list = List.of("david", "kashin", "king");
+
+// 不可变set
+Set<String> set = Set.of("david", "king", "kashin")
+    
+// 不可变map,难点
+HashMap<String, String> hm = new HashMap<>();
+hm.put("david", "hahaha");
+hm.put("kashin", "hahaha");
+hm.put("leon", "hahaha");
+
+// 利用hm创建一个不可变集合
+// 获取所有键值对对象
+Set<Map.Entry<String, String>> entries = hm.entrySet();
+// 把entries转成数组
+Map.Entry[] arr = entries.toArray(new Map.Entry[0]) // toArray接收一个数组对象，传入一个长度0的Entry数组，即可返回一个entry数组
+    
+// 创建不可变map
+Map map = Map.ofEntries(arr) // ofEnntries接收一个可变参数，即数组也可以
+```
+
+
+
+
+
+### 集合随机练习
+
+```java
+package com.david.demo09Collection;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+
+public class randomDianming {
+    public static void main(String[] args) {
+        // 需求1：有N个学生，要求每次点名70%概率点到男生，30%概率点到女生
+
+        // 思路：创建一个长度10的集合，7个1,3个0 随机这个数组就能实现概率
+        ArrayList<Integer> nums = new ArrayList<>();
+        // 用Collections工具类实现addall
+        Collections.addAll(nums, 1,1,1,1,1,1,1,0,0,0);
+        // 打乱集合顺序
+        Collections.shuffle(nums);
+        // 创建男生女生集合
+        ArrayList<String> boys = new ArrayList<>();
+        ArrayList<String> girls = new ArrayList<>();
+        Collections.addAll(boys, "张三", "李四","大卫","王五");
+        Collections.addAll(girls, "韩梅梅", "刘亦菲", "黄蓉");
+        // 获取nums随机结果，1就在男生里随机一个，0就在女生里随机一个
+        Random r = new Random();
+        int idx = r.nextInt(nums.size());
+        if (nums.get(idx) == 1) {
+            int idx2 = r.nextInt(boys.size());
+            System.out.println(boys.get(idx2));
+        } else {
+            int idx3 = r.nextInt(girls.size());
+            System.out.println(girls.get(idx3));
+        }
+        
+        // 需求2：被点到名的学生不会再点到，点完所有学生后，开启下一轮点名
+        // 思路：每点完一个学生，从集合中删除该学生，并用一个空集合接收，循环结束后再放回去，即可开启下一轮点名
+    }
+}
+
+```
+
+### 斗地主集合练习
+
+```java
+package com.david.Gamedoudizhu;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.TreeSet;
+
+// 扑克游戏构造函数
+public class PokerGame {
+    // 权重序号，排序核心用的就是序号
+    static ArrayList<Integer> serialsNumber = new ArrayList<>();
+
+    // 用hashMap保存{权重序号：牌面}的键值对对象
+    static HashMap<Integer, String> hs = new HashMap<>();
+    // 准备牌
+    // 生成所有牌只需要执行一次，所以写在静态代码块中只会随类的加载执行一次，不会因为new而多次创建
+    static {
+        String[] color = {"♦", "♣", "♠", "♥"};
+        String[] number = {"3","4","5","6","7","8","9","10","J","Q","K","A","2"};
+        int count = 0;
+        for (String n : number) {
+            for (String c : color) {
+                hs.put(count, n + c); // 保存权重：牌面键值对
+                serialsNumber.add(count);// 保存所有权重序号，发牌发的就是权重序号
+                count++;
+            }
+        }
+        hs.put(count, "小王");
+        serialsNumber.add(count);
+        count++;
+        hs.put(count, "大王");
+        serialsNumber.add(count);
+    }
+    public PokerGame() {
+        // 洗牌， 打乱集合即可
+        Collections.shuffle(serialsNumber);
+        System.out.println(serialsNumber);
+        System.out.println(hs);
+
+        // 发牌，斗地主有3个玩家+1个底牌池，所以定义4个集合
+        // 要给牌排序，直接用TreeSet集合
+        TreeSet<Integer> p1 = new TreeSet<>();
+        TreeSet<Integer> p2 = new TreeSet<>();
+        TreeSet<Integer> p3 = new TreeSet<>();
+        TreeSet<Integer> pool = new TreeSet<>();
+        // 按顺序取牌组中的牌，依次发给底池和3个玩家
+        for (int i = 0; i < serialsNumber.size(); i++) {
+            // 前3张给底池
+            if (i <= 2) {
+                pool.add(serialsNumber.get(i));
+                continue;
+            }
+            // 依次给3个玩家发牌，利用 %3 取余的思想
+            if (i % 3 == 0) {
+                p1.add(serialsNumber.get(i));
+            } else if (i % 3 == 1) {
+                p2.add(serialsNumber.get(i));
+            } else {
+                p3.add(serialsNumber.get(i));
+            }
+        }
+        // 遍历看3个玩家的牌
+        lookPoker("玩家1", p1);
+        lookPoker("玩家2", p2);
+        lookPoker("玩家3", p3);
+    }
+    // 看牌
+    public void lookPoker(String name, TreeSet<Integer> list) {
+        System.out.print(name + ": ");
+        for (Integer integer : list) {
+            String number = hs.get(integer); // 根据序号获取对应的牌面
+            System.out.print(number + " ");
+        }
+        System.out.println();
+    }
+}
+
+
+// 界面部分：部分代码 每张牌对象的构造函数 入参1牌的名字，2.显示正面还是背面
+public Poker(String name, boolean up){
+    this.name = name;
+    this.up = up;
+    if (this.up) {
+        turnFront() // 显示正面
+    } else {
+        turnRear() // 显示背面
+    }
+    // 设置牌的宽高
+    this.setSize(71, 96)
+    // 显示在界面上
+    this.setVisible(true)
+    // 监听每一张牌
+    this.addMouseListener(this)
+}
+
+public void turnFront() {
+    this.setIcon(new ImageIcon("path\\..."+ name + ".jpg")); // 根据名字显示每一张牌
+    this.up = true // 修改成员变量
+}
+public void turnRear() {
+    this.setIcon(new ImageIcon("path\\...rear.jpg")) // 反面就一种图
+    this.up = false
+}
+
+// 初始化牌（准备牌，洗牌，发牌） 牌名用数字-数字表示
+public void initCard() {
+    // 生成牌池
+    for(int i = 1;i<=5;i++) {
+        for(j=1;j<=13;j++) {
+            if (i==5 && j>2) {
+                break;
+            } else {
+                Poker poker = new Poker(i+"-"+j, false); // 循环创建牌对象，传牌的i-j就是牌的名字
+                poker.setLocation(350, 150);
+                pokerList.add(poker);
+                container.add(poker);
+            }
+        }
+    }
+    Collections.shuffle(pokerList) // 洗牌
+        
+    // 创建3个集合保存玩家的牌
+    //...
+}
+```
+
+
+
+
+
+
+
 ## 继承
 
 **1.java只能单继承，一个类只能继承一个直接父类**
@@ -3776,7 +3989,7 @@ User u2 = (User) u1.clone(); // 返回的是object, 需要转成User
 
 
 
-### Objects(工具类)
+### Objects（工具类）
 
 Objects是一个工具类, 提供一些操作对象的方法
 
@@ -3785,6 +3998,23 @@ equals(Object a, Object b) // 先做非空判断,比较两个对象, 返回boole
 isNull(Object obj) // 判断对象是否为null, 为null返回ture 
 
 nonNull(Object obj) // 判断对象是否为Null, 跟isNull的结果相反
+
+
+
+### Collections（工具类）
+
+常用API
+
+```java
+public static <T> boolean addAll(Collection<T> c, T...elements) //批量添加元素，只能添加单列集合
+public static void shuffle(List<?> list) // 打乱list集合元素的顺序
+    
+
+ArrayList<String> list = new ArrayList<>();
+Collections.addAll(list, "abc","cba","ddd"); // 批量添加
+```
+
+
 
 
 
