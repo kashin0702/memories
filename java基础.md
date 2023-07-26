@@ -4974,3 +4974,90 @@ class Zi extends Fu {}
 
 
 
+## Stream流
+
+结合lambda表达式，简化数组、集合的操作
+
+利用Stream流的API进行各种操作，返回新数据，不改变原数据
+
+**链式编程中出现终结语句后就不能继续链式编程，如打印语句**
+
+**stream流每次只能使用一次，原来的流不能再次使用，所以建议用链式编程**
+
+```java
+Stream<String> s1 = list.strem().filter(s -> s.startsWith("d"));
+Stream<String> s2 = s1.filter(s -> s.length() == 3); // s1在这里已被使用
+Stream<String> s3 = s1.filter(s -> s.length() == 3); // 报错
+```
+
+
+
+使用：
+
+单列集合：Collection默认方法stream()
+
+双列集合：无法直接使用(通过keySet,entrySet转换后使用)
+
+数组：Arrays静态方法stream(T[] array)
+
+一堆零散数据：Stream接口中的静态方法 of(T...values)
+
+```java
+package com.demo07;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+public class StreamTest {
+    public static void main(String[] args) {
+        // 单列集合操作stream流
+        ArrayList<String> list1 = new ArrayList<>();
+        Collections.addAll(list1, "kashin", "leon", "david");
+        // 把数据放到stream流中，进行链式编程
+        list1.stream().filter(new Predicate<String>() {
+            @Override
+            public boolean test(String s) {
+                return s.startsWith("d");
+            }
+        }).forEach(new Consumer<String>() {
+            @Override
+            public void accept(String s) {
+                System.out.println(s);
+            }
+        });
+
+        // 双列集合无法直接操作stream
+        HashMap<String, String> hm = new HashMap<>();
+        hm.put("david", "NB1");
+        hm.put("kashin", "NB2");
+        hm.put("LEON", "NB3");
+        // 调entrySet先获取一个set集合，在调stream
+        hm.entrySet().stream().forEach(new Consumer<Map.Entry<String, String>>() {
+            @Override
+            public void accept(Map.Entry<String, String> stringStringEntry) {
+                System.out.println(stringStringEntry);
+            }
+        });
+
+        // 数组操作stream
+        int[] num = new int[]{1,2,3,44,5,77};
+        // lambda表达式简化链式编程
+        Arrays.stream(num).filter(i -> i > 3).forEach(i -> System.out.println(i));
+    }
+}
+```
+
+
+
+**常用方法**
+
+```java
+Stream<T> filter(Predicate<? super T> predicate) // 过滤
+Stream<T> limit(long maxSize) // 获取前几个元素
+Stream<T> skip(long n) //跳过前几个元素
+Stream<T> distinct() // 元素去重，必须重写hashCode和equals方法
+static<T> Stream<T> concat(Stream a, Stream b) // 合并ab两个流
+Stream<R> map(Function<T,R> mapper) // 转换流中的数据类型 
+```
+
