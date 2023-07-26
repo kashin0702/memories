@@ -2584,11 +2584,11 @@ hm.put("leon", "hahaha");
 // 利用hm创建一个不可变集合
 // 获取所有键值对对象
 Set<Map.Entry<String, String>> entries = hm.entrySet();
-// 把entries转成数组
+// toArray方法 把集合转成数组
 Map.Entry[] arr = entries.toArray(new Map.Entry[0]) // toArray接收一个数组对象，传入一个长度0的Entry数组，即可返回一个entry数组
     
 // 创建不可变map
-Map map = Map.ofEntries(arr) // ofEntries接收一个Map类型不定参数...entries, 传入转换后数组
+Map map = Map.ofEntries(arr) // ofEntries接收一个Entry类型不定参数...entries, 不定参数也能接收同类型数组
 ```
 
 
@@ -4797,6 +4797,20 @@ public class suanfa04 {
 
 
 
+## 不定参数细节
+
+```java
+// 形参是不定参数时，也可传这个类型的数组
+public static void testFn(String...args) {}
+
+testFn("david", "kashin")  // 调用1：内部转为String[]处理
+    
+String[] strs = new String[]{"david", "kashin"};
+testFn(strs) // 调用2：直接传一个String[] 内部直接作为数组处理
+```
+
+
+
 ## 泛型
 
 在集合中：
@@ -4854,6 +4868,8 @@ list.add("abc");
 MyArrayList<Integer> list2 = new MyArrayList<>();
 list.add(123);
 ```
+
+
 
 ### 泛型方法
 
