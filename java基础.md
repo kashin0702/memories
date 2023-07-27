@@ -5196,7 +5196,7 @@ public class methodsTest {
 
 ### 引用成员方法
 
-格式：
+格式：对象::成员方法
 
 1.其他类： 其他类对象::方法名
 
@@ -5214,7 +5214,7 @@ public class methodsTest {
         Collections.addAll(list, "张三丰", "张强", "张无忌", "乔峰", "周芷若", "任盈盈");
         // 引用其他类的方法，需要new创建实例后引用
         list.stream().filter(new OtherMethod()::StringJudge).forEach(i -> System.out.println(i));
-        // 本类成员方法引用，static中没有this, 也需要创建实例引用 
+        // 本类成员方法引用，static中没有this, 也需要创建实例后引用 
         list.stream().filter(new methodsTest()::myFilter).forEach(i -> System.out.println(i));
     }
     // 本类成员方法
@@ -5330,6 +5330,20 @@ str4.stream().map(new Function<String, String>() {
 
 // 类名引用成员方法 toUpperCase没有参数也可以用，因为符合独有规则1
 str4.stream().map(String::toUpperCase).forEach(i -> System.out.print(i));
+
+
+// 类名引用2
+// 需求：把原集合中每个对象的姓名提取出来，放到一个数组内
+ArrayList<Student> students = new ArrayList<>();
+students.add(new Student("david", 25));
+students.add(new Student("kashin", 35));
+// 直接引用Stuedent类的方法getName，就能获取每个对象的名字
+String[] strings = students.stream().map(Student::getName).toArray(new IntFunction<String[]>() {
+    @Override
+    public String[] apply(int value) {
+        return new String[value];
+    }
+});
 ```
 
 
@@ -5346,4 +5360,28 @@ ArrayList<Integer> nums = new ArrayList<>();
 Collections.addAll(nums, 3,4,6,4,7,81,100);
 Integer[] integers = nums.stream().toArray(Integer[]::new); // 流转数组
 ```
+
+
+
+## 异常
+
+异常体系：
+
+顶层：Java.lang.Throwable
+
+子类：Exception（异常，程序相关的问题；Error（错误，硬件相关错误，无需关注）
+
+**异常分为：编译时异常、运行时异常（RuntimeException）**
+
+### 捕获异常
+
+ ```java
+int[] arr = {1,2,3};
+try {
+    System.out.print(arr[5]); // 可能出现异常的代码
+}catch (ArrayIndexOutOfBoundsException e) { // 捕获索引越界异常
+    System.out.print("索引越界了")
+}
+System.out.print("继续执行")
+ ```
 
