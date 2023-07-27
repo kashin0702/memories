@@ -279,6 +279,8 @@ alt+回车 重写接口方法
 
 ctrl+alt+v 自动生成方法的接收类型
 
+右键方法-->Go to --> implemetation 查看方法的实现类
+
 
 
 ## 第三方包引入
@@ -4980,7 +4982,7 @@ class Zi extends Fu {}
 
 利用Stream流的API进行各种操作，返回新数据，不改变原数据
 
-**链式编程中出现终结语句后就不能继续链式编程，如打印语句**
+**链式编程中出现终结方法后就不能继续链式编程，如打印语句，forEach方法，因为没有返回值**
 
 **stream流每次只能使用一次，原来的流不能再次使用，所以建议用链式编程**
 
@@ -5050,7 +5052,7 @@ public class StreamTest {
 
 
 
-**常用方法**
+### 常用方法
 
 ```java
 Stream<T> filter(Predicate<? super T> predicate) // 过滤
@@ -5059,5 +5061,289 @@ Stream<T> skip(long n) //跳过前几个元素
 Stream<T> distinct() // 元素去重，必须重写hashCode和equals方法
 static<T> Stream<T> concat(Stream a, Stream b) // 合并ab两个流
 Stream<R> map(Function<T,R> mapper) // 转换流中的数据类型 
+    
+// 去重
+// stream去重
+ArrayList<String> list = new ArrayList<>();
+Collections.addAll(list, "张三丰","张无忌","张无忌","张三丰","乔峰","令狐冲","赵云");
+
+// distinct去重依赖hashCode和equals方法，String类已写好，若是自定义对象必须重写这2个方法
+list.stream().distinct().forEach(i-> System.out.print(i + " "));
+
+// concat合并，是Stream静态方法
+ArrayList<String> list2 = new ArrayList<>();
+Collections.addAll(list2, "david", "kashin");
+Stream.concat(list.stream(), list2.stream()).forEach(i-> System.out.print(i + " "));
+
+ // map转换 获取集合中的所有数字
+ArrayList<String> list3 = new ArrayList<>();
+Collections.addAll(list3, "david-24","kashin-35", "leon-27");
+// 思路：先截取，然后string转int
+// map接收一个Function接口实现类，要实现apply方法, 第一个泛型是接收的类型，第二个泛型是返回的类型
+list3.stream().map(new Function<String, Integer>() {
+    @Override
+    public Integer apply(String s) {
+        String s2 = s.split("-")[1];
+        return Integer.parseInt(s2);
+    }
+}).forEach(i -> System.out.print(i + " "));
+```
+
+
+
+### 终结方法
+
+没有返回值，就是终结方法，就无法链式编程
+
+```java
+void forEach(Consumer action) //遍历
+long count() //统计
+toArray() // 收集流中的数据，放到数组中（有空参和返回指定类型的两种传参方式）
+collect(Collector colllector) // 收集流中的数据，放到集合中
+
+
+// toArray收集到数组中 空参默认返回一个Object[]数组
+Object[] array1 = list.stream().toArray();
+System.out.println(Arrays.toString(array1)); // 返回Object[]数组
+// toArray带参，返回指定类型数组
+String[] str1 = list.stream().toArray(new IntFunction<String[]>() {
+    @Override
+    // 形参value表示流中数据的个数，要和数组个数一致
+    public String[] apply(int value) {
+        return new String[value];
+    }
+});
+System.out.println(Arrays.toString(str1)); // 返回String[]数组
+
+
+// 终结方法：collect:把数据收集到map集合中 toMap接收2个方法作为形参，一个是键的生成方法，一个是值的生成方法
+// Function的两个泛型：第一个是流中每个数据的类型，第二个是map集合中键的数据类型
+Map<String, Integer> map = list3.stream().collect(Collectors.toMap(new Function<String, String>() {
+    @Override
+    // 返回类型要和上面的第二个泛型对应
+    public String apply(String s) {
+        String ns = s.split("-")[0];
+        return ns;
+    }
+    // 泛型1：流的每个数据的数据类型，泛型2：map集合中值的数据类型
+}, new Function<String, Integer>() {
+    @Override
+    // 返回类型要和上面的第二个泛型对应
+    public Integer apply(String s) {
+        int num = Integer.parseInt(s.split("-")[1]);
+        return num;
+    }
+}));
+map.entrySet().forEach(s -> System.out.println(s));
+
+// collect转list集合 直接在collect方法中调Collectors.toList()
+List<String> stringList = list3.stream().collect(Collectors.toList());
+```
+
+
+
+
+
+
+
+## 方法引用
+
+把已经有的方法拿过来用，当做函数式接口中抽象方法的方法体
+
+**个人理解：类似JS中直接把一个定义好的函数作为参数使用**
+
+满足条件:
+
+1.引用处必须是函数式接口
+
+2.被引用的方法已经存在
+
+3.被引用方法形参和返回值必须和抽象方法一致
+
+4.被引用方法功能要满足当前需求
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+
+public class methodsTest {
+    public static void main(String[] args) {
+        Integer[] arr = {1,2,3,4,5};
+        // 普通写法，传匿名内部类，实现compare方法
+        Arrays.sort(arr, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o2-o1;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                return false;
+            }
+        });
+        for (Integer integer : arr) {
+            System.out.println(integer);
+        }
+        Integer[] arr2 = {3,5,2,3,6,7};
+        // 静态方法引用 类名::引用方法名
+        Arrays.sort(arr2, methodsTest::substractionMethods);
+    }
+    static int substractionMethods(int num1, int num2){
+        return num1 - num2;
+    }
+}
+```
+
+### 引用成员方法
+
+格式：
+
+1.其他类： 其他类对象::方法名
+
+2.本类： this::方法名(若在static模块中引用，不能使用this)
+
+3.父类： super::方法名(若在static模块中引用，不能使用super)
+
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class methodsTest {
+    public static void main(String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        Collections.addAll(list, "张三丰", "张强", "张无忌", "乔峰", "周芷若", "任盈盈");
+        // 引用其他类的方法，需要new创建实例后引用
+        list.stream().filter(new OtherMethod()::StringJudge).forEach(i -> System.out.println(i));
+        // 本类成员方法引用，static中没有this, 也需要创建实例引用 
+        list.stream().filter(new methodsTest()::myFilter).forEach(i -> System.out.println(i));
+    }
+    // 本类成员方法
+   	public boolean myFilter(String s) {
+        return s.startsWith("张") && s.length() == 3;
+    }
+}
+
+// 其他类
+public class OtherMethod {
+    // 成员方法，定义一个字符串过滤的方法，接收字符串，返回布尔值
+    public boolean StringJudge(String s) {
+        return s.startsWith("张") && s.length() == 3;
+    }
+}
+```
+
+
+
+### 引用构造方法
+
+格式：类名::new
+
+目的：创建这个类的对象
+
+```java
+// 构造方法引用
+// 需求：根据给定的string集合，把其中的姓名和年龄封装到Student对象中，并添加到一个list集合中
+ArrayList<String> str1 = new ArrayList<>();
+Collections.addAll(str1, "张三-23", "李四-25", "王五-32");
+// 1.正常stream流 map传匿名类
+List<Student> studentList = str1.stream().map(new Function<String, Student>() {
+    @Override
+    public Student apply(String s) {
+        String name = s.split("-")[0];
+        int age = Integer.parseInt(s.split("-")[1]);
+        return new Student(name, age);
+    }
+}).collect(Collectors.toList());
+
+// 2.引用构造方法 引用方法要满足规则：形参和返回值必须和接口方法一致，所以要重写一个构造方法
+List<Student> studentList1 = str1.stream().map(Student::new).collect(Collectors.toList());
+
+
+
+// Student类
+package com.david.demo12Fangfayinyong;
+
+public class Student {
+    private String name;
+    private int age;
+
+    // 给引用方法使用的构造方法
+    public Student(String s) {
+        String name = s.split("-")[0];
+        int age = Integer.parseInt(s.split("-")[1]);
+        this.name = name;
+        this.age = age;
+    }
+    
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    public Student() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+
+```
+
+
+
+### 类名引用成员方法
+
+格式：类名::成员方法
+
+例子：String::subString
+
+**独有规则：**
+
+**1.返回值一致，被引用方法的形参要跟接口方法第二个形参到最后一个形参保持一致，如果没第二个参数，说明被引用方法需要是无参的方法**
+
+**2.第一个形参的类型决定了引用方法只能是这个类的方法**
+
+```java
+// 类名引用方法
+// 需求：把字符串集合的每个字母转成大写
+ArrayList<String> str4 = new ArrayList<>();
+Collections.addAll(str4,"abc","cba","nba");
+str4.stream().map(new Function<String, String>() {
+    @Override
+    public String apply(String s) {
+        return s.toUpperCase();
+    }
+}).forEach(i -> System.out.print(i + " "));
+
+// 类名引用成员方法 toUpperCase没有参数也可以用，因为符合独有规则1
+str4.stream().map(String::toUpperCase).forEach(i -> System.out.print(i));
+```
+
+
+
+### 引用数组的构造方法
+
+格式：数据类型[]::new
+
+例子：int[]::new
+
+```java
+// 引用数组构造方法
+ArrayList<Integer> nums = new ArrayList<>();
+Collections.addAll(nums, 3,4,6,4,7,81,100);
+Integer[] integers = nums.stream().toArray(Integer[]::new); // 流转数组
 ```
 
