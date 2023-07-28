@@ -281,6 +281,8 @@ ctrl+alt+v 自动生成方法的接收类型
 
 右键方法-->Go to --> implemetation 查看方法的实现类
 
+ctrl+alt+t  把选中的代码包裹到想要的控制语句中
+
 
 
 ## 第三方包引入
@@ -5373,15 +5375,184 @@ Integer[] integers = nums.stream().toArray(Integer[]::new); // 流转数组
 
 **异常分为：编译时异常、运行时异常（RuntimeException）**
 
+jvm虚拟机默认处理异常的方式：直接把异常类型打印到控制台,且会停止代码继续执行
+
 ### 捕获异常
+
+**try/catch的核心目的就是不让程序停止**
 
  ```java
 int[] arr = {1,2,3};
 try {
     System.out.print(arr[5]); // 可能出现异常的代码
+    System.out.print(2/0);
+    // othercode... 当执行到上面出现异常后，就直接进入catch，other code不会被执行
 }catch (ArrayIndexOutOfBoundsException e) { // 捕获索引越界异常
-    System.out.print("索引越界了")
+    System.out.print("索引越界")
+}catch (ArithmeticException e) { // 若try中可能存在多个异常，就要写多个ctach进行捕获
+    System.out.print("算术异常")
+}catch (Exception e) { // 父类异常一定要写在最下面
+    
 }
 System.out.print("继续执行")
  ```
+
+
+
+### 异常的方法
+
+```java
+public String getMessage() // 返回此throwable的详细消息字符串
+public String toString() // 返回此可抛出的简短描述
+public void printStackTrace() // 把异常的错误信息输出到控制台，包含了上面2个方法的信息（常用）
+
+int[] arr = {1,2,3};
+try {
+    System.out.print(arr[5]);
+}catch (ArrayIndexOutOfBoundsException e) {
+    e.printStackTrace(); // 输出到控制台，不会停止虚拟机
+}
+System.out.print("继续执行") // 这里还会执行
+```
+
+### 抛出处理
+
+throws
+
+写在方法定义处，表示声明一个异常，告诉调用者使用本方法时可能会出现哪些异常**(运行时异常可以省略，编译时异常必须写)**
+
+**规则：public void 方法 () throws 异常类名1，异常类名2... {}**
+
+
+
+throw
+
+写在方法内，结束方法，手动抛出异常对象，交给调用者，方法中下面的代码不再执行
+
+**规则：public void 方法（）{  throw new NullPointerException();  }**
+
+
+
+**抛出后需要在调用处添加try/catch进行捕获**
+
+
+
+### 自定义异常
+
+```java
+// 1.必须继承一个异常父类
+public class NameFormatException extends RuntimeException{
+    // 2.必须定义2个构造方法
+    public NameFormatException() {
+    }
+
+    public NameFormatException(String message) {
+        super(message);
+    }
+}
+
+// 使用自定义异常
+package com.david.demo13;
+
+import java.util.Scanner;
+
+public class ExceptionTest {
+    public static void main(String[] args) {
+        try {
+            printName();
+        } catch (NameFormatException e) {
+            e.printStackTrace(); // 输出异常信息
+        }
+    }
+    static void printName() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("请输入姓名:");
+        String name = sc.nextLine();
+        if (name.length() > 5) {
+            throw new NameFormatException("名字太长啦"); // 自定义异常，传入自定义错误信息
+        }
+        System.out.println("名字格式正确");
+    }
+}
+
+```
+
+
+
+
+
+
+
+## File
+
+File对象表示一个路径，可以是文件路径，也可以是文件夹路径，还可以是不存在的路径
+
+```java
+// 构造方法
+public File(String pathname) // 根据文件路径创建文件对象
+public File(String parent, String child) //根据父路径名字符串和子路径名字符串创建文件对象
+public File(File parent, String child) //根据父路径对应文件对象和子路径名字符串创建文件对象
+    
+// 父路径: C:\\users  除了文件自己就是父路径
+// 子路径: a.txt
+String str = "C:\\users\\a.txt";
+File f1 = new File(str); // 根据路径字符串创建File对象
+f1.delete() // 删除文件或空文件夹
+```
+
+![image-20230728161700713](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230728161700713.png)
+
+![image-20230728163835103](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230728163835103.png)
+
+
+
+```java
+// 创建单级文件夹bbb
+File f1 = new File("D:\\aaa\\bbb"); // window中路径必须唯一 ,若bbb已存在则创建失败
+f1.mkdir();  // 创建成功则返回true
+
+// 创建多级文件夹,也能创建单级，直接用这个方法即可
+File f2 = new File("D:\\aaa\\vvv\\zzz\xxx")
+f2.mkdirs()
+```
+
+
+
+### File遍历
+
+核心方法：listFiles()  含重载过滤的方法
+
+```java
+public File[] listFiles() // 获取当前该路径下的所有内容，获取路径下所有的文件和文件夹，放在一个File数组中返回
+
+File f1 = new File("D:\\aaa");
+File[] files = f1.listFiles(); // 空参返回所有， 重载方法 传过滤器方法还能进行过滤
+for(File fs : files) {
+    System.out.print(fs) // 遍历file数组
+}
+
+// 需求：删除一个多层级有内容的文件夹
+// 递归文件夹
+// 1.删除文件夹下所有内容
+// 2.删除自己
+psvm {
+    File f1 = new File("D:\\aaa\\src");
+    removeFile(f1);
+}
+
+// 定义删除方法，入参是要删除的文件夹对象
+static void removeFile(File src) {
+    File[] fs = src.listFiles(); // 遍历到空文件夹返回长度为0的数组
+    if (fs != null) { // 没有访问权限的文件夹会返回null，防止返回null后报错
+        for(File file : fs) {
+            if (file.isFile()) {
+                file.delete()
+            } else {
+                removeFile(file); // 如果是文件夹，执行递归继续判断
+            }
+        }
+        src.delete() // 循环结束后，删除自己
+    }
+}
+```
 
