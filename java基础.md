@@ -4579,13 +4579,13 @@ public class kuaipai {
 
 ```java
 // Arrays静态方法
-// public static String toString(数组)  //把数组拼接陈一个字符串
-// public static int binarySearch(数组, 查找的元素)  // 二分法查找元素
-// public static int[] copyOf(原数组， 新数组长度) // 拷贝数组
-// public static int[] copyOfRange(原数组, from, to) // 拷贝指定范围数组
-// public static void fill(数组， 元素) //填充数组
-// public static void sort(数组)
-// public static void sort(数组，排序规则)
+public static String toString(数组)  //把数组拼接陈一个字符串
+public static int binarySearch(数组, 查找的元素)  // 二分法查找元素
+public static int[] copyOf(原数组， 新数组长度) // 拷贝数组
+public static int[] copyOfRange(原数组, from, to) // 拷贝指定范围数组
+public static void fill(数组， 元素) //填充数组
+public static void sort(数组)
+public static void sort(数组，排序规则)
 
 
 // 排序写法
@@ -4678,7 +4678,6 @@ public class suanfa04 {
         }
     }
 }
-
 ```
 
 
@@ -5520,7 +5519,7 @@ f2.mkdirs()
 
 ### File遍历
 
-核心方法：listFiles()  含重载过滤的方法
+**核心方法：listFiles()**  含重载过滤的方法
 
 ```java
 public File[] listFiles() // 获取当前该路径下的所有内容，获取路径下所有的文件和文件夹，放在一个File数组中返回
@@ -5554,5 +5553,217 @@ static void removeFile(File src) {
         src.delete() // 循环结束后，删除自己
     }
 }
+```
+
+
+
+### 计算文件夹大小
+
+核心思想：递归计算
+
+```java
+import java.io.File;
+
+public class FileTest {
+    public static void main(String[] args) {
+        File f1 = new File("C:\\Users\\Administrator\\Desktop\\前端笔记");
+        System.out.println(getSize(f1));
+    }
+    
+    // 递归计算文件夹内所有txt文件的大小，包括子文件夹
+    static long getSize(File src) {
+        long size = 0; // 这个size是局部变量，每次递归调用都是一个新值，所以递归时要累加
+        File[] fs = src.listFiles();
+        if (fs != null) {
+            for (File f : fs) {
+                if (f.isFile() && f.getName().endsWith("txt")) {
+                    size += f.length();
+                } else {
+                    size += getSize(f); // 重点：递归的返回值要累加，否则只能计算一层文件夹的大小
+                }
+            }
+        }
+        return size;
+    }
+}
+```
+
+
+
+### 统计各类文件数量（难点）
+
+```java
+// 需求：统计一个文件夹中每种文件的个数，如txt:3个 md:2个
+// 思想：用map集合进行统计
+
+public static void main(String[] args) {
+    File f1 = new File("C:\\Users\\Administrator\\Desktop\\前端笔记");
+    System.out.println(getCount(f1)); // {txt=36, md=21}
+}
+static HashMap getCount(File src) {
+    HashMap<String, Integer> hm = new HashMap<>(); //键值对 文件类型:文件个数
+    File[] fs = src.listFiles();
+    if (fs != null) {
+        for (File f : fs) {
+            // 是文件，进行统计
+            if (f.isFile() && (f.getName().endsWith("txt") || f.getName().endsWith("md"))) {
+                String[] nameArr = f.getName().split("\\.");
+                String name = nameArr[nameArr.length - 1];
+                System.out.print(name + " ");
+                // 判断集合中是否已有该类型
+                if (hm.containsKey(name)) { // 已存在，count+1
+                    int count = hm.get(name);
+                    count += 1;
+                    hm.put(name, count); // count+1后更新数据
+                } else {
+                    hm.put(name, 1); // 没有，添加数据
+                }
+            } else { // 不是文件，递归操作
+                HashMap<String, Integer> sonHm = getCount(f); //重点：递归要对返回值进行保存
+                // 把sonHm数据合并到hm中
+                Set<Map.Entry<String, Integer>> entries = sonHm.entrySet();
+                for (Map.Entry<String, Integer> entry : entries) {
+                    String key = entry.getKey();
+                    int value = entry.getValue();
+                    if (hm.containsKey(key)) {
+                        // 获取Hm的count数
+                        int count = hm.get(key);
+                        count += value; // 合并递归返回的count数
+                        hm.put(key, count);
+                    } else {
+                        hm.put(key, value);
+                    }
+                }
+            }
+        }
+    }
+    return hm;
+}
+```
+
+
+
+
+
+## IO流
+
+作用：读、写文件数据的解决方案
+
+按操作文件的类型分类：
+
+1、字节流：操作所有类型的文件
+
+2、字符流：只能操作纯文本文件
+
+按流向分类：
+
+1、输出流：程序-->文件   程序中的数据写出到文件
+
+2、输入流：文件-->程序  文件中的数据读取到程序中
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class IOtest {
+    public static void main(String[] args) throws IOException {
+        // 输出流
+        // 创建输出对象 每次创建默认会清空文件，续写开关默认为关
+        FileOutputStream fos = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
+        // 写入数据 转成对应asc码的字符
+        fos.write(100);
+        // 关闭连接
+        fos.close();
+
+        // 使用f对象创建输出流对象, 文件不存在时会直接创建新的，前提是父路径存在
+        File f = new File("C:\\Users\\Administrator\\IdeaProjects\\practise01\\module01\\KASHIN.txt");
+        FileOutputStream fos2 = new FileOutputStream(f);
+        fos2.write(101);
+        fos2.write(102);
+        fos.close();
+
+        // 用字节数组写出数据 第二参数是续写开关，表示下次写入数据不会清空文件
+        FileOutputStream fos3 = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt", true);
+        String s = "hello david";
+        byte[] bytes = s.getBytes(); // getBytes方法转成字节数组
+
+        // fos3.write(bytes, 1, 3); // 写入部分数据 从索引1开始，写入3个数据
+        // 实现换行
+//        String wrap = "\r\n";
+//        byte[] wrapBytes = wrap.getBytes();
+//        fos3.write(wrapBytes);
+        fos3.write(bytes); // 写入全部字节数组
+        fos3.close();
+
+        // 输入流
+        FileInputStream fis = new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
+        // 读取数据 read方法每次读取一个数据，读取的是数据在asc码上对应的数字，读到末尾时返回-1
+//        int read = fis.read();
+//        System.out.println((char) read);
+//        // 释放资源
+//        fis.close();
+
+        // 循环读取
+        int read;
+        // read()在判断条件中调用，并赋值给变量，防止在循环体再次调用，读取就会有有问题
+        while((read = fis.read()) != -1) {
+            System.out.print((char) read);
+        }
+        fis.close();
+    }
+}
+
+```
+
+
+
+### 文件拷贝
+
+单次循环读一个字节
+
+```java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class copyTest {
+    public static void main(String[] args) throws IOException {
+        // 文件拷贝
+        // 创建输入流和输出流
+        FileInputStream fis = new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
+        FileOutputStream fos = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\copy.txt");
+        // 读取要拷贝的文件
+        int read;
+        // 循环读取
+        while ((read = fis.read()) != -1) {
+            fos.write(read);
+        }
+        // 释放资源，先打开的后关闭
+        fos.close();
+        fis.close();
+    }
+}
+```
+
+### 大文件拷贝
+
+一次循环读N个字节（自定义）
+
+```java
+// public int read() 空参：一次读一个字节，返回值是读取的字节对应asc码
+// public intread(byte[] Buffer) 传参： 一次读一个字节数组，返回值是本次读取到了多少个字节
+FileInputStream fis2 = new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
+FileOutputStream fos2 = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\copy2.txt");
+
+// 创建长度为2的字节数组，一次循环读2个字节
+byte[] bytes = new byte[2];
+int len; // read()方法在传入字节数组后，返回的是读取到的字节个数，要注意
+while ((len = fis2.read(bytes)) != -1) {
+    fos2.write(bytes, 0, len); // 写入字符数组,开始的索引值,读取到的个数(不能只写一个bytes，数组中可能存在残留数据)
+}
+fos2.close();
+fis2.close();
 ```
 
