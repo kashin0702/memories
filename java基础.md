@@ -5998,6 +5998,44 @@ fw.close();
 
 #### 缓冲流
 
+缓冲流分为字节缓冲流和字符缓冲流
+
+
+
+#### 字节缓冲流
+
+性能比字节基本流更高，自带一个缓冲区
+
+```java
+// 创建字节缓冲流 入参是一个字节流对象
+BufferedInputStream bis = new BufferedInputStream(new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt"));
+BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\copy3.txt"));
+// 1.读写1个字节
+int b;
+while ((b = bis.read()) != -1) {
+    bos.write(b);
+}
+// 2.读写字节数组
+byte[] bytes = new byte[1024];
+int len;
+while ((len = bis.read(bytes)) != -1) {
+    bos.write(bytes, 0, len);
+}
+// 释放资源 只需关闭外层缓冲流，入参的字节流会在内部关闭
+bos.close();
+bis.close();
+```
+
+#### 字符缓冲流
+
+字符基本流和字符缓冲流底层都有缓冲区，但字符缓冲流多2个方法
+
+```java
+// 字符缓冲流特有的2个方法
+public String readLine() // 读取一行数据，如果没有数据返回null
+public void newLine() // 跨平台换行
+```
+
 
 
 
