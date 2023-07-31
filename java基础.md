@@ -4999,7 +4999,7 @@ Stream<String> s3 = s1.filter(s -> s.length() == 3); // 报错
 
 单列集合：Collection默认方法stream()
 
-双列集合：无法直接使用(通过keySet,entrySet转换后使用)
+双列集合：无法直接使用（需要通过keySet,entrySet转换后使用）
 
 数组：Arrays静态方法stream(T[] array)
 
@@ -5476,6 +5476,24 @@ public class ExceptionTest {
 
 ```
 
+### finally
+
+```java
+try{
+    
+}catch() {
+    
+}finally{
+  // 不管上面是否遇到了异常，finally一定执行
+  //类似io流释放资源的操作，可以放到finally中
+  try{
+      fos.close() // 因为close也有编译异常，也要放到try/catch中，嵌套一个try/catch
+  } catch(IOException e) {
+      e.printStaceTrace()
+  }  
+}
+```
+
 
 
 
@@ -5647,6 +5665,8 @@ static HashMap getCount(File src) {
 
 ## IO流
 
+![image-20230731143019501](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230731143019501.png)
+
 作用：读、写文件数据的解决方案
 
 按操作文件的类型分类：
@@ -5660,6 +5680,8 @@ static HashMap getCount(File src) {
 1、输出流：程序-->文件   程序中的数据写出到文件
 
 2、输入流：文件-->程序  文件中的数据读取到程序中
+
+### 字节流
 
 ```java
 import java.io.File;
@@ -5699,7 +5721,7 @@ public class IOtest {
 
         // 输入流
         FileInputStream fis = new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
-        // 读取数据 read方法每次读取一个数据，读取的是数据在asc码上对应的数字，读到末尾时返回-1
+        // 读取数据 read方法每次读取一个字节，读取的是数据在asc码上对应的数字，读到末尾时返回-1
 //        int read = fis.read();
 //        System.out.println((char) read);
 //        // 释放资源
@@ -5719,7 +5741,7 @@ public class IOtest {
 
 
 
-### 文件拷贝
+#### 文件拷贝
 
 单次循环读一个字节
 
@@ -5747,7 +5769,7 @@ public class copyTest {
 }
 ```
 
-### 大文件拷贝
+#### 大文件拷贝
 
 一次循环读N个字节（自定义）
 
@@ -5766,4 +5788,318 @@ while ((len = fis2.read(bytes)) != -1) {
 fos2.close();
 fis2.close();
 ```
+
+
+
+#### AutoCloseable
+
+```java
+//jdk7之后实现了AutoCloseable的类，可以在try,catch后自动释放资源
+// 流对象定义在外面
+FileInputStream fis = new FileInputStream("xxx/a.txt");
+FileOutputStream fos = new FileOutputStream("xxx/a.txt");
+try(fis; fos) {
+    // 拷贝文件的逻辑代码...
+}catch(IOException e) {
+    e.printStackTrace;
+}
+// 自动释放资源，不用写finally
+```
+
+
+
+#### 文件加密
+
+```java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class fileCopy {
+    public static void main(String[] args) throws IOException {
+        // 文件加密
+        // 核心思路：制定一个加密规则，对每个字节进行加密操作（解密反向操作即可）
+        FileInputStream fis = new FileInputStream("C:\\Users\\yoki\\Desktop\\原始文件.txt"); // 源文件
+        FileOutputStream fos = new FileOutputStream("C:\\Users\\yoki\\Desktop\\encpt.txt"); // 加密后文件
+
+        int data;
+        while ((data = fis.read()) != -1) {
+            int encryData = data ^ 10; // 使用异或操作对每个字节加密
+            fos.write(encryData);
+        }
+        fos.close();
+        fis.close();
+
+        // 文件解密
+        FileInputStream fis2 = new FileInputStream("C:\\Users\\yoki\\Desktop\\encpt.txt");
+        FileOutputStream fos2 = new FileOutputStream("C:\\Users\\yoki\\Desktop\\openEncpt.txt");
+        int data2;
+        while ((data2 = fis2.read()) != -1) {
+            int decodingData = data2 ^ 10; // 再次异或操作 会变回原数据
+            fos2.write(decodingData);
+        }
+        fos2.close();
+        fis2.close();
+    }
+}
+```
+
+#### 修改内容
+
+```java
+package com.david.demo14;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+
+public class fileMod {
+    public static void main(String[] args) throws IOException {
+        // 需求：修改文件内容，把文件内数字按升序排列
+        FileInputStream fis = new FileInputStream("C:\\Users\\yoki\\Desktop\\javaTest\\a.txt");
+        StringBuilder sb = new StringBuilder(); // 创建sb对象接收字符串
+        int data;
+        while ((data = fis.read()) != -1) {
+            sb.append((char) data);
+        }
+        fis.close();
+        // 字符串转数组
+        String[] stringArr = sb.toString().split("-");
+        // 用stream流处理 先转为数字，再排序，最后返回Int数组
+        Integer[] intArr = Arrays.stream(stringArr).map(new Function<String, Integer>() {
+            @Override
+            public Integer apply(String s) {
+                return Integer.parseInt(s);
+            }
+        }).sorted().toArray(new IntFunction<Integer[]>() {
+            @Override
+            public Integer[] apply(int value) {
+                return new Integer[value];
+            }
+        });
+        System.out.println(Arrays.toString(intArr));
+        // 改写文件
+        FileWriter fr = new FileWriter("C:\\Users\\yoki\\Desktop\\javaTest\\a.txt");
+        String s = Arrays.toString(intArr).replaceAll(", ", "-");
+        String res = s.substring(1, s.length() - 1); // 截掉[]括号
+        fr.write(res);
+
+        fr.close();
+    }
+}
+```
+
+
+
+
+
+### 字符流
+
+字符流 = 字节流 + 字符集
+
+使用场景：用来操作含有中文的纯文本文件
+
+输入流：一次读一个字节，遇到中文时，一次读多个字节(UTF-8读3个字节，GBK读2个字节)
+
+输出流：底层按照指定编码方式进行编码，变成字节再写到文件中
+
+#### read/write底层原理
+
+read会把文件先放到一个8192长度的数组缓冲区，获取文件直接时会先从缓冲区获取
+
+若超过这个长度，则下次读取时会把超出的数据放到缓冲区头部
+
+
+
+write同理，先创造一个8192缓冲区，写到缓冲区，缓冲区装满后自动刷新到文件中，也可以调用flush手动操作
+
+flush 方法：手动将缓冲区文件刷新到文件中，调用后还可以继续写入数据
+
+close方法：释放资源后自动刷新到文件中，调研后不能继续写入数据
+
+
+
+#### FileReader
+
+```java
+//构造方法
+public FileReader(File f) // 创建字符输入流关联本地文件
+public FileReader(String pathName)
+    
+//读取方法
+public int read() // 读取数据，读到末尾返回-1
+public int read(char[] buffer) // 读取多个数据， 读到末尾返回-1，返回值表示一次读了多少数据
+//释放资源
+public int close()
+    
+    
+import java.io.FileReader;
+import java.io.IOException;
+
+public class FilereaderTest {
+    public static void main(String[] args) throws IOException {
+        // 注意记事本也要用UTF-8编码
+        FileReader fr = new FileReader("C:\\Users\\yoki\\Desktop\\UTF-8测试.txt");
+        // 读取文件
+        int data;
+        // 空参read每次读一个字节，碰到中文时读3个字节(UTF-8)
+        while ((data = fr.read()) != -1) {
+            // 把读到的2进制字节，解码转成10进制，10进制就是UniCode字符集对应的字符
+            System.out.print((char) data);
+        }
+        fr.close();
+
+        // 一次读N个字符，有参read
+        FileReader fr2 = new FileReader("C:\\Users\\yoki\\Desktop\\UTF-8测试.txt");
+        // 创建一个字符数组, 一次读4个数据
+        char[] chars = new char[4];
+        int len;
+        // 有参read返回的是读取到的个数，内部会把读到的数据自动放到字符数组中
+        while ((len = fr2.read(chars)) != -1) {
+            String s = new String(chars, 0, len); // 获取每次读到的数据
+            System.out.print(s);
+        }
+        fr2.close();
+    }
+}
+```
+
+
+
+
+
+#### FileWriter
+
+```java
+// 构造方法
+public FileWriter(File f) // 创建输出流关联本地文件
+public FileWriter(String pathname)
+public FileWriter(File f, boolean append) // 续写开关
+public FileWriter(String pathname, boolean append)
+// 写入方法
+void write(int c) // 写出1个字符
+void write(String str) // 写出一个字符串
+void write(String str, int off, int len) // 写出字符串一部分
+void write(char[] cbuf) // 写出字符数组
+void write(char[] cbuf, int off, int len) // 写出字符数组一部分
+    
+FileWriter fw = new FileWriter("C:\\Users\\yoki\\Desktop\\UTF-8测试.txt", true);
+fw.write("你好啊大卫王！");
+fw.close();
+```
+
+
+
+### 高级流
+
+#### 缓冲流
+
+
+
+
+
+
+
+## 乱码概念
+
+### 字符集
+
+常用字符集：
+
+asc：记录128个字符（0~127），所有英文字符只需一个字节，二进制的第一位是0
+
+GBK：完全兼容asc，包含英文、简体、繁体、中日韩汉字（window默认使用GBK，公共显示为ANSI），汉字使用2个字节存储（上限65535个汉字）
+
+Unicode：国际标准字符集(也完全兼容asc)，对世界各种语言每个字符定义一个唯一编码
+
+**ASC规则：**
+
+存储规则：
+
+字母a -->查询asc得到97-->转成二进制是7位数字：1100001--> **用asc编码规则：前面补0，补齐8位**：01100001->存储到硬盘
+
+读取规则:
+
+01100001解码-->前面补0对进制转换无影响，直接转成10进制得到97-->查码表对应得到字母a
+
+
+
+**GBK规则**
+
+汉字使用2个字节存储，**二进制高位进制的第一位一定是1，转为二进制后为负数，10111010 10111010 --> -70 -70 和asc区分**
+
+存储规则：
+
+汉字“汉”-->查询GBK得到47802-->转成二进制为：10111010 10111010 ---> 编码 10111010 10111010 （汉字编码不需要变动，英文编码和acs规则一样）
+
+解码：
+
+10111010 10111010 --> 解码得到47802 --->查询GBK得到汉字“汉”
+
+
+
+**Unicode规则**
+
+编码：
+
+字母a--> 查询unicode得到数字97 --> 二进制1100001 -->UTF-8编码：前面补0得到01100001 
+
+汉字“汉” --> 查询unicode得到数字27721 -->二进制01101100 01001001 -->UTF-8编码：**1110**0110 **10**110001 **10**001001
+
+解码：
+
+**1110**0110 **10**110001 **10**001001 --> UTF-8解码得到 01101100 01001001 --> 转10进制得27721--> 查unicode得到汉字“汉”
+
+
+
+Unicode编码规则：
+
+UTF-8: 用1~4个字节存储（可变长度编码，常用）
+
+**属于acs表的用1个字节，中文用3个字节**， 其他国家用2或4个字节
+
+1个字节时第一位补0，兼容asc
+
+3个字节时规定格式： **1110xxxx 10xxxxxx 10xxxxxx**
+
+UTF-16: 用2~4个字节存储 
+
+UTF-32: 固定用4个字节存储	
+
+
+
+### 乱码产生的原因
+
+1.读取数据时未读完整个汉字（由3个字节组成的汉字只读了1个字节）
+
+​	使用字节流一次读一个字节时就会出现这种乱码
+
+2.编码和解码的规则不统一（主要原因）
+
+例子：
+
+编码汉字“汉”使用utf-8得到 ：**1110**0110 **10**110001 **10**001001
+
+解码使用GBK：把**1110**0110 **10**110001当成一个汉字， **10**001001当成单独的，解码得到59057, -119 -->查询GBK后得到汉字“姹”和一个未匹配的?
+
+
+
+### java中编码/解码方式
+
+String类中的方法
+
+```java
+//编码
+public byte[] getBytes() // 使用默认方式编码 IDEA中默认是UTF-8方式编码
+public byte[] getBytes(String charsetName) // 使用指定方式编码
+//解码 就是String的构造方法
+String(byte[] bytes) // 默认方式解码
+String(byte[] bytes, String charsetName) //使用指定方式解码
+```
+
+
 
