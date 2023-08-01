@@ -283,6 +283,8 @@ ctrl+alt+v 自动生成方法的接收类型
 
 ctrl+alt+t  把选中的代码包裹到想要的控制语句中
 
+alt+回车 选中红色异常处，抛出异常
+
 
 
 ## 第三方包引入
@@ -5681,6 +5683,10 @@ static HashMap getCount(File src) {
 
 2、输入流：文件-->程序  文件中的数据读取到程序中
 
+**IO流 的所有创建输出流，都会清空原数据，保持随用随创建的原则进行创建对象**
+
+
+
 ### 字节流
 
 ```java
@@ -6028,15 +6034,234 @@ bis.close();
 
 #### 字符缓冲流
 
-字符基本流和字符缓冲流底层都有缓冲区，但字符缓冲流多2个方法
+字符基本流和字符缓冲流底层都有缓冲区，字符缓冲流多2个方法
 
 ```java
 // 字符缓冲流特有的2个方法
 public String readLine() // 读取一行数据，如果没有数据返回null
 public void newLine() // 跨平台换行
+    
+BufferedReader br = new BufferedReader(new FileReader("c.txt"));
+String line = br.readLine(); // 读一行，不会读换行符
+br.close()
+
+BufferedWriter bw = new BufferedWriter(new FileWriter("a.txt"));
+bw.write("hello")；
+bw.newLine(); // 通用换行方法， 每个操作系统的换行符不同
+bw.close();
+
+// 需求：记录软件执行次数，3次内免费试用，超过3次后提示不可用
+public class buffer {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\yoki\\Desktop\\count.txt"));
+        // 把读到的数据转成Int,一次读一行
+        int count = Integer.parseInt(br.readLine());
+        br.close();
+        count += 1;
+        if (count <= 3) {
+            System.out.println("当前使用第"+count+"次");
+        } else {
+            System.out.println("已使用超过3次, 请付费！");
+        }
+        // 把count再写入文件保存, 用的时候创建，创建writer会清空文件内原数据
+        BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\yoki\\Desktop\\count.txt"));
+        bw.write(new String(String.valueOf(count))); // 注意：写入的int值会转成asc码表中对应的值，需要转成string存进去
+        bw.close();
+    }
+}
 ```
 
 
+
+#### 转换流
+
+作用：
+
+1、指定字符集读写数据（JDK11之后淘汰）
+
+2、字节流想要使用字符流的方法
+
+InputStreamReader: 把字节流转换成字符流进行读取
+
+OutputStreamWriter: 把字符流转换成字节流进行存储
+
+```java
+// jdk11之前读取GBK文件 已淘汰
+InputStreamReader isr = new InputStreamReader(new FileInputStream("xxx.txt"), "GBK"); 
+int ch;
+while((ch = isr.read()) != -1) {
+    System.out.print((char) ch);
+}
+isr.close()
+
+// jdk11开始（掌握）
+FileReader fr = new FileReader("xxx.txt", Charset.forName("GBK"));// 指定字符编码
+int ch;
+while((ch = fr.read()) != -1) {
+    System.out.print((char) ch);
+}
+fr.close()
+    
+// 写出数据用FileWriter 指定字符编码，写法一样
+    
+// 需求：把GBK转成UTF-8保存到新文件
+//思路：先用FileReader指定字符编码读取，再把读到的数据用FileWriter指定UTF-8保存
+    
+
+// 需求2：用字节流读取文件中的数据，每次读一行，不能出现乱码
+// 思路：字节流读到中文是会出现乱码的，但字符流不会
+FileInputStream fis = new FileInputStream("xxx.txt");
+InputStreamReader isr = new InputStreamReader(fis);
+// 用bufferedReader一次读一行
+BufferedReader br = new BufferedReader(isr);
+String str;
+while((str = br.readLine()) != null) {
+    // sout str
+}
+br.close()
+```
+
+
+
+#### 序列化/反序列化流
+
+序列化：把java中的对象写入本地文件
+
+反序列化：读取本地文件中的java对象
+
+```java
+// 序列化流
+// 构造方法
+public ObjectOutputStream(OutputStream out) // 把基本流包装成高级流
+// 成员方法
+public final void writeObject(Object obj) // 把对象序列化到文件中
+    
+// 创建一个要序列化的javabean类, 注意必须实现Serializable接口，这是一个标记性接口，表示该类可以被序列化
+public class Student implements Serializable {
+    // 生成版本号，每个序列化类都会生成一个版本号，当修改类时，这个版本号会更新，在反序列化会报版本号异常，需要手动指定一个版本号
+    private static final long serialVersionUID = 1L;
+    private transient String address; // transient关键词表示不会被序列化到本地文件中，反序列化读到的是初始值
+    // 类的代码。。
+}
+
+// 序列化操作
+// 1.创建对象
+Student stu = new Studeng("张三", 35);
+// 2.创建序列化的对象/对象操作输出流
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("a.txt")); // 关联一个基本流
+// 3.写出数据
+oos.writeObject(stu);
+// 4.释放资源
+oos.close();
+
+
+// 反序列化流
+public ObjectInputStream(InputStraam in) // 把基本流变成高级流
+// 成员方法
+public Object readObject() // 把文件中的对象读到程序中
+    
+// 反序列化操作
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream("a.txt"))；
+Object o = ois.readObject(); // 读取数据 一次读取一个对象
+System.out.print(o);
+ois.close();
+```
+
+##### 序列化多个对象
+
+```java
+// 序列化
+public class serializable {
+    public static void main(String[] args) throws IOException {
+        Student stu1 = new Student("david", 36);
+        Student stu2 = new Student("kashin", 27);
+        // 序列化添加多个对象时，建议放到一个集合中，方便反序列化读取
+        ArrayList<Student> list = new ArrayList<>();
+        list.add(stu1);
+        list.add(stu2);
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("C:\\Users\\yoki\\Desktop\\javaTest\\aa.txt"));
+        oos.writeObject(list);
+        oos.close();
+    }
+}
+public class antiSerializable {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // 反序列化读取一次，读一个集合即可
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("C:\\Users\\yoki\\Desktop\\javaTest\\aa.txt"));
+        ArrayList<Student> list = (ArrayList<Student>) ois.readObject();
+        for (Student stu : list) {
+            System.out.println(stu);
+        }
+    }
+}
+```
+
+
+
+#### 打印流
+
+打印流指PrintStream,PrintWriter 两个类
+
+打印流只能写出，不能读取
+
+**System.out.print 其实获取的就是打印流， 默认指向控制台**
+
+
+
+**字节打印流**
+
+字节打印流底层没有缓冲区，开不开自动刷新都会直接写到文件中
+
+```java
+//构造方法
+public PrintStream(OutputStream/file/String) //关联字节输出流
+public PrintStream(String filename, Charset charset) // 指定字符编码
+public PrintStream(OutputStream out, boolean autoFlush) // 自动刷新
+public PrintStream(OutputStream out, boolean autoFlush, String encoding) // 指定编码且自动刷新
+// 成员方法
+public void write(int b) // 常规方法，和其他输出流一样
+public void println(Xxx xx) // 打印任意数据，自动刷新和换行
+public void print(Xxx xx) // 打印任意数据，不换行
+public void printf(String format, Object...args) // 带有占位符的打印语句，不换行
+    
+PrintStream ps = new PrintStream(new FileOutputStream("aa.txt"), true);
+ps.println(97); // 数据原样打印， 文件中保存的就是97，不是对应的asc码字符
+ps.println(true); // 保存的就是true
+ps.printf("%s 哈哈哈 %s", "david", "kashin") // %s就是后面2个参数的占位符 输出：david 哈哈哈 kashin
+ps.close();
+```
+
+**字符打印流**
+
+底层有缓冲区，默认不自动刷新，想要自动刷新出缓冲区需要传true
+
+```java
+// 构造方法
+public PrintWriter(Write/File/String) // 管理输出流/文件/文件路径
+public PrintWriter(String filename,Charset charset) // 指定字符编码
+public PrintWriter(OutputStream out, boolean autoFlush) // 自动刷新
+public PrintWriter(OutputStream out, boolean autoFlush, String encoding) // 指定编码且自动刷新
+// 成员方法和字节打印流一样
+```
+
+
+
+#### 压缩/解压缩流
+
+**解压缩流**
+
+ZipInputStream
+
+java中解压缩必须是zip格式，解压的流程就是把压缩包中的文件或文件夹读取出来，按照层级拷贝到指定目录下
+
+ZipEntry：压缩包中的每个文件或文件夹都是一个ZipEntry对象
+
+```java
+public static void unzip(File src, File dest) {
+    ZipInputStream zip = new ZipInputStream(new FileInputStream(src));
+    ZipEntry entry = zip.getNextEntry(); // 获取entry对象， 每次调用可以获取到压缩包中的每个文件夹和文件
+}
+```
 
 
 
