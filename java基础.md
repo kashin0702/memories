@@ -4600,6 +4600,15 @@ Arrays.sort(arr, new Comparator<Integer>() { // 第二个参数接收一个接�
         return o1 - o2;
     }
 });
+
+// 二分法查找相关技巧
+/*如果key在数组中，则返回搜索值的索引；否则返回-1或“-”（插入点）。插入点是索引键将要插入数组的那一点，即第一个大于该键的元素的索引。
+[1] 搜索值不是数组元素，且在数组范围内，从1开始计数，得“ - 插入点索引值”；
+[2] 搜索值是数组元素，从0开始计数，得搜索值的索引值；
+[3] 搜索值不是数组元素，且小于数组内元素，索引值为 – 1；
+[4] 搜索值不是数组元素，且大于数组内元素，索引值为 – (length + 1);
+*/
+Arrays.binarySearch()
 ```
 
 
@@ -6393,6 +6402,8 @@ FileUtils.copyDirectory(src, dest) // 拷贝文件夹
 
 
 
+
+
 ## **乱码概念**
 
 ### **字符集**
@@ -6488,6 +6499,244 @@ public byte[] getBytes(String charsetName) // 使用指定方式编码
 //解码 就是String的构造方法
 String(byte[] bytes) // 默认方式解码
 String(byte[] bytes, String charsetName) //使用指定方式解码
+```
+
+
+
+## 正则
+
+**Pattern 类：** 
+
+pattern 对象是一个正则表达式的编译表示。Pattern 类没有公共构造方法。要创建一个 Pattern 对象，你必须首先调用其公共静态编译方法，它返回一个 Pattern 对象。该方法接受一个正则表达式作为它的第一个参数。
+
+**Matcher 类：**
+
+ Matcher 对象是对输入字符串进行解释和匹配操作的引擎。与Pattern 类一样，Matcher 也没有公共构造方法。你需要调用 Pattern 对象的 matcher 方法来获得一个 Matcher 对象。
+
+matcher.find方法：是否存在该匹配模式的下一个子序列，存在返回true,再次调用时匹配下一个
+
+
+
+## 综练
+
+### 爬虫+生成随机数据
+
+```java
+package com.david.demo18practise;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class crew {
+    public static void main(String[] args) throws IOException {
+        String nameNet = "http://www.haoming8.cn/baobao/10881.html";
+        // 1.爬取数据
+        String str = webCrawler(nameNet);
+        /*
+        * 2.筛选要用的数据
+        * @params 1-原始数据 2-正则规则 3-要获取哪个子匹配，传1获取第一个括号中的表达式
+        * */
+        ArrayList<String> arrayList = getData(str, "([\\u4e00-\\u9FA5]{2})(、|。)", 1);
+        // 3.名字去重
+        HashSet<String> hs = new HashSet<>();
+        for (String s : arrayList) {
+            hs.add(s);
+        }
+        // 4.生成最终随机数据：姓名-年龄
+        HashSet<String> infoList = getInfos(hs, 30);// 参数：原数据，生成数据个数
+        // 5.把最终数据写入本地文件
+        BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\yoki\\Desktop\\javaTest\\namesData.txt"));
+        for (String infoStr : infoList) {
+            bw.write(infoStr);
+            bw.newLine();
+        }
+        bw.close();
+    }
+
+    private static ArrayList<String> getData(String str, String reg, int index) {
+        // 用集合存放数据
+        ArrayList<String> list = new ArrayList<>();
+        // 创建正则表达式对象，Pattern类没有构造方法，调用compile方法返回一个pattern对象
+        Pattern p = Pattern.compile(reg);
+        // Matcher类也没有构造方法，用Pattern.matcher()方法创建Matcher类实例
+        Matcher matcher = p.matcher(str);
+        while(matcher.find()) { // find方法：是否存在该匹配模式的下一个子序列，存在返回true,再次调用时匹配下一个
+            String group = matcher.group(index); // group：返回满足条件的字符串，传参可以返回指定的子匹配，即()中的子表达式
+            list.add(group);
+        }
+        return list;
+    }
+
+    public static String webCrawler(String net) throws IOException {
+        // 定义一个Sb接收爬到的数据, 必须是字符串类型，方便正则处理
+        StringBuilder sb = new StringBuilder();
+        // 创建URL对象
+        URL url = new URL(net);
+        // 链接上这个网址
+        URLConnection conn = url.openConnection();
+        // 读取数据, conn.getInputStream()返回一个字节流，因为网站有中文，所以要用转换流读取中文
+        InputStreamReader isr = new InputStreamReader(conn.getInputStream());
+        int b;
+        while ((b = isr.read()) != -1) {
+            sb.append((char) b); // 转成字符保存到sb中
+        }
+        isr.close();
+        return sb.toString();
+    }
+    // 生成最终随机数据
+    private static HashSet<String> getInfos(HashSet<String> hs, int count) {
+        ArrayList<String> list = new ArrayList<>(); // set转list
+        for (String h : hs) {
+            list.add(h);
+        }
+        HashSet<String> res = new HashSet<>();// 用set保存，去重
+        Random r = new Random();
+        // 生成指定个数的循环
+        while (res.size() <= count) {
+            // 先打乱，再获取第0个索引，实现随机
+            Collections.shuffle(list);
+            // 年龄范围18~27
+            int age = r.nextInt(10) + 18;
+            res.add(list.get(0) + "-" + age);
+        }
+        return res;
+    }
+}
+```
+
+
+
+### 带权重随机算法
+
+概念：
+
+假如随机10个人，每个人的初始权重为1，总权重就是所有人的权重之和， 那么每个人的权重占比就是 1/10=0.1
+
+权重占比范围：把每个人的权重占比分成10等分, 比如随机到0.345 就是第4位，随机到0.56就是第6位
+
+1=》(0.0~0.1]
+
+2=》(0.1~0.2]
+
+3=>(0.2~0.3]
+
+...
+
+10=》(0.9~1.0]
+
+```java
+package com.david.demo18practise;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class weightRandom {
+    public static void main(String[] args) throws IOException {
+        // 带权重随机
+        // 缓冲流 读取文件数据
+        BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\yoki\\Desktop\\javaTest\\weight.txt"));
+        ArrayList<Student> list = new ArrayList<>();
+        String str;
+        while ((str = br.readLine()) != null) {
+            String[] strings = str.split("-");
+            // 1.集合保存student数据 {姓名，年龄，权重}
+            Student stu = new Student(strings[0], Integer.parseInt(strings[1]), Double.parseDouble(strings[2]));
+            list.add(stu);
+        }
+        br.close();
+        // 2.计算总权重
+        double weight = 0;
+        for (Student student : list) {
+            weight += student.getWeight();
+        }
+        // 3.计算每个人权重占比
+        double[] arr = new double[list.size()];
+        int index = 0;
+        for (Student student : list) {
+            arr[index] = student.getWeight() / weight;
+            index++;
+        }
+        // 4.计算每个人的权重占比范围 权重范围就是前两个权重占比相加
+        for (int i = 1; i < arr.length; i++) {
+            arr[i] = arr[i] + arr[i - 1];
+        }
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print(arr[i] + " ");
+        }
+        System.out.println();
+        // 5.随机抽取
+        // 获取0.0~1.0随机数
+        double num = Math.random();
+        // 二分法查找随机元素对应的数据，也能查找不在数组中，但在该数组范围内的元素，返回的是-插入点的索引, 插入点就是第一个大于该元素的索引
+        System.out.println(num);
+        int idx = -Arrays.binarySearch(arr, num) - 1; // 从1开始计数，返回的是-插入点， 取反-1就是要获取的那个元素
+        System.out.println(idx);
+        // 被选中的元素，权重减半
+        double newWeight = list.get(idx).getWeight() / 2;
+        list.get(idx).setWeight(newWeight);
+        System.out.println(list.get(idx));
+        System.out.println(list);
+        // 把更新后的权重重新写入本地文件，下次即会根据最新权重文件进行随机
+        BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\yoki\\Desktop\\javaTest\\weight.txt"));
+        for (Student student : list) {
+            bw.write(student.toString());
+            bw.newLine();
+        }
+        bw.close();
+    }
+
+
+    public static class Student {
+        private String name;
+        private int age;
+        private double weight;
+
+        @Override
+        public String toString() {
+            return name + "-" + age + "-" + weight;
+        }
+        public Student() {
+        }
+
+        public Student(String name, int age, double weight) {
+            this.name = name;
+            this.age = age;
+            this.weight = weight;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+
+        public double getWeight() {
+            return weight;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
+    }
+}
+
 ```
 
 
