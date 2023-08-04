@@ -6741,3 +6741,200 @@ public class weightRandom {
 
 
 
+### 配置文件
+
+1、可以把软件的设置永久化存储
+
+2、若要修改参数，不需要改动代码，直接修改配置文件即可
+
+常见的配置文件：XML / ini  / properties / YAML
+
+**properties配置文件**
+
+properties: 后缀名.properties   用键值对方式存储的配置文件
+
+MAP类有一个properties子类，有一些特有方法，可以把集合中的数据按照键值对形式写到配置文件中，也可以把配置文件的数据读到集合中。
+
+```java
+// properties类没有泛型，接收任意类型，就是Object类型
+Properties prop = new Properties();
+
+// 添加数据 注意map集合key是唯一的，值可以重复 
+prop.put("aaa", "bbb");
+prop.put("aaa", "ccc"); // key唯一，不会被添加
+
+// 特殊方法store, 把集合的数据以键值对形式保存到.properties文件中
+FileOutputStream fos = new FileOutputStream("xxx\\xxx.properties");
+prop.store(fos, "test"); // 第二个参数是注释
+fos.close();
+
+// 特殊方法load, 读取.properties中的数据，接收字符或字节输入流
+FileInputStream fis = new FileInputStream("xxx\\xxx.properties");
+prop.load(fis);
+fis.close();
+System.out.println(prop) // 返回键值对形式的map集合
+String val = (String) prop.get("aaa") // 获取键对应的值，propertie默认是obj类型, 强转为String
+
+```
+
+
+
+## 多线程
+
+进程：程序运行的基本实体
+
+线程：操作系统能够进行运算调度的最小单位。**被包含在进程中，是进程的实际运作单位**
+
+多线程简单理解：一个应用软件中互相独立，又可以同时运行的功能。
+
+多线程应用场景：想让多个事情同时运行就要用到多线程
+
+**并发：**同一个时刻，多个指令在单个CPU上交替执行。
+
+**并行：**同一时刻，多个指令在多个CPU上同时执行。
+
+
+
+### 多线程实现方式
+
+```java
+// 方式1
+public class threadcase01 {
+    public static void main(String[] args) {
+        // 创建多线程
+        /*
+            1.创建一个继承Thread的类，并重写run()方法
+            2.创建实例
+            3.调用start()开启线程
+        */
+        MyThread t1 = new MyThread();
+        t1.setName("线程1");
+        MyThread t2 = new MyThread();
+        t2.setName("线程2");
+        t1.start(); // 开启线程， 执行结果是两个线程会交替执行
+        t2.start();
+    }
+}
+public class MyThread extends Thread{
+    @Override
+    public void run() {
+        // 线程要执行的代码
+        for (int i = 0; i < 100; i++) {
+            System.out.println(getName() +" "+ i);
+        }
+    }
+}
+//=========================================
+// 方式2
+ /*
+* 1.创建一个实现Runable接口的类，重写run()方法
+* 2.创建该实例
+* 3. 把实例传给Thread对象
+* 4. 调Start()开启线程
+* */
+Myrun run = new Myrun();
+Thread thread = new Thread(run);
+thread.setName("线程3");
+thread.start();
+
+public class Myrun implements Runnable{
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 50; i++) {
+            // 获取当前线程, 因为是实现Runable接口，没有继承Thread, 不能直接调用getName
+            Thread t = Thread.currentThread();
+            System.out.println(t.getName() + " "+i);
+        }
+    }
+}
+// ============================================
+// 方式3 特点，可以获取多线程执行的返回结果
+/*
+	1.创建一个类实现Callable接口，重写call方法（有返回值，表示多线程执行的结果）
+	2.创建myCalld对象（表示多线程要执行的任务）
+	3.创建futureTask对象（管理多线程运行的结果）
+	4.创建Thread类对象，并启动线程
+*/
+Mycall mycall = new Mycall();
+FutureTask<Integer> futureTask = new FutureTask<>(mycall); // futureTask用来管理多线程的运行结果
+Thread t4 = new Thread(futureTask); // 线程传入futureTask
+t4.start();
+Integer result = futureTask.get(); // 获取线程中的代码返回结果
+System.out.println(result);
+
+import java.util.concurrent.Callable;
+
+public class Mycall implements Callable<Integer> {
+
+    @Override
+    // 多线程代码执行结果的返回值类型和Callable泛型一样
+    public Integer call() throws Exception {
+        int sum = 0;
+        for (int i = 0; i < 100; i++) {
+            sum += i;
+        }
+        return sum;
+    }
+}
+```
+
+
+
+### 成员方法
+
+![image-20230804173034164](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230804173034164.png)
+
+```java
+// 线程休眠，执行到的地方会停止指定时间，再执行后面的代码
+System.out.println(1111111111)
+Thread.sleep(5000);
+System.out.println(222222222) // 5秒后打印
+    
+
+```
+
+### 线程调度
+
+JAVA采用抢占式调度，即CPU随机执行多线程
+
+**随机到的概率和线程优先级有关，JAVA线程的优先级范围是1~10，默认优先级为5**
+
+```java
+MyRunable mr = new MyRunable();
+Thread t1 = new Thread(mr, "飞机");
+Thread t2 = new Thread(mr, "坦克");
+// 设置线程优先级
+t1.setPriority(1);
+t2.setPriority(10); // t2先执行完毕的概率远大于t1 (t1也有小概率先执行完毕)
+t1.start();
+t2.start();
+
+public class MyRunable implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 0; i < 50; i++) {
+            // 获取当前线程, 因为是实现Runable接口，没有继承Thread, 不能直接调用getName
+            Thread t = Thread.currentThread();
+            System.out.println(t.getName() + " "+i);
+        }
+    }
+}
+
+//守护线程=================== 会等到非守护线程执行完毕后，陆续结束（不是马上结束）
+public class threadcase02 {
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread();
+        MyThread2 t2 = new MyThread2();
+        t1.setName("传输文件");
+        t2.setName("聊天窗口");
+
+        // t1设置为守护线程
+        t1.setDaemon(true);
+        // 当非守护线程t2执行完毕后，t1会陆续结束 应用场景：当聊天窗口结束后，传输文件也没有存在必要就会结束
+        t1.start();
+        t2.start();
+    }
+}
+```
+
