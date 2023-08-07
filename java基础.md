@@ -6936,5 +6936,319 @@ public class threadcase02 {
         t2.start();
     }
 }
+
+// 出让线程=============》尽可能让线程能均匀的交替执行
+public class MyThread extends Thread {
+    @Override
+    public void run() {
+        for(int i=0;i<=100;i++) {
+            System.out.println(getName() + " " + i);
+            Thread.yield(); // 表示让出当前CPU执行权
+        }
+    }
+}
+
+// 插入线程======================》 把想执行的线程插入到当前线程之前， 当前线程就是代码运行的线程
+public class test {
+    public static void main() {
+        MyThread t = new Thread();
+        t.setName("我的线程");
+        t.start();
+        t.join(); // 优先执行 我的线程会优先执行完毕
+        
+        // 主线程后执行
+        for (int i = 0; i < 10; i++) {
+            System.out.println("主线程:" + i);
+        }
+    } 
+}
+```
+
+
+
+### 线程生命周期
+
+1.创建对象==> 2.start() ==>3.有执行资格，没有执行权（抢夺CPU执行权中） ==>4 抢到后，有执行资格和执行权 ==> 5.run() 执行完毕线程死亡
+
+PS: 其他线程抢夺或sleep()等阻塞方法会再次让线程没有执行权， sleep方法结束后重新进入抢夺状态， 3，4步会不断重复
+
+
+
+### 多线程操作共享数据
+
+#### synchronized同步代码块
+
+把操作共享数据的代码锁起来
+
+run方法4步套路：
+
+1、循环
+
+2、同步代码块
+
+3、判断共享数据是否到末尾（到末尾的代码逻辑，退出）
+
+4、判断共享数据是否到末尾（没到末尾，核心逻辑）
+
+
+
+特点：锁默认打开，当一个线程进入，锁自动关闭；里面代码全部执行完毕，线程出来后锁自动打开。
+
+```java
+package com.david.demo19ThreadCase;
+
+public class MyThread03 extends Thread{
+    static int ticket = 0; // 定义静态变量，多个实例共享该数据
+    @Override
+    public void run() {
+        while(true) {
+            // 同步代码块 线程进入后会在执行完毕时其他线程才能进入执行
+            // 必须传入一个唯一的任意对象, 可以传这个类的字节码文件，肯定是唯一的
+            synchronized (MyThread03.class) {
+                if (ticket < 100) {
+                    try {
+                        Thread.sleep(10); // 先休眠100毫秒 关键点：线程进入了条件语句，此时cpu执行权肯定会被抢夺
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    ticket++; // 多线程执行是完全随机的，可能这段代码执行后执行权就被其他线程抢夺，打印代码还没执行，ticktet又+1了，出现超出100的情况
+                    System.out.println(Thread.currentThread().getName() + " " + ticket);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+}
+public class threadcase03 {
+    public static void main(String[] args) {
+        // 需求：3个窗口卖100张电影票
+        MyThread03 t1 = new MyThread03();
+        MyThread03 t2 = new MyThread03();
+        MyThread03 t3 = new MyThread03();
+        t1.setName("窗口1");
+        t2.setName("窗口2");
+        t3.setName("窗口3");
+        t1.start();
+        t2.start();
+        t3.start();
+    }
+}
+```
+
+
+
+#### 同步方法
+
+语法：修饰符 synchronized 返回值类型 方法名(参数) {}
+
+特点：同步方法锁住方法里的所有代码；锁对象不能自己指定，非静态：this，静态：当前类的字节码文件对象
+
+```java
+public class Myrun2 implements Runnable{
+    int ticket = 0; // 用Runnable接口实现，只创建一个实例，所以不需要定义成静态变量
+
+    @Override
+    public void run() {
+        while (true) {
+            if (method()) break;
+        }
+    }
+
+    // 同步方法 锁对象自动指定为this
+    private synchronized boolean method() {
+        if (ticket == 100) {
+            return true;
+        } else {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            ticket++;
+            System.out.println(Thread.currentThread().getName() + "正在卖第" + ticket + "张票");
+        }
+        return false;
+    }
+}
+
+
+public class threadcase03 {
+    public static void main(String[] args) {
+        // 需求：3个窗口卖100张电影票
+        // 用同步方法实现
+        Myrun2 mr = new Myrun2();
+        Thread t1 = new Thread(mr);
+        Thread t2 = new Thread(mr);
+        Thread t3 = new Thread(mr);
+        t1.setName("窗口1");
+        t2.setName("窗口2");
+        t3.setName("窗口3");
+        t1.start();
+        t2.start();
+        t3.start();
+    }
+}
+
+```
+
+
+
+#### StringBuilder和StringBuffer
+
+所有方法都一样，但是StringBuffer所有方法都加了Synconized
+
+结论：多线程代码建议用StringBuffer，单线程用StringBuilder
+
+
+
+#### lock锁
+
+```java
+// 作用和Syncronized一样，但可以手动在任意位置加锁，释放锁
+import java.util.concurrent.locks.ReentrantLock;
+
+public class ThreadLock extends Thread{
+    static int tickets = 0;
+    static ReentrantLock lock = new ReentrantLock();
+
+    @Override
+    public void run() {
+        while (true) {
+            lock.lock(); // 加锁
+            try {
+                if (tickets < 100) {
+                    sleep(10);
+                    tickets++;
+                    System.out.println(getName() + "售卖第" + tickets + "张票");
+                } else {
+                    break; // break会直接跳出循环，导致unlock执行不到，虚拟机无法结束
+                }
+            } catch (RuntimeException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                lock.unlock(); // 关键点：释放锁放在finally中，保证break执行后，unlock依然会执行释放锁
+            }
+        }
+    }
+}
+
+public class threadcase03 {
+    public static void main(String[] args) {
+        // lock锁实现
+        ThreadLock t1 = new ThreadLock();
+        ThreadLock t2 = new ThreadLock();
+        ThreadLock t3 = new ThreadLock();
+        t1.setName("窗口1");
+        t2.setName("窗口2");
+        t3.setName("窗口3");
+        t1.start();
+        t2.start();
+        t3.start();
+       
+}
+
+```
+
+
+
+#### 死锁
+
+一种错误代码方式，同步代码块中，线程1：A锁套B锁， 线程2：B锁套A锁，导致互相等待对方释放锁，代码会卡死 
+
+**防止思路：不要嵌套锁**
+
+
+
+#### 等待唤醒机制(消费者/生产者模式)
+
+一种多线程协作的模式
+
+```java
+// 常用方法
+void wait() // 当前线程等待，直到被其他线程唤醒
+void notify() // 随机唤醒单个线程
+void notifyAll() // 唤醒所有线程
+  
+
+// 第三者状态，维护公共数据，用来给生产者、消费者进行线程切换的判断
+public class Desk extends Thread{
+    public static int count = 10; // 消费者一共可以吃10碗面，吃到后退出线程
+    public static Object lock = new Object(); // 定义一个唯一的锁对象
+    public static int flag = 1; // 状态值：桌上是否有食物 1：有食物 2：无食物
+}
+
+
+// 生产者
+public class Cook extends Thread{
+    @Override
+    public void run() {
+        while (true) {
+            // 传入锁对象Desk.lock
+            synchronized (Desk.lock) {
+                if (Desk.count == 0) {
+                    break;
+                } else {
+                    // 桌上有食物
+                    if (Desk.flag == 1) {
+                        try {
+                            Desk.lock.wait(); // 线程和锁对象绑定，等待消费者线程
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        System.out.println("生产者正在制作食物");
+                        Desk.lock.notifyAll(); // 唤醒消费者线程
+                        Desk.flag = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 消费者
+public class Eater extends Thread{
+    @Override
+    public void run() {
+        while (true) {
+            // 锁对象用Desk.lock静态变量，保证唯一
+            synchronized (Desk.lock) {
+                // 先判断是否吃完10碗, 即循环体的退出条件
+                if (Desk.count == 0) {
+                    break;
+                } else {
+                    // 执行代码
+                    // 判断桌上是否有食物
+                    if (Desk.flag == 1) {
+                        Desk.count--;
+                        System.out.println("消费者正在吃面，还能吃" + Desk.count + "碗");
+                        Desk.lock.notifyAll(); // 唤醒生产者线程执行代码
+                        Desk.flag = 0; // 把状态设置为0
+                    } else {
+                        try {
+                            Desk.lock.wait();// 没有食物，等待， 必须用锁对象调用这个方法，和当前线程进行绑定
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+public class waitNotifyTest {
+    public static void main(String[] args) {
+        // 生产者消费者模式
+        Eater eater = new Eater();
+        Cook cook = new Cook();
+        eater.start();
+        cook.start();
+        /*最终执行结果，生产者消费者交替执行*/
+    }
+}
 ```
 
