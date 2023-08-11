@@ -64,7 +64,17 @@ MYSQL中数据类型分为3类：
 
 2、日期时间类（DATE, TIME, YEAR, DATETIME, TIMESTAMP）
 
-3、字符串类（CHAR, VARCHAR, TINYBLOB, BLOB, LONGBLOB, TEXT, LONGTEXT....）al
+3、字符串类（CHAR, VARCHAR, TINYBLOB, BLOB, LONGBLOB, TEXT, LONGTEXT....）
+
+**细节：**
+
+CHAR最大255字符，字符集对CHAR没有影响，CHAR()括号内填写最大字符数255
+
+VARCHAR最大65535字节，字符集对VARCHAR有影响
+
+UTF8字符集，每个字符大小3字节，所以65535/3 = 21845，最大支持21845字符，因此VARCHAR()括号中最大填写21845字符
+
+GBK字符集，每个字符大小2字节，所以65535/2 = 32767.5，最大支持32767字符，因此VARCHAR()括号中最大填写32767字符
 
 ```sql
 /* DDL */
@@ -81,7 +91,7 @@ create table tb1_user(
 	id int,
     username varchar(20), -- varchar 不定长字符串，存储空间可变
     password varchar(32)，
-    usergender char(10), -- char 定长字符串，固定用10个字符空间，存储性能高，但浪费空间
+    usergender char(10), -- char 定长字符串，char(10)固定用10个字符空间，存储性能高，但浪费空间
     score double(5,2), -- 分数：范围0~100，double第一位是总长度，第二位是小数位数， 保留2位小数，所以总长度是3+2=5
     telephone varchar(15) --电话 最大长度不超过15位
 );
