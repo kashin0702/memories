@@ -285,6 +285,8 @@ float z = 10.33F
 
 **alt+回车 选中红色异常处，抛出异常**
 
+**shift+f6 选中类名，快捷修改类名**
+
 
 
 ## **第三方包引入**
@@ -4016,10 +4018,46 @@ User u2 = (User) u1.clone(); // 返回的是object, 需要转成User
 ```java
 public static <T> boolean addAll(Collection<T> c, T...elements) //批量添加元素，只能添加单列集合
 public static void shuffle(List<?> list) // 打乱list集合元素的顺序
-    
+
 
 ArrayList<String> list = new ArrayList<>();
 Collections.addAll(list, "abc","cba","ddd"); // 批量添加
+```
+
+
+
+### **Arrays（工具类）**
+
+```java
+// Arrays静态方法
+public static String toString(数组)  //把数组拼接陈一个字符串
+public static int binarySearch(数组, 查找的元素)  // 二分法查找元素
+public static int[] copyOf(原数组， 新数组长度) // 拷贝数组
+public static int[] copyOfRange(原数组, from, to) // 拷贝指定范围数组
+public static void fill(数组， 元素) //填充数组
+public static void sort(数组)
+public static void sort(数组，排序规则)
+
+
+// 排序写法
+// 根据函数返回值判断 元素应该放在比较元素的左侧还是右侧
+// 简单理解 o1-o2：升序排列  o2-o1:降序排列
+Integer[] arr = {2,5,1,0,13,43,33,44,5,8};
+Arrays.sort(arr, new Comparator<Integer>() { // 第二个参数接收一个接口， 用匿名类实现该接口
+    @Override
+    public int compare(Integer o1, Integer o2) { // 重写接口compare方法
+        return o1 - o2;
+    }
+});
+
+// 二分法查找相关技巧
+/*如果key在数组中，则返回搜索值的索引；否则返回-1或“-”（插入点）。插入点是索引键将要插入数组的那一点，即第一个大于该键的元素的索引。
+[1] 搜索值不是数组元素，且在数组范围内，从1开始计数，得“ - 插入点索引值”；
+[2] 搜索值是数组元素，从0开始计数，得搜索值的索引值；
+[3] 搜索值不是数组元素，且小于数组内元素，索引值为 – 1；
+[4] 搜索值不是数组元素，且大于数组内元素，索引值为 – (length + 1);
+*/
+Arrays.binarySearch()
 ```
 
 
@@ -4577,40 +4615,6 @@ public class kuaipai {
 
 
 
-### **Arrays工具类**
-
-```java
-// Arrays静态方法
-public static String toString(数组)  //把数组拼接陈一个字符串
-public static int binarySearch(数组, 查找的元素)  // 二分法查找元素
-public static int[] copyOf(原数组， 新数组长度) // 拷贝数组
-public static int[] copyOfRange(原数组, from, to) // 拷贝指定范围数组
-public static void fill(数组， 元素) //填充数组
-public static void sort(数组)
-public static void sort(数组，排序规则)
-
-
-// 排序写法
-// 根据函数返回值判断 元素应该放在比较元素的左侧还是右侧
-// 简单理解 o1-o2：升序排列  o2-o1:降序排列
-Integer[] arr = {2,5,1,0,13,43,33,44,5,8};
-Arrays.sort(arr, new Comparator<Integer>() { // 第二个参数接收一个接口， 用匿名类实现该接口
-    @Override
-    public int compare(Integer o1, Integer o2) { // 重写接口compare方法
-        return o1 - o2;
-    }
-});
-
-// 二分法查找相关技巧
-/*如果key在数组中，则返回搜索值的索引；否则返回-1或“-”（插入点）。插入点是索引键将要插入数组的那一点，即第一个大于该键的元素的索引。
-[1] 搜索值不是数组元素，且在数组范围内，从1开始计数，得“ - 插入点索引值”；
-[2] 搜索值是数组元素，从0开始计数，得搜索值的索引值；
-[3] 搜索值不是数组元素，且小于数组内元素，索引值为 – 1；
-[4] 搜索值不是数组元素，且大于数组内元素，索引值为 – (length + 1);
-*/
-Arrays.binarySearch()
-```
-
 
 
 ### **Lambda表达式**
@@ -4999,7 +5003,7 @@ class Zi extends Fu {}
 **stream流每次只能使用一次，原来的流不能再次使用，所以建议用链式编程**
 
 ```java
-Stream<String> s1 = list.strem().filter(s -> s.startsWith("d"));
+Stream<String> s1 = list.stream().filter(s -> s.startsWith("d"));
 Stream<String> s2 = s1.filter(s -> s.length() == 3); // s1在这里已被使用
 Stream<String> s3 = s1.filter(s -> s.length() == 3); // 报错
 ```
@@ -5699,11 +5703,6 @@ static HashMap getCount(File src) {
 ### **字节流**
 
 ```java
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 public class IOtest {
     public static void main(String[] args) throws IOException {
         // 输出流
@@ -5761,10 +5760,6 @@ public class IOtest {
 **单次循环读一个字节**
 
 ```java
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 public class copyTest {
     public static void main(String[] args) throws IOException {
         // 文件拷贝
@@ -5789,8 +5784,9 @@ public class copyTest {
 **一次循环读N个字节（自定义）**
 
 ```java
-// public int read() 空参：一次读一个字节，返回值是读取的字节对应asc码
-// public intread(byte[] Buffer) 传参： 一次读一个字节数组，返回值是本次读取到了多少个字节
+public int read()  //空参：一次读一个字节，返回值是读取的字节对应asc码
+public int read(byte[] Buffer) //传参： 一次读一个字节数组，返回值是本次读取到了多少个字节
+
 FileInputStream fis2 = new FileInputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\david.txt");
 FileOutputStream fos2 = new FileOutputStream("C:\\Users\\Administrator\\Desktop\\IOTEST\\copy2.txt");
 
@@ -6509,11 +6505,21 @@ String(byte[] bytes, String charsetName) //使用指定方式解码
 
 pattern 对象是一个正则表达式的编译表示。Pattern 类没有公共构造方法。要创建一个 Pattern 对象，你必须首先调用其公共静态编译方法，它返回一个 Pattern 对象。该方法接受一个正则表达式作为它的第一个参数。
 
+```java
+Pattern p = Pattern.compile(reg);
+```
+
 **Matcher 类：**
 
  Matcher 对象是对输入字符串进行解释和匹配操作的引擎。与Pattern 类一样，Matcher 也没有公共构造方法。你需要调用 Pattern 对象的 matcher 方法来获得一个 Matcher 对象。
 
 matcher.find方法：是否存在该匹配模式的下一个子序列，存在返回true,再次调用时匹配下一个
+
+```java
+Matcher matcher = p.matcher(str);
+```
+
+
 
 
 
@@ -6972,13 +6978,43 @@ public class test {
 
 PS: 其他线程抢夺或sleep()等阻塞方法会再次让线程没有执行权， sleep方法结束后重新进入抢夺状态， 3，4步会不断重复
 
+### 线程6大状态
+
+新建
+
+就绪(start执行完毕，notify，获得锁) ------ 有执行资格，没有执行权，此时可以抢夺CPU执行权
+
+计时等待(sleep) ------ 没有执行资格，没有执行权
+
+等待(wait) ------ 没有执行资格，没有执行权
+
+阻塞(无法获得锁) ------ 没有执行资格，没有执行权
+
+死亡(run执行完毕)
+
+
+
+### sleep理解
+
+sleep属于Thread类，线程暂停执行指定时间，让出CPU给其他线程，当指定时间到了自动恢复运行状态
+
+**在同步代码块中调用sleep，不会释放锁**
+
+
+
+### wait/notify理解
+
+wait/notify/notifyAll 都是Object类的方法，调用wait()，线程会自动放弃锁对象，进入等待此对象的等待锁定池，只有针对此对象调用notify()方法后，本线程才进入对象锁定池准备获取对象锁进入运行状态
+
 
 
 ### 多线程操作共享数据
 
 #### synchronized同步代码块
 
-把操作共享数据的代码锁起来
+**一个线程访问一个对象中的synchronized(this)同步代码块时，其他试图访问该对象的线程将被阻塞**
+
+**重点：锁对象必须是唯一的，如果线程的锁对象不是同一个，同步代码不会有效果，线程不会被阻塞**
 
 run方法4步套路：
 
@@ -7003,15 +7039,16 @@ public class MyThread03 extends Thread{
     public void run() {
         while(true) {
             // 同步代码块 线程进入后会在执行完毕时其他线程才能进入执行
-            // 必须传入一个唯一的任意对象, 可以传这个类的字节码文件，肯定是唯一的
+            // 必须传入一个唯一的锁对象
             synchronized (MyThread03.class) {
                 if (ticket < 100) {
                     try {
-                        Thread.sleep(10); // 先休眠100毫秒 关键点：线程进入了条件语句，此时cpu执行权肯定会被抢夺
+                        Thread.sleep(100); // 休眠100毫秒 让出线程，醒来后重新加入抢夺cpu
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    ticket++; // 多线程执行是完全随机的，可能这段代码执行后执行权就被其他线程抢夺，打印代码还没执行，ticktet又+1了，出现超出100的情况
+                    // 不加锁时，多线程执行是完全随机的，可能这段代码执行后执行权就被其他线程抢夺，打印代码还没执行，ticktet又+1了，出现超出100的情况
+                    ticket++; 
                     System.out.println(Thread.currentThread().getName() + " " + ticket);
                 } else {
                     break;
@@ -7023,6 +7060,7 @@ public class MyThread03 extends Thread{
 public class threadcase03 {
     public static void main(String[] args) {
         // 需求：3个窗口卖100张电影票
+        // 3个线程内的同步代码块是同一个锁对象，当一个线程访问时，其他线程将被阻塞，只有代码块执行完才会释放锁
         MyThread03 t1 = new MyThread03();
         MyThread03 t2 = new MyThread03();
         MyThread03 t3 = new MyThread03();
@@ -7039,6 +7077,8 @@ public class threadcase03 {
 
 
 #### 同步方法
+
+**必须用接口实现类的方式创建同步方法，这样才能保证线程调用时，同步方法中的锁对象是唯一的**
 
 语法：修饰符 synchronized 返回值类型 方法名(参数) {}
 
@@ -7077,7 +7117,7 @@ public class threadcase03 {
     public static void main(String[] args) {
         // 需求：3个窗口卖100张电影票
         // 用同步方法实现
-        Myrun2 mr = new Myrun2();
+        Myrun2 mr = new Myrun2(); // 只创建一个mr对象，所有线程的锁对象是同一个
         Thread t1 = new Thread(mr);
         Thread t2 = new Thread(mr);
         Thread t3 = new Thread(mr);
@@ -7162,9 +7202,15 @@ public class threadcase03 {
 
 
 
-#### 等待唤醒机制(消费者/生产者模式)
+### 等待唤醒机制
 
 一种多线程协作的模式
+
+
+
+#### 消费者/生产者模式
+
+两个线程交替执行
 
 ```java
 // 常用方法
@@ -7251,4 +7297,1064 @@ public class waitNotifyTest {
     }
 }
 ```
+
+
+
+#### 阻塞队列
+
+消费者生产者通过阻塞队列交替执行
+
+阻塞队列继承接口：Iterable、Collection、Queue、BlockingQueue
+
+实现类：ArrayBlockingQueue（底层是数组，有界，指定数组长度）、LinkedBlockingQueue（底层是链表，无界，但不是真正的无界，最大值是int的最大值）
+
+```java
+public class waitNotifyTest {
+    public static void main(String[] args) {
+        // 阻塞队列方式实现消费/生产者模式
+        /*
+        * 1.创建队列对象
+        * 2.传给线程，保证2个线程用的是同一个队列
+        *
+        * */
+        // 泛型String就是队列中的数据类型，参数是队列中元素的个数
+        ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<>(1);
+
+        Cook cook = new Cook(queue);
+        Eater eater = new Eater(queue);
+        cook.start();
+        eater.start();
+    }
+}
+
+public class Eater extends Thread{
+    // 定义成员变量，在创建对象时接收阻塞队列
+    ArrayBlockingQueue<String> queue;
+    // 构造函数接收阻塞队列参数
+    public Eater(ArrayBlockingQueue<String> queue) {
+        this.queue = queue;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                /*阻塞队列不用添加Syncronized同步代码块，底层在调用put,take方法时已经添加了lock锁
+                * */
+                String food = queue.take(); // 用take方法不断从阻塞队列中获取元素, 队列为空时会等待
+                System.out.println(food);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+
+public class Cook extends Thread{
+    ArrayBlockingQueue<String> queue;
+    public Cook(ArrayBlockingQueue<String> queue) {
+        this.queue = queue;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                queue.put("海鲜面"); // 不断往阻塞队列中添加元素，队列满了会等待
+                System.out.println("厨师烧了一碗面");
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+
+```
+
+
+
+### 线程栈
+
+概念：JAVA的内存中，堆内存是唯一的，栈内存不是，每个线程都有自己独立的栈空间，比如main线程，main方法中的代码就执行在main的线程栈中
+
+**当执行start()后，就会开启独立的线程栈，而每个线程都会执行自己的run方法，run方法中创建的变量都是互相独立的**
+
+![image-20230808222516836](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230808222516836.png)
+
+
+
+### 线程综练
+
+```java
+public class practise03 {
+    public static void main(String[] args) {
+        // 需求： 抢红包，100元，分3个红包，5个人抢
+        // 打印结果：xxx抢到xxx元*3  xxx没抢到*2
+        Thread03 t1 = new Thread03();
+        Thread03 t2 = new Thread03();
+        Thread03 t3 = new Thread03();
+        Thread03 t4 = new Thread03();
+        Thread03 t5 = new Thread03();
+
+        t1.setName("线程1");
+        t2.setName("线程2");
+        t3.setName("线程3");
+        t4.setName("线程4");
+        t5.setName("线程5");
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+    }
+}
+class Thread03 extends Thread {
+    static double money = 100;
+    static int count = 3; // 红包个数
+    static final double MIN = 0.01; // 不能抽到0，定义能抽到的最小金额
+    @Override
+    public void run() {
+        synchronized (Thread03.class) {
+            double prize;
+            if (count == 0) {
+                System.out.println(getName() + "没抢到");
+            } else if (count == 1) {
+                prize = money; // 只剩一个红包，全部给出
+                count--;
+                System.out.println(getName() + "抢到了" + prize + "元");
+            } else {
+                Random r = new Random();
+                // 随机金额范围：第一次最大99.98 因为要剩2个红包,以此类推
+                // 随机范围 = 总金额 - (count - 1) * MIN
+                double bounds = money - (count - 1) * MIN;
+                prize = r.nextDouble(bounds);
+                if (prize < MIN) {
+                    prize = MIN;
+                }
+                count--;
+                money = money - prize; // 每次金额=上次剩余-红包
+                System.out.println(getName() + "抢到了" + prize + "元");
+            }
+        }
+    }
+}
+
+```
+
+
+
+### 线程池
+
+前面的多线程代码，在执行完任务后线程就会销毁，下次再执行需要再创建线程，浪费资源，线程池就是用来保存线程的容器
+
+概念：
+
+1.存放线程的容器，创建线程池时初始是空的，提交任务时，线程池创建线程对象，任务执行完毕，线程归还给线程池，下次再提交时，不需要创建新的线程，复用已有线程
+
+2.若提交任务时没有空闲线程，也无法创建新线程（达到最大线程数），则任务会等待
+
+```java
+// 工具类Executors创建线程池
+public static ExecutorService newCachedThreadPool() // 创建一个没有上限的线程池
+public static ExecutorService newFixedThreadPool(int nThreads) // 创建有上限的线程池
+
+    
+public class p1 {
+    public static void main(String[] args) throws InterruptedException {
+        // 创建无上限线程池对象
+        ExecutorService pool1 = Executors.newCachedThreadPool();
+
+        // 创建有上限的线程池对象 参数表示线程数，最多3条线程
+        ExecutorService pool2 = Executors.newFixedThreadPool(3);
+
+        // 提交任务给线程池, 可接受一个Runnable对象
+        pool1.submit(new MyRun());
+
+        // main线程休眠，确保线程空闲
+        Thread.sleep(1000);
+
+        // 再提交一个任务，依然是线程池的线程1执行，线程会被复用
+        pool1.submit(new MyRun());
+
+        // 关闭线程池，实际开发中线程池一般不关闭
+        // pool1.shutdown();
+    }
+}
+
+```
+
+
+
+#### 自定义线程池
+
+概念：
+
+核心线程：一直存在
+
+临时线程：空闲时会被销毁
+
+线程池执行逻辑：
+
+例：核心线程3，临时线程3，队伍长度3，任务数10
+
+核心线程执行任务123，任务456放到队伍中等待，创建3个临时线程执行任务789，此时多出来的任务10就会被执行拒绝策略(默认会拒绝，并抛出异常)
+
+```java
+public class p2 {
+    public static void main(String[] args) {
+        // 自定义线程池 接收7个参数
+        /*
+        * 1.核心线程数 不能小于0
+        * 2.最大线程数 不能小于0，不能小于核心线程数
+        * 3.临时线程最大存在时间
+        * 4.时间的单位
+        * 5.任务队列
+        * 6.创建线程工厂
+        * 7.任务的拒绝策略
+        * */
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(
+                3,
+                6,
+                60,
+                TimeUnit.SECONDS, // 用TimeUnit指定时间单位
+                new ArrayBlockingQueue<>(3), // 任务队列
+                Executors.defaultThreadFactory(), // 线程工厂对象
+                new ThreadPoolExecutor.AbortPolicy() // AbortPolicy是一个静态内部类，语法是先调用外部类再创建内部类
+        );
+
+        // 提交任务 线程池会自动分配核心线程给任务，若满了则会排队，若队列也满了则会创建临时线程
+        pool.submit(new MyRun());
+        pool.submit(new MyRun());
+        pool.submit(new MyRun());
+        pool.submit(new MyRun());
+        pool.submit(new MyRun());
+    }
+}
+```
+
+
+
+#### 最大并行数
+
+假如电脑CPU是4核8线程，那么该电脑的最大线程数就是8，能并行处理8个任务，最大并行数就是8
+
+
+
+根据项目特点，一般分为：
+
+CPU密集型运算（计算多）=====> 线程池设置：最大并行数+1，1是后备线程，防止前面线程有问题
+
+IO密集型运算（读写文件，数据库多） ====> 线程池设置：最大并行数*期望CPU利用率 * （ 总时间(CPU计算时间+等待时间) / CPU计算时间 ）
+
+例如一个任务需要读取2个文件，并进行相加，读取文件硬盘耗时1秒，相加CPU耗时1秒，总时间就是2秒，可以用Thread.dump算出时间
+
+核心数 8 * CPU利用率100% * (总时间2秒/CPU时间1秒) = 16 
+
+
+
+## 网络编程
+
+### 三要素
+
+IP：设备在网络中的地址，唯一标识
+
+端口号：应用程序在设备中的唯一标识
+
+协议：数据在网络中进行传输的规则，常见协议有UDP,TCP,HTTP,HTTPS,FTP
+
+**InetAddress**：表示IP对象的类
+
+
+
+本机IP和路由分配IP的区别：
+
+本机IP永远是127.0.0.1，假设路由器分配的本机IP是192.168.1.100
+
+往127.0.0.1发送数据时，不走路由器，网卡判断是本机地址直接返回
+
+往路由分配的本机IP,往192.168.1.100发送数据时，会先通过路由器再返回给本机
+
+
+
+**端口：**
+
+端口号由2个字节表示的整数，取值范围0~65535，0~1023用于一些网络服务或应用，1024以上可以自己用
+
+**一个端口号只能被一个应用使用**
+
+端口就是应用程序对外的出口，一个应用必须绑定一个端口，否则无法使用网络
+
+比如使用微信聊天，微信绑定了65533端口，那么两台电脑的微信就能通过65533端口收发数据
+
+
+
+**协议**
+
+OSI 7层参考模型，世界互联网协议标准，模型过于理想化，未广泛推广
+
+7层：应用层，表示层，会话层，传输层，网络层，数据链路层，物理层
+
+**TCP/IP 4层参考模型（TCP/IP协议）：事实上的国际标准**
+
+4层：应用层(应用程序相关协议http,ftp,dns,telnet..)，传输层(传输协议TCP,UDP)，网络层(IP,ICMP,ARP封装)，物理链路层(转010101物理设备传输)
+
+
+
+#### UDP协议
+
+user datagram protocal 用户数据报协议， 使用场景：网络会议，视频通话等，丢失一点数据影响不大的场景
+
+UDP是面向**无连接**通信协议，速度快，有大小限制，一次最大发送64K，数据不安全，易丢失
+
+无连接含义：不会检查接收方连接是否畅通，直接就发送了
+
+```java
+public class UDPtest {
+    public static void main(String[] args) throws IOException {
+        // UDP发送数据
+        // 1.创建发送数据的承载对象 可以接受一个参数，表示绑定本机哪个端口
+        DatagramSocket ds = new DatagramSocket();
+
+        // 2.打包要发送的数据
+        String str = "hello david!"; // 要发送的数据
+        byte[] bytes = str.getBytes(); // 转字节数组
+        InetAddress address = InetAddress.getByName("David-0702"); // 接收的主机
+        int port = 10086; // 接收主机的端口
+
+        DatagramPacket dp = new DatagramPacket(bytes, bytes.length, address, port);
+
+        // 3.发送数据
+        ds.send(dp);
+
+        // 4.释放资源
+        ds.close();
+    }
+}
+
+public class UDPrecieve {
+    public static void main(String[] args) throws IOException {
+        // UDP接收数据
+        // 1.接收数据的对象，必须绑定端口，要和发送数据指定的端口一致
+        DatagramSocket ds = new DatagramSocket(10086);
+
+        // 2.创建接收数据用的数据包
+        byte[] bytes = new byte[1024];
+        DatagramPacket dp = new DatagramPacket(bytes, bytes.length);
+
+        // 这是一个阻塞方法，若没有接收到数据会一直等待
+        ds.receive(dp);
+
+        // 3.解析数据
+        byte[] data = dp.getData();
+        int length = dp.getLength();
+        InetAddress address = dp.getAddress();
+        int port = dp.getPort();
+        System.out.println("接收到的数据" + new String(data, 0, length)); // 字节数组要解析为字符串输出
+        System.out.println("该数据从" + address + "这台电脑中" + port +"这个端口发出");
+
+        // 4.释放资源
+        ds.close();
+    }
+}
+```
+
+**基于UDP的聊天室原型**
+
+```java
+public class UDPtest {
+    public static void main(String[] args) throws IOException {
+        // UDP发送数据
+        /*
+        * 需求：
+        * UDP发送数据，数据来自键盘录入，直到输入数据是886，发送数据结束
+        * UDP接收数据，因为接收端不知道发送端什么时候结束，采用死循环接收
+        * */
+        // 1.创建发送数据的承载对象，可以传一个参数绑定本机哪个端口，不传就随机绑定
+        DatagramSocket ds = new DatagramSocket();
+
+        // 2.打包要发送的数据
+        // 因为是不断输入的，用循环处理这段代码
+        while (true) {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("请输入要发送的内容:");
+            String str = sc.nextLine();
+            if (str.equals("886")) { // 当输出886时，发送端结束
+                break;
+            }
+            byte[] bytes = str.getBytes();
+            InetAddress address = InetAddress.getByName("David-0702"); // 接收的主机
+            int port = 10086; // 接收主机的端口
+
+            DatagramPacket dp = new DatagramPacket(bytes, bytes.length, address, port);
+            // 3.发送数据
+            ds.send(dp);
+        }
+
+        // 4.释放资源
+        ds.close();
+    }
+}
+
+public class UDPrecieve {
+    public static void main(String[] args) throws IOException {
+        // UDP接收数据
+        // 1.接收数据的对象，必须绑定端口，要和发送数据的端口一致
+        DatagramSocket ds = new DatagramSocket(10086);
+
+        // 2.创建接收数据用的数据包
+        byte[] bytes = new byte[1024];
+        DatagramPacket dp = new DatagramPacket(bytes, bytes.length);
+
+        // 因为接收端不知道发送端什么时候会停止发送，所以需要一直循环接收
+        while (true) {
+            ds.receive(dp); // 这是一个阻塞方法，若没有接收到数据会一直等待
+            // 3.解析数据
+            byte[] data = dp.getData();
+            int length = dp.getLength();
+            InetAddress address = dp.getAddress();
+            int port = dp.getPort();
+            System.out.println("接收到的数据" + new String(data, 0, length)); // 字节数组要解析为字符串输出
+            System.out.println("该数据从" + address + "这台电脑中" + port +"这个端口发出");
+        }
+    }
+}
+```
+
+#### UDP三种发送方式
+
+单播：一对一发送 (上面的代码就是单播)
+
+组播：一对多发送 组播地址224.0.0.0~239.255.255.255，其中224.0.0.0~224.0.0.255为预留的组播地址
+
+广播：对局域网内所有电脑发送 广播地址255.255.255.255
+
+```java
+// 组播部分代码
+// 发送端
+MulticastSocket ms = new MulticastSocket(); // 创建MulticastSocket对象
+String s = "你好啊";
+byte[] bytes = s.getBytes[];
+InetAddress address = InetAddress.getByName("224.0.0.1") // 发送地址设置为组播地址
+int port = 10000;
+DatagramPacket dp = new DatagramPacket(bytes, bytes.length, address, port);
+ms.send(dp);
+ms.close();
+   
+// 接收端 可以创建多个接收端都添加到224.0.0.1组中，就实现了组播效果
+MulticastSocket ms = new MulticastSocket(10000);    
+InetAddress address = InetAddress.getByName("224.0.0.1")
+ms.joinGroup(address) // 将本机添加到224.0.0.1这一组中
+
+byte[] bytes = new byte[1024];
+DatagramPacket dp = new DatagramPacket(bytes, bytes.length);    
+ms.receive(dp)
+    
+// 解析数据
+...
+    
+// 广播 发送端改这个地址就行，接收端和单播一样
+InetAddress address = InetAddress.getByName("255.255.255.255")
+```
+
+
+
+
+
+#### TCP协议
+
+transmission control protocal 传输控制协议，使用场景：文件下载，邮件发送，不能丢失数据的场景
+
+TCP**面向连接**的通信协议，传输较慢，无大小限制，传输安全，通过Socket产生IO流来进行网络通信
+
+**在服务端和客户端各建立一个ServerSocket/Socket对象，在通信前保证连接已经建立（三次握手）**
+
+四次挥手：客户端向服务端发出取消连接请求，服务端返回一个响应信息表示收到请求，将数据处理完毕后再向客户端发出确认取消信息，客户端收到后再次发送取消连接请求真正断开连接
+
+客户端是输出流，发送数据；服务端是输入流，接收数据
+
+```java
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        // tcp客户端
+        // 1.创建socket对象并连接服务端， 如果服务端端口没有启用会报错
+        Socket socket = new Socket("127.0.0.1", 10001);
+
+        // 2.从连接通道获取输出流，不是自己创建
+        OutputStream os = socket.getOutputStream();
+
+        os.write("你好啊，david".getBytes());
+
+        // 3.释放资源
+        os.close(); // 可以不写，关闭连接时自动释放
+        socket.close(); //关闭链接 内部会等到服务端获取到数据后再真正关闭（四次挥手协议，确保连接断开，且通道中数据处理完毕）
+    }
+}
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // TCP接收端 服务器端
+        // 创建ServerSocket 绑定端口
+        ServerSocket serverSocket = new ServerSocket(10001);
+
+        // 监听客户端的链接，阻塞方法 会一直等待，有客户端连接就会返回客户端的socket对象，连接真正建立
+        Socket socket = serverSocket.accept();
+
+        // 从连接通道获取输入流，读取数据
+        InputStream is = socket.getInputStream();
+        // 因为数据包含中文，用转换流转成字符流读取
+        InputStreamReader isr = new InputStreamReader(is);
+        // 再把字符流转成缓冲流，提高读取效率
+        BufferedReader br = new BufferedReader(isr);
+        String str;
+        while ((str = br.readLine()) != null) {
+            System.out.println(str);
+        }
+        socket.close();
+        serverSocket.close();
+    }
+}
+```
+
+
+
+##### 多发多收
+
+```java
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        // 客户端
+        // 需求：发送用户输入内容，直到输入886，结束连接
+
+        // 1.创建socket对象并连接服务端， 如果服务端端口没有启用，会报错
+        Socket socket = new Socket("127.0.0.1", 10001);
+
+        // 2.从连接通道获取输出流，不是自己创建
+        OutputStream os = socket.getOutputStream();
+
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("请输入内容：");
+            String str = sc.nextLine();
+            if (str.equals("886")) {
+                break;
+            }
+            // 写出数据
+            os.write(str.getBytes());
+        }
+        socket.close(); //关闭链接
+    }
+}
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // TCP接收端 服务器端
+        // 创建ServerSocket 绑定端口
+        ServerSocket serverSocket = new ServerSocket(10001);
+
+        System.out.println("准备连接");
+        Socket socket = serverSocket.accept(); // 监听客户端的链接，阻塞方法 会一直等待
+        System.out.println("已监听到客户端连接，等待数据中"); // 当客户端开启连接，就会执行到这里
+        // 从连接通道获取输入流，读取数据
+        InputStream is = socket.getInputStream();
+
+        // 因为数据包含中文，用转换流转成字符流读取
+        InputStreamReader isr = new InputStreamReader(is);
+        int b;
+        System.out.println("已获取连接通道IO流，开始读取数据");
+        while ((b = isr.read()) != -1) { // read会一直等待，直到结束标记，或客户端关闭连接
+            System.out.println("已读到数据");
+            System.out.print((char) b);
+        }
+        System.out.println("已读完数据，准备关闭服务端");
+        socket.close();
+        serverSocket.close();
+    }
+}
+```
+
+
+
+##### 服务端反馈
+
+```java
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        // 客户端
+        // 需求：发送用户输入内容，直到输入886，结束连接
+
+        // 1.创建socket对象并连接服务端， 如果服务端端口没有启用，会报错
+        Socket socket = new Socket("127.0.0.1", 10001);
+
+        // 2.从连接通道获取输出流，不是自己创建
+        OutputStream os = socket.getOutputStream();
+
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            System.out.println("请输入内容：");
+            String str = sc.nextLine();
+            if (str.equals("886")) {
+                break;
+            }
+            // 写出数据
+            os.write(str.getBytes());
+        }
+        socket.shutdownOutput(); // 结束标识，服务端不会再等待read
+        // 接收服务端反馈数据
+        InputStream is = socket.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        int z;
+        while ((z = isr.read()) != -1) {
+            System.out.print((char) z);
+        }
+        socket.close(); //关闭链接
+    }
+}
+
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // TCP接收端 服务器端
+        // 创建ServerSocket 绑定端口
+        ServerSocket serverSocket = new ServerSocket(10001);
+
+
+        System.out.println("准备连接");
+        Socket socket = serverSocket.accept(); // 监听客户端的链接，阻塞方法 会一直等待
+        System.out.println("已监听到客户端连接，等待数据中");
+        // 从连接通道获取输入流，读取数据
+        InputStream is = socket.getInputStream();
+
+        // 因为数据包含中文，用转换流转成字符流读取
+        InputStreamReader isr = new InputStreamReader(is);
+        int b;
+        System.out.println("已获取连接通道IO流，开始读取数据");
+
+        // 反馈给客户端，用输出流
+        OutputStream os = socket.getOutputStream();
+
+        while ((b = isr.read()) != -1) { // read会一直等待通道中的数据，直到遇到结束标记，或客户端关闭连接
+            System.out.print((char) b);
+        }
+        System.out.println();
+        System.out.println("已读完数据，准备关闭服务端");
+        os.write("服务端回显：大卫你好呀".getBytes());
+        socket.close();
+        serverSocket.close();
+    }
+}
+```
+
+
+
+##### 文件上传
+
+```java
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        // 文件上传客户端
+        Socket socket = new Socket("127.0.0.1", 10001);
+
+        // 读取本地文件
+        FileInputStream fs = new FileInputStream("C:\\Users\\yoki\\Desktop\\javaTest\\a.jpg");
+        // 缓冲流读取文件
+        BufferedInputStream bis = new BufferedInputStream(fs);
+
+        OutputStream os = socket.getOutputStream();
+        // 用缓冲流提高写出效率
+        BufferedOutputStream bos = new BufferedOutputStream(os);
+        byte[] bytes = new byte[1024];
+        int len;
+        while ((len = bis.read(bytes)) != -1) {
+            bos.write(bytes, 0, len);
+            bos.flush(); // 重要！清空缓存
+        }
+
+        socket.shutdownOutput(); // 传输结束标识
+        socket.close(); // 关闭连接
+    }
+}
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // 服务端接收上传文件
+        ServerSocket serverSocket = new ServerSocket(10001);
+
+        Socket socket = serverSocket.accept();
+
+        // 把流中读到的文件保存到指定文件夹中
+        InputStream is = socket.getInputStream();
+        BufferedInputStream bis = new BufferedInputStream(is);
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("fileUpload\\AAA.jpg")); // 保存到项目的相对路径
+
+        byte[] bytes = new byte[1024];
+        int len;
+        while ((len = bis.read(bytes)) != -1) { // 读取文件
+            bos.write(bytes, 0, len); // 存入指定位置
+            bos.flush(); // 重要！清空缓存，防止数据不完整
+        }
+        socket.close();
+        serverSocket.close();
+    }
+}
+
+```
+
+
+
+##### 多用户文件上传
+
+不关闭服务端，利用无限循环+多线程解决，只有循环就必须排队处理，多线程可以同时处理多个上传
+
+```java
+// 客户端不变，服务端代码
+package com.david.demo25netUpload;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Random;
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // 服务端接收上传文件
+        ServerSocket serverSocket = new ServerSocket(10001);
+
+        // 创建线程池对象
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(
+                3, // 核心线程数
+                16, //线程池总大小
+                60, // 空闲时间
+                TimeUnit.SECONDS, // 空闲时间的单位
+                new ArrayBlockingQueue<>(2), // 队列
+                Executors.defaultThreadFactory(), // 线程工厂，让线程池如何创建线程
+                new ThreadPoolExecutor.AbortPolicy() // 阻塞策略
+        );
+        // 多线程接收文件上传
+        while (true) {
+            Socket socket = serverSocket.accept();
+
+            // 1.当有客户端连接就用MyRunnable实现类创建一个线程
+            //new Thread(new MyRunnable(socket)).start();
+            
+            // 2.用线程池创建线程
+            pool.submit(new MyRunnable(socket));
+        }
+    }
+}
+
+public class MyRunnable implements Runnable{
+    Socket socket;
+    public MyRunnable (Socket socket) {
+        this.socket = socket;
+    }
+    @Override
+    public void run() {
+        try {
+            InputStream is = socket.getInputStream();
+            BufferedInputStream bis = new BufferedInputStream(is);
+            // 保存到项目的相对路径
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("fileUpload\\AAA.jpg"));
+            byte[] bytes = new byte[1024];
+            int len;
+            while ((len = bis.read(bytes)) != -1) { // 读取文件
+                bos.write(bytes, 0, len); // 存入指定位置
+                bos.flush(); // 重要！清空缓存
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+}
+
+```
+
+
+
+
+
+## 反射
+
+定义：反射允许对封装类的成员变量，方法，构造函数的信息进行编程访问。
+
+反射必须要获取字节码文件对象，通过Class类可以获取class对象， Class也是JAVA中定义好的一个类
+
+获取Class类的3种方式：
+
+1.Class.forName("全类名")    // 全类名：包名+类名
+
+2.类名.class
+
+3.对象.getClass()    //getClass是Object的方法，所有对象都可调用
+
+
+
+### 用反射获取类中所有元素
+
+```java
+package com.david.demo26Reflect;
+
+import java.lang.reflect.*;
+
+public class reflectTest {
+    public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
+        // 获取class字节码对象,要用全类名
+        Class clazz = Class.forName("com.david.demo26Reflect.Person");
+
+        // 获取构造方法==================================
+        // 获取该类的公共构造方法的对象的数组
+        Constructor[] cons1 = clazz.getConstructors();
+        for (Constructor con1 : cons1) {
+            System.out.println("公共:" + con1);
+        }
+
+        // 获取所有构造方法的对象的数组,包括私有
+        Constructor[] cons2 = clazz.getDeclaredConstructors();
+        for (Constructor con2 : cons2) {
+            System.out.println("所有：" + con2);
+        }
+
+        // 获取单个公共构造方法对象, 要传构造函数形参的class类, 参数和构造方法的参数一致
+        Constructor con3 = clazz.getConstructor(String.class, int.class, String.class, Double.class);
+        System.out.println("con3:" + con3);
+
+        // 获取单个构造方法对象，可获取私有构造方法
+        Constructor con4 = clazz.getDeclaredConstructor(String.class, int.class);
+        System.out.println("con4:" + con4);
+
+        // 获取构造方法的权限修饰符
+        int modifiers = con4.getModifiers();
+        System.out.println("权限修饰符：" +modifiers); // 返回2， 返回整数形式， JDK文档可以查对应权限
+        // 用构造方法创造对象
+        con4.setAccessible(true); // con4是私有构造方法，要先设置权限才能调用，这种操作叫暴力反射
+        Person p = (Person) con4.newInstance("大卫", 36);
+        System.out.println(p);
+
+
+        // 获取成员变量==================================================
+        System.out.println("成员变量================================");
+        // 获取公共成员变量
+        Field[] fields = clazz.getFields();
+        for (Field field : fields) {
+            System.out.println(field);
+        }
+        // 获取包括私有在内的所有成员变量
+        Field[] declaredFields = clazz.getDeclaredFields();
+        for (Field declaredField : declaredFields) {
+            System.out.println(declaredField);
+        }
+        // 获取公共的单个成员变量
+        Field name = clazz.getField("name");
+        System.out.println(name);
+
+        // 获取单个成员变量,可获取私有
+        Field gender = clazz.getDeclaredField("gender");
+        System.out.println(gender);
+        // 获取权限修饰符
+        int modifiers1 = name.getModifiers();
+        System.out.println(modifiers1);
+
+        // 获取成员变量名
+        String n = name.getName();
+        System.out.println(n);
+
+        // 获取成员变量数据类型
+        Class<?> type = name.getType();
+        System.out.println(type); // class java.lang.String
+
+        // 获取成员变量保存的值, 先创建一个对象
+        Person p2 = new Person("david", 35, "男", 1.75);
+        String value = (String)name.get(p2);
+        System.out.println(value);
+
+        // 修改对象中的值 参数是要修改的对象，和变更的值
+        name.set(p2, "KING");
+        System.out.println("修改后的对象：" + p2);
+
+        System.out.println("成员方法========================");
+        // 获取成员方法===============================================
+        // 获取公共的成员方法，包括继承的父类公共方法
+        Method[] methods = clazz.getMethods();
+        for (Method method : methods) {
+            System.out.println("本类+父类的方法：" + method);
+        }
+        // 获取本来方法，包括私有，没有父类
+        Method[] declaredMethods = clazz.getDeclaredMethods();
+        for (Method declaredMethod : declaredMethods) {
+            System.out.println("本类方法：" +declaredMethod);
+        }
+
+        // 获取单个公共成员方法
+        Method eat = clazz.getMethod("eat", String.class);
+        Method eat2 = clazz.getMethod("eat");
+        System.out.println(eat);
+        System.out.println(eat2);
+        // 获取单个私有成员方法
+        Method sing = clazz.getDeclaredMethod("sing");
+        System.out.println(sing);
+        // 获取方法名
+        System.out.println(sing.getName());
+        // 获取方法形参的类型，返回一个数组
+        Parameter[] params = eat.getParameters();
+        for (Parameter param : params) {
+            System.out.println(param);
+        }
+        // 重点：运行方法
+        /*
+        * Object invoke(Object obj, Object...args)： 运行方法
+        * 参数1.用obj对象调用该方法
+        * 参数2.调用方法传递的参数，没有就不写
+        * 可以有返回值，直接接受方法运行结果即可
+        * */
+        Person p3 = new Person("大哥", 35, "男", 1.75);
+        eat.invoke(p3, "香蕉"); // p3对象调用eat方法
+    }
+}
+
+```
+
+
+
+### 反射使用场景
+
+1、对任意对象，都可以把对象的所有字段名和值保存到文件中
+
+2、通过配置文件，动态创建对象并调用方法，实现不修改代码，只修改配置文件就能完成业务变更的效果
+
+```java
+// 配置文件样式 只修改配置文件就能执行不同的类和方法
+classname=com.david.demo.Person
+method=eat
+
+// 读取配置文件
+Properties prop = new Properties();
+FileInputStream fis = new FileInputStream("xxx\\prop.properties");
+prop.load(fis);
+fis.close();
+
+// 获取全类名和方法名
+String className = (String)prop.get("classname");
+String methodName = (String)prop.get("method");
+
+// 反射获取构造方法并创建对象
+Class clazz = Class.forName(className);
+Constructor con = clazz.getDeclaredConstructor();
+Object o = con.newInstance();
+
+// 反射获取成员方法并运行
+Method eat = clazz.getDeclaredMethod(methodName); //传入方法名获取方法
+m.invoke(o, "苹果") // 传入创建的o对象，调用eat方法，并传入参数
+```
+
+
+
+
+
+
+
+## 动态代理
+
+**定义：无侵入式的给代码增加额外功能**
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        // 使用代理
+        // 1.创建要被代理的对象
+        SuperStar star = new SuperStar("萧敬腾");
+        Star proxy = ProxyUtil.createProxy(star);
+
+        // 2.用代理调用方法
+        proxy.sing("王妃"); 
+        /*
+        * 执行效果：
+        * 准备话筒，收钱
+        * 萧敬腾正在唱王妃
+        * */
+    }
+}
+
+// 把想要被代理的方法定义在接口中
+public interface Star {
+    public abstract String sing(String name);
+    public abstract void dance();
+}
+
+// 要被代理的对象，实现接口的方法就是要代理的方法
+public class SuperStar implements Star {
+    private String name;
+    public SuperStar(String name) {
+        this.name = name;
+    }
+
+    // 重写接口方法
+    @Override
+    public String sing(String name) {
+        System.out.println(this.name+"正在唱"+name);
+        return "谢谢";
+    }
+
+    @Override
+    public void dance () {
+        System.out.println(this.name+"正在跳舞");
+    }
+}
+
+
+// 类的作用：创建一个代理
+public class ProxyUtil {
+    /*
+    * 形参：被代理的对象
+    *返回值：创建的代理,就是接口的类型，多态
+    *
+    * 实际逻辑：
+    * 1. 获取代理对象
+    * 代理对象 = ProxyUtil.createProxy(SuperStar)
+    *
+    * 2.再调用代理的唱歌方法
+    *   代理对象.唱歌方法() 实际调用的就是invoke中的代码
+    * */
+    public static Star createProxy(SuperStar superStar) {
+        /*
+        * java.lang.reflect.Proxy类：提供了为对象产生代理对象的方法
+        *
+        * public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
+        * 参数1：用于指定哪个类加载器，去加载生成的代理类
+        * 参数2：指定接口，用于指定生成的代理有哪些方法
+        * 参数3：指定生成代理对象要做的事，即要执行的代码
+        * */
+        Star star = (Star) Proxy.newProxyInstance(
+                ProxyUtil.class.getClassLoader(), // 当前类的类加载器
+                new Class[]{Star.class}, // 指定Star接口
+                new InvocationHandler() { // 也是一个接口，要写匿名内部类实现接口，重写invoke方法，真正要执行的代码
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        /*
+                        * 参数1. 代理的对象
+                        * 参数2. 要运行的方法 sing
+                        * 参数3. 调sing方法时传递的实参
+                        * */
+                        if ("sing".equals(method.getName())) {// method类，可以用getName获取方法名
+                            System.out.println("准备话筒，收钱");
+                        } else if ("dance".equals(method.getName())) {
+                            System.out.println("准备场地，收钱");
+                        }
+                        return method.invoke(superStar, args); // 传原对象和要给方法执行的参数
+                    }
+                }
+        );
+        return star;
+    }
+}
+```
+
+
 
