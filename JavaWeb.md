@@ -93,7 +93,8 @@ create table tb1_user(
     password varchar(32)，
     usergender char(10), -- char 定长字符串，char(10)固定用10个字符空间，存储性能高，但浪费空间
     score double(5,2), -- 分数：范围0~100，double第一位是总长度，第二位是小数位数， 保留2位小数，所以总长度是3+2=5
-    telephone varchar(15) --电话 最大长度不超过15位
+    telephone varchar(15), --电话 最大长度不超过15位
+    birthday date -- 生日 日期类型
 );
 desc tb1_user; -- 查看表结构
 
@@ -106,5 +107,40 @@ alter table tb1_user add address varchar(50); -- 添加名为address的列
 alter table tb1_user modify address char(50); -- 修改address列的数据类型
 alter table tb1_user change address addr varchar(30); -- 同时修改addrees的列名和数据类型
 alter table tb1_user drop addr; -- 删除addr列
+
+
+/* DML */
+-- 给指定列添加数据 INSERT INTO 表名(列名1，列名2...) VALUES(值1，值2...);
+INSERT INTO user(id, name) VALUES(1, '张三');
+
+-- 给全部列添加数据 可省略列名（实际开发不建议省略列名）
+INSERT INTO user VALUES(1,'王五','男', '1999-11-11', 20)；
+
+-- 批量添加数据
+-- INSERT INTO 表名(列名1，列名2) VALUES(值1，值2...),(值1，值2...),(值1，值2...)...;
+INSERT INTO user(id, name) VALUES(1,'张三'),(2,'王五'),(3,'赵六');
+-- INSERT INTO 表名 VALUES(值1，值2...),(值1，值2...),(值1，值2...)...;
+INSERT INTO user VALUES(1,'王五','男', '1999-11-11', 20),(2,'赵六','男', '1997-02-03', 20);
+
+-- 修改数据 UPDATE表名 SET 列名1=值1，列名2=值2...[WHERE 条件]; 不加条件则所有数据都会修改
+UPDATE user SET name='david' where name = '张三';
+UPDATE user SET birthday = '2000-11-11' where name = 'david';
+
+-- 删除数据
+DELETE from user where name = '李四';
+
+
+/* DQL */
+/*
+ 语法：
+ SELECT 字段列表
+ FROM 表名列表
+ WHERE 条件列表
+ GROUP BY 分组字段
+ HAVING 分组后条件
+ ORDER BY 排序字段
+ LIMIT 分页限定
+*/
+
 ```
 

@@ -6412,6 +6412,8 @@ FileUtils.copyDirectory(src, dest) // 拷贝文件夹
 
 **Unicode：国际标准字符集(也完全兼容asc)，对世界各种语言每个字符定义一个唯一编码**
 
+
+
 **ASC规则：**
 
 **存储规则：**
@@ -6496,6 +6498,16 @@ public byte[] getBytes(String charsetName) // 使用指定方式编码
 String(byte[] bytes) // 默认方式解码
 String(byte[] bytes, String charsetName) //使用指定方式解码
 ```
+
+
+
+### char为什么可以存汉字
+
+问题：一个char类型占2个字节，但一个utf-8编码汉字占3个字节，为什么char可以存？
+
+char字符存储的是Unicode编码的代码点，也就是存储的是U+FF00这样的数值，然而我们在调试或者输出到输出流的时候，是JVM或者开发工具按照代码点对应的编码字符输出的。
+
+所以虽然UTF-8编码的中文字符是占用3个或者4个字节，但是对应的代码点仍然集中在[0x4E00, 0x9FBB]，所以char是能够存下在这个范围内的中文字符的。
 
 
 
