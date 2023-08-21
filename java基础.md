@@ -3088,7 +3088,7 @@ class Dog extends Animal{
 
 Animal a = new Dog();
 Dog d = (Dog) a; // animal强制转换成dog类型, 调用show方法才不会报错
-a.show();
+d.show();
 ```
 
 

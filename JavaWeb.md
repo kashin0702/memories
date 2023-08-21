@@ -1084,9 +1084,28 @@ atrifactId：定义当前maven项目名称（通常为模块名称）
 
 version：定义当前项目版本号
 
+备注：
 
+1.可以在mvn repository官网内查看配置写法
 
+2.快捷键：alt+insert  选择dependency快速写配置导jar包
 
+```xml
+<!--在POM.mxl文件内填写：导入mysql jar包， 配置后记得点击右上角load changes下载依赖-->
+<dependencies>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.34</version>
+        <!-- 依赖的有效范围, 3个环境 编译，测试，运行 -->
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+**依赖有效范围： 默认值compile，3个环境都有效**
+
+![image-20230821150240468](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230821150240468.png)
 
 
 
@@ -1103,3 +1122,227 @@ test：测试 ，使用合适的单元测试框架运行测试（Junit是其中�
 package：打包，将编译后的代码打包成jar文件
 
 install：安装，安装项目包到本地仓库，这样项目包可以用作其他本地项目的依赖
+
+
+
+
+
+## MyBatis
+
+简介：MyBatis是一个持久层框架，用于简化JDBC开发。 官网：https://mybatis.org/mybatis-3/zh/index.html
+
+持久层：将数据保存到数据库的那一层代码。
+
+简化了什么： 
+
+1、将JDBC一些硬编码的代码抽取到配置文件中
+
+2、手动设置sql参数和获得结果集封装到一个方法中
+
+```java
+// 一行代码获取sql查询结果，并封装到students集合中
+List<Student> students = sqlSession.selectList("test.selectByGender", "男");
+```
+
+
+
+### mybatis流程
+
+**两个XML配置文件，都放在resource文件夹下**
+
+```xml
+<!-- sql映射语句配置文件 -->
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace: 命名空间，可以理解成一个模块, 外部调用使用test.selectAll-->
+<mapper namespace="test">
+    <select id="selectAll" resultType="com.david.Pojo.User">
+        select * from tb_mybatis_users
+    </select>
+</mapper>
+
+
+<!-- mybatis-config.xml配置文件 -->
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+			<!--数据库连接配置-->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/david_db1?useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="UserMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+**执行mybatis核心代码**
+
+```java
+package com.david;
+
+import com.david.Pojo.User; // 自定义User类
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+public class demo1 {
+    public static void main(String[] args) throws IOException {
+        // 1.加载mybatis核心配置文件
+        String resource = "mybatis-config.xml";
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+        // 2.获取sqlSession对象，用它来执行sql
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        // 3.执行sql, 传入要执行的映射语句，获取查询返回的结果集，封装到list集合中
+        List<User> list = sqlSession.selectList("test.selectAll");
+        System.out.println(list);
+
+        // 释放资源
+        sqlSession.close();
+    }
+}
+
+```
+
+
+
+### mapper代理方式
+
+1.定义和sql映射文件同名的Mapper接口，并把接口和映射文件放在同一目录下
+
+​	java文件夹下新建com.david.mapper包，新建UserMapper接口
+
+​	resource文件夹下新建com/david/mapper/UserMapper.xml 配置文件
+
+
+
+2.设置sql映射文件的nameSpace书写为mapper接口全限定名
+
+3.在mapper接口中定义方法，方法名就是sql映射文件中sql语句的id，并保持参数类型和返回值一致
+
+4.代码部分：通过sqlSession.getMapper方法获取mapper接口的代理对象，调用对应方法完成sql执行
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace: mapper代理方式，命名空间必须是接口的全限定名-->
+<mapper namespace="com.david.mapper.UserMapper">
+    <select id="selectAll" resultType="com.david.Pojo.User">
+        select * from tb_mybatis_users
+    </select>
+</mapper>
+```
+
+```java
+package com.david.mapper;
+
+import com.david.Pojo.User;
+import java.util.List;
+
+public interface UserMapper {
+    List<User> selectAll(); // 方法名和mapper配置文件中的id名一致
+}
+
+```
+
+```java
+package com.david;
+
+import com.david.Pojo.User;
+import com.david.mapper.UserMapper;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+public class demo1 {
+    public static void main(String[] args) throws IOException {
+        // 1.加载mybatis核心配置文件
+        String resource = "mybatis-config.xml";
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+        // 2.获取sqlSession对象，用它来执行sql
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+
+        /**
+        	用mapper代理方式执行mybatis
+        	优化了这种传字符串的硬编码：List<User> list = sqlSession.selectList("test.selectAll")
+        */ 
+        // 获取mapper代理对象
+        UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+        List<User> userList = mapper.selectAll();// 执行接口同名方法，会自动去执行mapper配置文件中id对应的sql语句
+        System.out.println(userList);
+// 释放资源
+        sqlSession.close();
+    }
+}
+
+```
+
+
+
+### 核心配置文件解释
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--默认环境配置，可以配置多个environment 方便切换测试库/生产库 -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+			<!--数据库连接配置-->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/david_db1?useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="com/david/mapper/UserMapper.xml"/>
+        
+        <!--这里如果有很多映射文件，可以采用mapper代理写法进行包扫描，省去了路径-->
+        <package name="com.david.mapper" />
+    </mappers>
+</configuration>
+```
+
+
+
+### mybatis细节
+
+1.查询的sql列名和实体类的属性名不一致时，sql语句可以用as 关键词修改别名保持一致
+
+2.定义sql片段，执行相同的sql查询条件
+
+3.resultMap映射列名和类的属性名
