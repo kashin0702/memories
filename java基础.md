@@ -8370,3 +8370,143 @@ public class ProxyUtil {
 
 
 
+## 添加日志
+
+第三方日志jar包：logback
+
+1、添加3个jar包（logback-classic/logback-core/slf4j-api）
+
+2、src下添加logback.xml配置文件
+
+3、代码中创建logger日志对象
+
+```java
+// 创建一个logger日志对象
+public static final Logger LOGGER = LoggerFactory.getLogger("logTest");// 参数是日志打印对象的名字
+
+// 在执行的地方打日志，日志会输出到控制台，并保存到指定的日志文件中
+try{
+    LOGGER.info("方法执行了")
+}catch(Exception e) {
+    LOGGER.error("方法出错啦")
+}
+    
+```
+
+### 日志配置文件解析
+
+1、设置日志的输出位置，通常是控制台和日志文件
+
+2、设置日志的输出格式
+
+3、有开关，开启或关闭日志
+
+4、配置日志文件拆分规则，即每个日志文件大小，防止日志文件过大
+
+5、设置日志级别，低于配置的级别不会被记录
+
+
+
+## Junit单元测试
+
+导入jar包（IDEA已集成）
+
+为需要测试的业务类，定义对应的测试类，并为每个业务方法编写测试方法（必须：公共、无参、无返回值）
+
+测试方法必须添加@Test注解，如报错则导入junit包即可
+
+```java
+// 创建测试类
+public class StringUtilTest{
+    // 测试方法，可以直接执行
+    @Test
+    public void testPrintNumber(){
+        StringUtil.printNumber("david");
+    }
+}
+```
+
+
+
+## 注解
+
+代码中的特殊标记，如@test @Override 让其他程序根据注解信息来决定怎么执行该程序
+
+自定义注解：
+
+```java
+public @interface MyTest1{
+	String name();
+    boolean flag() default true;
+    String[] ccc();
+}
+
+// 使用注解 括号中的本质是注解的实现类对象	
+@MyTest1(name="david", ccc={"xx", "yy"})
+public class AnnotationTest{
+    
+}
+
+
+public @interface Mytest2{
+    String value();
+}
+
+//当属性名=value，且只有1个，可以省略字段名，直接传值
+@MyTest2("king")
+```
+
+
+
+**注解的真正含义：**
+
+对java编译后产生的class文件进行反编译，可以看到注解的本质是接口，继承了Annotation接口
+
+```java
+// 反编译后的注解
+public interface Mytest1 extends Annotation{
+    public abstract String name();
+    public abstract boolean flag();
+    public abstract String[] ccc();
+}
+```
+
+
+
+**元注解**
+
+修饰注解的注解
+
+```java
+@Retention(RetentionPolicy.RUNTIME) // 注解的保留周期 runtime一直保留到运行阶段
+@Target(ElementType.TYPE) // 当前注解只能用在类和接口上
+public @interface Mytest1{}
+```
+
+
+
+### 解析注解
+
+Class,Mehod等类都实现了Annotation接口，可以实现注解的解析
+
+```java
+// 业务类，其中有很多加了注解的成员方法
+AnnoTationTest a = new AnnotationTest();
+// 获取class对象
+Class c = AnnotationTest.class
+// 获取类中的所有方法 利用了反射
+Method[] methods = c.getDeclearedMethods()
+    
+ // 遍历方法，判断方法是否有注解
+    for(Method m : methods) {
+        if(m.isAnnotationPresent(MyTest.class)) {
+            // 获取注解实现类对象
+           	Mytest mt = (MyTest) m.getDeclearedAnnotation(Mytest.class)
+            mt.name(); // 取注解中的数据
+            mt.ccc();
+            // 有注解的，执行, 传入执行对象
+            m.invoke(a);
+        }
+    }
+```
+
