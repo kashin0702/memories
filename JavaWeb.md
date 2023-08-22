@@ -1131,7 +1131,7 @@ install：安装，安装项目包到本地仓库，这样项目包可以用作�
 
 简介：MyBatis是一个持久层框架，用于简化JDBC开发。 官网：https://mybatis.org/mybatis-3/zh/index.html
 
-持久层：将数据保存到数据库的那一层代码。
+JAVA经典三层结构：表现层、业务层、持久层，持久层：将数据保存到数据库的那一层代码。
 
 简化了什么： 
 
@@ -1151,7 +1151,7 @@ List<Student> students = sqlSession.selectList("test.selectByGender", "男");
 **两个XML配置文件，都放在resource文件夹下**
 
 ```xml
-<!-- sql映射语句配置文件 -->
+<!-- userMapper sql映射语句配置文件 -->
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
@@ -1164,7 +1164,7 @@ List<Student> students = sqlSession.selectList("test.selectByGender", "男");
 </mapper>
 
 
-<!-- mybatis-config.xml配置文件 -->
+<!-- mybatis-config.xml 核心配置文件 -->
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE configuration
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
@@ -1205,7 +1205,7 @@ import java.util.List;
 
 public class demo1 {
     public static void main(String[] args) throws IOException {
-        // 1.加载mybatis核心配置文件
+        // 1.加载mybatis核心配置文件 放在resources根目录下，直接写文件名即可
         String resource = "mybatis-config.xml";
         InputStream inputStream = Resources.getResourceAsStream(resource);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
@@ -1231,7 +1231,7 @@ public class demo1 {
 
 ​	java文件夹下新建com.david.mapper包，新建UserMapper接口
 
-​	resource文件夹下新建com/david/mapper/UserMapper.xml 配置文件
+​	resources文件夹下新建com/david/mapper/UserMapper.xml 配置文件，编译后就在同一个文件夹下了
 
 
 
@@ -1315,6 +1315,12 @@ public class demo1 {
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    
+    <!-- 别名配置 配置包扫描的路径，在sqlMapper文件内的resultType就不用再写包名+类名的格式，直接写类名就行，并且不区分大小写 -->
+    <typeAliases>
+    	<package name="com.david.Pojo"/>
+    </typeAliases>
+    
     <!--默认环境配置，可以配置多个environment 方便切换测试库/生产库 -->
     <environments default="development">
         <environment id="development">
@@ -1331,7 +1337,7 @@ public class demo1 {
     <mappers>
         <mapper resource="com/david/mapper/UserMapper.xml"/>
         
-        <!--这里如果有很多映射文件，可以采用mapper代理写法进行包扫描，省去了路径-->
+        <!--如果接口文件和映射文件名称一致，可以用包扫描方式加载所有映射文件，省去了路径书写-->
         <package name="com.david.mapper" />
     </mappers>
 </configuration>
@@ -1345,4 +1351,447 @@ public class demo1 {
 
 2.定义sql片段，执行相同的sql查询条件
 
-3.resultMap映射列名和类的属性名
+3.**resultMap**映射列名和类的属性名（最常用）
+
+```xml
+<!-- 映射文件  数据库表字段名和实体类字段名不一致的处理方式，两种：sql片段起别名，map映射 -->
+<mapper namespace="com.david.mapper.StuMapper">
+    <!--方式1：sql片段-->
+    <sql id="user_column">
+    	id, xx_name as name, xx_gender as gender 
+    </sql>
+    <select id="selectAll" resultType="com.david.Pojo.Student">
+        <!--通过sql片段查询-->
+        select <include refid="user_column" /> 
+        from tb_user
+    </select>
+    
+    <!-- 方式2：通过map映射字段 -->
+    <resultMap id="userResultMap" type="user">
+        <!--column就是数据库字段名，property就是实体类属性名-->
+    	<result column="xx_name" property="name"/>
+        <result column="xx_gender" property="gender"/>
+    </resultMap>
+    
+    <!--注意这里要改成resultMap-->
+    <select id="selectAll" resultMap="userResultMap">
+    	select * from tb_user
+    </select>
+</mapper>
+```
+
+
+
+### mybatis基本查询
+
+传参查询，使用参数占位符：#{}   会被替换成 ?
+
+动态查询表名，拼接sql：使用${}  
+
+注意点：sql 查询使用 < 号这种和xml符号冲突的
+
+1.使用转义字符\&lt;
+
+2.使用CDATA区 格式：<![CDATA[内容]]>
+
+```xml
+<select id="selectByName">
+    <!--转义字符-->
+	select * from tb_user where id &lt; #{id};
+    
+    <!--CDATA区  符号写在CDATA区中 字符很多时可以用这种-->
+    select * from tb_user where id
+    <![CDATA[
+		<
+	]]>
+</select>
+```
+
+```java
+public class batisTest {
+	// test注解需要Junit依赖
+    @Test
+    public void testSelectAll() throws IOException {
+        // 读取配置文件
+        InputStream resourceAsStream = Resources.getResourceAsStream("Mybatis-config.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        // 创建sql连接
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        // 获取映射
+        StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+        // 执行sql
+        List<Student> studentList = stuMapper.selectAll();
+        System.out.println(studentList);
+
+        // 释放资源
+        sqlSession.close();
+    }
+    @Test
+    public void testSelectByName () throws IOException {
+        // 读取配置文件
+        InputStream resourceAsStream = Resources.getResourceAsStream("Mybatis-config.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        // 创建sql连接
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        // 获取映射
+        StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+        // 执行sql
+        Student stu = stuMapper.selectByName("里昂");
+        System.out.println(stu);
+
+        // 释放资源
+        sqlSession.close();
+    }
+}
+
+// 接口文件
+package com.david.mapper;
+import com.david.Pojo.Student;
+import java.util.List;
+
+public interface StuMapper {
+    public List<Student> selectAll();
+    public Student selectByName(String name);
+}
+```
+
+```xml
+<!--映射文件-->
+<mapper namespace="com.david.mapper.StuMapper">
+    <select id="selectAll" resultType="com.david.Pojo.Student">
+        select * from stu
+    </select>
+    <select id="selectByName" resultType="com.david.Pojo.Student">
+            <!-- 根据姓名查询对象， 传参数占位符    -->
+        select * from stu where name = #{name};
+    </select>
+</mapper>
+```
+
+
+
+### mybatis多条件查询
+
+#### 接口传递多个参数 
+
+目的：让接口参数和sql中查询的字段一一对应
+
+1、通过接口注解的方式
+
+2、把参数封装到一个对象中，对象的属性名和sql查询字段一致
+
+3、把参数封装到map集合中， map的key和sql查询字段一致
+
+```java
+// 多个参数时，接口3种写法
+// 参数注解，参数名必须和占位符字段名一致
+public List<Student> selectByCondition(@Param("name")String name, @Param("gender")String gender);
+// 封装对象
+public List<Student> selectByCondition(Student student);
+// 封装map集合
+public List<Student> selectByCondition(Map map);
+```
+
+```xml
+<!--sql映射文件-->
+<!-- 多条件查询 -->
+<select id="selectByCondition" resultType="com.david.Pojo.Student">
+    select * from stu
+    where name like #{name} <!--接口的字段名和占位符字段名必须一致-->
+    and gender = #{gender};
+</select>
+```
+
+```java
+@Test
+public void testSelectByCondition() throws IOException {
+    InputStream rs = Resources.getResourceAsStream("Mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(rs);
+    // 创建sql连接
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 获取映射
+    StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+    String name = "昂";
+    String gender = "男";
+    // 因为name是like查询，要对字符串做模糊处理
+    String fname = "%" + name + "%";
+    // 执行sql
+    // 1.参数注解方式
+//        List<Student> studentList = stuMapper.selectByCondition(fname, gender);
+
+    // 2.封装对象方式
+//        Student student = new Student();
+//        student.setName(fname);
+//        student.setGender(gender);
+//        List<Student> studentList = stuMapper.selectByCondition(student);
+
+    // 3.封装map集合方式
+    HashMap<String, String> hm = new HashMap<>();
+    hm.put("name", fname);
+    hm.put("gender", gender);
+    List<Student> studentList = stuMapper.selectByCondition(hm);
+    System.out.println(studentList);
+
+    // 释放资源
+    sqlSession.close();
+}
+```
+
+
+
+### 动态SQL
+
+不固定查询条件，根据用户输入的查询条件动态变化
+
+mybatis支持的动态SQL标签
+
+**if**
+
+**choose(when, otherwise)**
+
+**trim(where, set)**
+
+**foreach**
+
+```xml
+<!--改写上面的SQL，变成动态SQL-->
+<!--多条件动态查询-->
+<select id="selectByCondition" resultType="com.david.Pojo.Student">
+    select * from stu
+    <!--where包裹条件，这样当第一个条件为空时，sql就不会出现where and xxx这种语法错误，where内自动去掉and-->
+    <where>
+        <!--test内写逻辑判断-->
+        <if test="name != null and name != ''">
+            name like #{name}
+        </if>
+        <if test="gender != null and gender != ''">
+            and gender = #{gender};
+        </if>
+    </where>
+</select>
+
+
+<!--单条件动态查询 前端通过单选一个条件后进行查询的场景-->
+<select id="selectByCondition" resultType="com.david.Pojo.Student">
+    select * from stu
+    <where>
+        <!--类似switch-->
+        <choose>  
+            <!--类似case-->
+            <when test="name != null and name != ''">  
+                name like #{name}
+            </when>
+            <when test="gender != null and gender != ''">
+                gender = #{gender}
+            </when>
+             <!--类似default，用户什么都没传的情况； 用where包裹的话可以不写-->
+            <otherwise> 
+                1 = 1
+            </otherwise>
+        </choose>
+    </where>
+</select>
+```
+
+
+
+### mybatis添加
+
+关键点：useGeneratedKeys="true" keyProperty="id"  获取数据生成的主键
+
+```java
+@Test
+public void testAdd() throws IOException {
+    InputStream rs = Resources.getResourceAsStream("Mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(rs);
+    // 创建sql连接
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 获取映射
+    StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+    String name = "梅艳芳";
+    String gender = "女";
+    Integer age = 39;
+    Student stu = new Student();
+    stu.setName(name);
+    stu.setGender(gender);
+    stu.setAge(age);
+    stuMapper.add(stu); // 调用add添加对象到数据库
+
+    // 注意：要手动提交事务，否则不会真正提交到数据库
+    sqlSession.commit();
+
+    System.out.println(stu.getId()); // 获得数据库自动创建的主键
+    // 释放资源
+    sqlSession.close();
+}
+```
+
+```xml
+<!--sql映射-->
+<!--添加数据 useGeneratedKeys表示主键返回，创建对象后可以获取到对象的主键，用于其他关联表使用-->
+<insert id="add" useGeneratedKeys="true" keyProperty="id">
+    insert into stu(name,gender,age)
+    values(#{name},#{gender}, #{age})
+</insert>
+```
+
+
+
+### mybatis动态修改
+
+```java
+@Test
+public void testUpdate() throws IOException {
+    InputStream rs = Resources.getResourceAsStream("Mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(rs);
+    // 创建sql连接
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 获取映射
+    StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+    String name = "kashin Forever";
+    Integer id = 2;
+    Student student = new Student();
+    student.setName(name);
+    student.setId(id);
+    // 修改name字段，传入id,name
+    stuMapper.update(student);
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+```
+
+```xml
+<!--修改数据使用动态SQL，只修改用户传入的数据，没传的不变-->
+<update id="update">
+    update stu
+    <!--set标签作用和where一样，如果字段不存在时，可保证内部语法正确-->
+    <set>
+        <if test="name != null and name != ''">
+            name = #{name},
+        </if>
+        <if test="gender != null and gender != ''">
+            gender = #{gender},
+        </if>
+        <if test="age != null">
+            age = #{age}
+        </if>
+    </set>
+    where id = #{id};
+</update>
+```
+
+
+
+### mybatis批量删除
+
+```xml
+<!--重点：批量删除 使用动态SQL和foreach标签-->
+<delete id="deleteByIds">
+    <!--
+        mybatis会将数组参数封装为一个map集合
+       * 默认：array = 数组
+       * 使用@Param注解可改变map集合默认key的名称
+    -->
+    delete from stu
+    where id in
+    (
+        <!--collection=array集合的默认名称； separator: 集合内每个元素的分隔符 id1,id2,id3-->
+        <foreach collection="array" item="id" separator=",">
+            #{id}
+        </foreach>
+    )
+</delete>
+```
+
+```java
+@Test
+public void testDeleteByIds() throws IOException {
+    InputStream rs = Resources.getResourceAsStream("Mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(rs);
+    // 创建sql连接
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 获取映射
+    StuMapper stuMapper = sqlSession.getMapper(StuMapper.class);
+
+    int[] ids = {3, 10};
+    stuMapper.deleteByIds(ids); // 执行批量删除，传入id数组
+
+    sqlSession.commit();
+    sqlSession.close();
+}
+
+// 接口参数
+public interface StuMapper{
+    public void deleteByIds(int[] ids); // 这里可以使用@Param注解修改 foreach标签collection集合的默认名称
+}
+```
+
+
+
+### mybatis传参细节
+
+mybatis底层在传参时的处理逻辑：
+
+一、传单个参数时：
+
+​	1.POJO类：直接使用，属性名和参数占位符名一致
+
+​	2.Map集合，直接使用，减免和参数占位符名一致
+
+​	3.Collection: 封装为Map集合，可使用@Param注解，替换Map集合中默认的arg键名
+
+​	底层操作：
+
+​		map.put("arg0", collection集合)
+
+​		map.put("collection", collection集合)
+
+​	4.List: 封装为map集合，可使用@Param注解，替换Map集合中默认的arg键名
+
+​		map.put("arg0", list集合)
+
+​		map.put("collection", list集合)
+
+​		map.put("list", list集合)
+
+​	5.Array: 封装为map集合，可使用@Param注解，替换Map集合中默认的arg键名
+
+​		map.put("arg0", 数组)
+
+​		map.put("array", 数组)
+
+​	6.其他类型：直接使用
+
+
+
+二、传多个参数：封装为Map集合，可使用@Param注解，替换Map集合中默认的arg键名
+
+​	map.put("arg0", 参数值1)	
+
+​	map.put("param1", 参数值2)
+
+​	....
+
+
+
+### 注解方式完成增删改查
+
+建议简单的增删改查可以用，复杂查询或动态SQL还是用xml映射的方式
+
+```java
+// 写在接口中方法的上方
+public interface StuMapper {
+    
+    @Select("select * from tb_user where id = #{id}")
+    public User selectById(int id);
+}
+```
+
+
+
