@@ -1795,3 +1795,68 @@ public interface StuMapper {
 
 
 
+
+
+## JavaWeb核心
+
+技术栈：B/S架构，浏览器/服务器模式
+
+​	静态资源：html,css,js,图片等负责页面展现
+
+​	动态资源：Servlet, JSP等负责逻辑处理
+
+​	数据库：数据存储
+
+​	http协议：定义通信规则
+
+​	web服务器(apache tomcat等)：负责解析http协议，解析请求数据，并发送响应数据
+
+
+
+### HTTP
+
+1.http协议基于TCP协议：面向连接，安全
+
+2.基于请求-响应模型：一次请求对应一次响应
+
+3.http协议是无状态的协议：对于事务处理没有记忆能力，每次请求-响应都是独立的。
+
+
+
+请求数据分为3部分：
+
+1.请求行 ，指第一行 包括了请求方式，请求资源路径，协议版本   GET /xx/xx HTTP/1.1  get的请求参数在请求行中
+
+2.请求头，第二行开始，键值对形式
+
+3.请求体，POST的请求参数
+
+响应数据也分为3部分：
+
+1.响应行，第一行，HTTP版本， 响应状态码(200, 304等等)
+
+2.响应头：第二行开始，键值对形式， Content-type:响应内容类型，如text/html, image/jpeg
+
+3.响应体：最后一部分，存放响应数据
+
+
+
+### 原生服务端响应
+
+通过new ServerSocket监听客户端请求，再通过输出流写出http响应数据给客户端返回。非常麻烦
+
+
+
+### Tomcat服务器
+
+web服务器就是一个应用程序
+
+web服务器作用：
+
+1.封装http协议操作，简化开发
+
+2.将web项目部署到服务器中，对外提供网页浏览服务
+
+tomcat是一个轻量级web服务器，支持servlet/jsp和少量javaEE规范，javaEE规范就是一整套java企业级开发规范，包含了jdbc,xml, spring,servlet,JTS,JTA等等
+
+tomcat也被称为web容器，servlet容器。servlet需要依赖tomcat才能运行。
