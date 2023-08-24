@@ -1849,9 +1849,7 @@ public interface StuMapper {
 
 ### Tomcat服务器
 
-web服务器就是一个应用程序
-
-web服务器作用：
+web服务器就是一个应用程序，作用：
 
 1.封装http协议操作，简化开发
 
@@ -1859,4 +1857,70 @@ web服务器作用：
 
 tomcat是一个轻量级web服务器，支持servlet/jsp和少量javaEE规范，javaEE规范就是一整套java企业级开发规范，包含了jdbc,xml, spring,servlet,JTS,JTA等等
 
-tomcat也被称为web容器，servlet容器。servlet需要依赖tomcat才能运行。
+tomcat也被称为web容器，servlet容器。servlet需要依赖tomcat才能运行
+
+
+
+### tomcat使用
+
+启动：下载tomcat压缩包，解压后选择bin/startup.bat启动服务，默认8080端口
+
+关闭：bin/shutdown.bat 或者 ctrl+C 
+
+若控制台中文乱码则修改conf/logging.properties配置文件，java.util.logging.ConsoleHandler.encoding = GBK
+
+启动后浏览器输入localhost:8080即可访问Tomcat服务器
+
+修改启动端口：修改配置文件conf/server.xml中 <Connector port = "80" ...>
+
+http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略端口号
+
+
+
+项目部署：如项目是名为myDemo的文件夹，内部放index.html和其他静态资源，直接把myDemo放在webapps文件夹下即可，浏览器输入**localhost/myDemo/index.html**访问
+
+
+
+**war包自动解压：javaweb项目一般打成war的压缩包，放到webapps下会，tomcat会自动解压**
+
+
+
+#### tomcat-web项目结构
+
+开发时项目结构：main文件夹下多一个webapp文件夹存放web相关html文件和WEB-INF/web.xml配置文件
+
+部署的项目结构：web/WEB-INF文件夹下多了classes和lib文件，保存java字节码文件和依赖jar包
+
+
+
+#### maven创建web项目
+
+两种方式
+
+1. 通过maven骨架创建(maven-archetype-webapp)
+
+2. 手动创建maven项目，补全webapp文件结构（pom.xml中添加打包格式<packaging>war</packaging>）
+
+   建议通过project structure--》facets, 窗口中选择当前web项目，创建webapp文件夹，再点击+号根据提示创建web.xml配置文件
+
+
+
+#### idea集成tomcat
+
+直接在idea中启动tomcat
+
+两种方式：
+
+一、本地已下载tomcat, 选择run-edit configurations, 弹窗内点击+号，下拉列表找到tomcat server-local 选中，新窗口中选择application server 选择本地安装的路径，完成tomcat集成
+
+部署项目：选择deployment(部署)选项卡，点击+号，选择artifact，会弹出当前的web项目，选择要部署的项目war包，点击apply即完成部署，deployment中可以修改项目的访问路径
+
+启动tomcat: 右上角绿色标志点击即启动服务，此时通过浏览器即可访问相应前端页面
+
+
+
+二、.使用maven插件配置tomcat
+
+在pom.xml中添加tomcat坐标，并通过<configuration>配置port和path，修改端口号和访问时的路径；
+
+最后右键项目使用maven-helper插件选择tomcat run快速启动服务
