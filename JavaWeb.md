@@ -1921,6 +1921,13 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 二、.使用maven插件配置tomcat
 
-在pom.xml中添加tomcat坐标，并通过<configuration>配置port和path，修改端口号和访问时的路径；
+在pom.xml中添加tomcat坐标，并添加<configuration>配置port和path，修改端口号和访问时的路径；
 
 最后右键项目使用maven-helper插件选择tomcat run快速启动服务
+
+
+
+
+
+### Servlet
+
