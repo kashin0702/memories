@@ -1131,7 +1131,7 @@ install：安装，安装项目包到本地仓库，这样项目包可以用作�
 
 简介：MyBatis是一个持久层框架，用于简化JDBC开发。 官网：https://mybatis.org/mybatis-3/zh/index.html
 
-JAVA经典三层结构：表现层、业务层、持久层，持久层：将数据保存到数据库的那一层代码。
+JAVA经典三层结构：表现层、业务层、持久层，**持久层：将数据保存到数据库的那一层代码。**
 
 简化了什么： 
 
@@ -1208,6 +1208,7 @@ public class demo1 {
         // 1.加载mybatis核心配置文件 放在resources根目录下，直接写文件名即可
         String resource = "mybatis-config.xml";
         InputStream inputStream = Resources.getResourceAsStream(resource);
+        //sqlSessionFactory工厂只需要创建一次，可以抽取到工具类中的静态代码块
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
 
         // 2.获取sqlSession对象，用它来执行sql
@@ -1488,9 +1489,9 @@ public interface StuMapper {
 // 多个参数时，接口3种写法
 // 参数注解，参数名必须和占位符字段名一致
 public List<Student> selectByCondition(@Param("name")String name, @Param("gender")String gender);
-// 封装对象
+// 封装对象 对象中的成员变量名和占位符名称一致
 public List<Student> selectByCondition(Student student);
-// 封装map集合
+// 封装map集合 map集合的键名和占位符名称一致
 public List<Student> selectByCondition(Map map);
 ```
 
@@ -1742,7 +1743,7 @@ mybatis底层在传参时的处理逻辑：
 
 ​	1.POJO类：直接使用，属性名和参数占位符名一致
 
-​	2.Map集合，直接使用，减免和参数占位符名一致
+​	2.Map集合，直接使用，键名和参数占位符名一致
 
 ​	3.Collection: 封装为Map集合，可使用@Param注解，替换Map集合中默认的arg键名
 
@@ -1881,7 +1882,7 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 
 
-**war包自动解压：javaweb项目一般打成war的压缩包，放到webapps下会，tomcat会自动解压**
+**war包自动解压：javaweb项目一般打成war的压缩包，放到webapps下tomcat会自动解压**
 
 
 
@@ -1891,7 +1892,7 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 部署的项目结构：web/WEB-INF文件夹下多了classes和lib文件，保存java字节码文件和依赖jar包
 
-
+![image-20230828105611839](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230828105611839.png)
 
 #### maven创建web项目
 
@@ -1907,7 +1908,7 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 #### idea集成tomcat
 
-直接在idea中启动tomcat
+直接在idea中启动tomcat，简化修改代码后-打包-部署一系列操作
 
 两种方式：
 
@@ -1921,7 +1922,7 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 二、.使用maven插件配置tomcat
 
-在pom.xml中添加tomcat坐标，并添加<configuration>配置port和path，修改端口号和访问时的路径；
+在pom.xml中添加tomcat坐标，并添加<configuration>配置<port>80</port>和<path>/</path>，修改端口号和访问时的路径；
 
 最后右键项目使用maven-helper插件选择tomcat run快速启动服务
 
@@ -1930,4 +1931,1350 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 
 ### Servlet
+
+Servlet是java提供的动态web资源开发技术，JavaEE的规范之一，本质是一个接口
+
+需要定义Servlet类实现Servlet接口，并由web服务器运行Servlet
+
+实现流程
+
+1、创建web项目，导入servlet依赖坐标
+
+```xml
+<dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+    <!--关键参数：依赖范围设置为编译环境和测试环境有效，运行环境无效，即打包后没有，因为tomcat自带servlet的jar包，防止冲突-->
+      <scope>provided</scope>
+    </dependency>
+```
+
+2、创建：定义一个类，实现servlet接口，并重写接口中所有方法
+
+3、配置：在类上使用注解： @WebServlet，配置servlet访问路径
+
+```java
+package com.david.servlet;
+
+import javax.servlet.*;
+import javax.servlet.annotation.WebServlet;
+import java.io.IOException;
+
+@WebServlet("/demo1") // 配置一个demo1的servlet类 
+@WebServlet(urlPatterns = "/demo1", loadOnStartup = 1) // 多参数配置：配置创建时机，启动时就创建
+public class ServletDemo1 implements Servlet {
+
+    public void init(ServletConfig servletConfig) throws ServletException {
+
+    }
+
+    public ServletConfig getServletConfig() {
+        return null;
+    }
+
+    // 处理请求时，会调用该方法
+    public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {
+        System.out.println("servlet启动啦！");
+        
+        // 强转为http类型,才能调用getMehod方法
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        // 获取请求的类型
+        String method = httpServletRequest.getMethod();
+        
+        // get和post请求参数的位置不同，要分别写处理逻辑
+        if ("GET".equals(method)) {
+           // get方法的处理逻辑 
+        } else if ("POST".equals(method)) {
+            // post方法的处理逻辑
+        }
+    }
+
+    public String getServletInfo() {
+        return null;
+    }
+
+    public void destroy() {
+
+    }
+}
+
+```
+
+4、访问：启动Tomcat，浏览器输入url，访问该servlet，访问后控制台输出“servlet启动啦”表示访问成功
+
+http://localhost/web-demo/demo1
+
+
+
+**tomcat启动报错：java不支持发行版本解决方案**
+
+```xml
+<!--修改pom.xml配置信息-->
+<build>
+    <finalName>tomcat-demo1</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+    </plugins>
+</build>
+```
+
+
+
+#### Servlet执行流程
+
+Servlet实体类由web服务器(tomcat)创建，内部的方法也是由tomcat在运行时调用
+
+
+
+#### Servlet生命周期
+
+servlet运行在Servlet容器（web服务器）中，其生命周期也由容器管理，分为4个阶段：
+
+1、加载和实例化：默认情况下，当Servlet第一次被访问时，由容器创建Servlet对象
+
+​		注解参数：loadOnStartup = 1 || -1    1：服务器启动时创建类  -1：Servlet被访问时创建(默认)
+
+2、初始化：实例化后，容器调用servlet对象的**init()**方法初始化对象，完成加载配置文件、创建连接等初始化工作，**该方法只调用一次**
+
+3、请求处理：**每次请求Servlet时**，Servlet容器都会调用servlet对象的**service()**方法对请求进行处理
+
+4、服务终止：当需要释放内存或容器关闭时，调用**destroy()**方法完成资源释放，在该方法调用后，容器释放这个Servlet实例，被java回收
+
+
+
+#### HttpServlet实现类
+
+是一个对http协议封装的Servlet实现类，分发了post/get不同类型请求的方法
+
+Http开发中，我们自定的Servlet都直接继承这个类，覆写其中的核心方法
+
+```java
+// HttpServlet类分发方法的源码逻辑
+public class HttpServlet implements Servlet{
+    @Override
+    public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {
+        // 强转为http类型,才能调用getMehod方法
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        // 获取请求的类型
+        String method = httpServletRequest.getMethod();
+        // get和post请求参数的位置不同，要分别写处理逻辑
+        if ("GET".equals(method)) {
+           // get方法的处理逻辑 
+            doGet(servletRequest, servletResponse)
+        } else if ("POST".equals(method)) {
+            // post方法的处理逻辑
+            doPost(servletRequest, servletResponse)
+        }
+    }
+    // 提供这两个方法给继承类，继承类重写即可
+    protected void doGet(ServletRequest servletRequest, ServletResponse servletResponse) {}
+    protected void doPost(ServletRequest servletRequest, ServletResponse servletResponse) {}
+}
+```
+
+继承HttpServlet书写方式
+
+```java
+// 继承一个httpServlet, 重写get,post方法
+@WebServlet(urlPatterns = "/demo2") // /demo2这种方法方式就是get
+public class Servletdemo2 extends HttpServlet {
+    // 通过get方式访问servlet，就会调用doGet
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("get...");
+    }
+
+    // 通过post方式访问servlet，就会调用doPost 前端模拟一个表单提交就会调用该方法
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("post...");
+    }
+}
+```
+
+
+
+#### UrlPatterns配置
+
+```java
+//一个Servlet可以配置多个urlPatterns
+@WebServlet(urlPatterns={"/demo1", "/demo2"}) // 访问/demo1或/demo2都能访问到这个sevlet类
+
+// 匹配规则
+// 1.精确匹配
+// 配置路径
+@WebServlet(urlPatterns="/user/select")  // 访问路径：localhost/user/select
+
+// 2.目录匹配
+@WebServlet(urlPatterns="/user/*") // 访问路径：localhost/user/aaa  localhost/user/bbb
+
+// 3.扩展名匹配
+@WebServlet(urlPatterns="/user/*.do")  // 访问路径:localhost/user/a.do localhost/user/b.do
+
+// 4.任意匹配
+@WebServlet(urlPatterns="/")  // 会覆盖tomcat默认Servlet路径，导致静态资源无法访问，当其他都匹配不上，就会访问这个Servlet路径
+@WebServlet(urlPatterns="/*")  // 匹配任意访问路径
+```
+
+
+
+#### XML方式配置Servlet（了解）
+
+3.0版本前不支持注解方式配置，需要通过XML配置方式配置Servlet
+
+步骤：
+
+1、编写Servlet类
+
+2、在web.xml中配置该Servlet
+
+```xml
+<servlet>
+	<servlet-name>demo13</servlet-name>
+    <!--必须写全类名-->
+    <servlet-class>com.david.servlet.servletDemo13</servlet-class>
+</servlet>
+
+<!--配置映射关系-->
+<servlet-mapping>
+	<servlet-name>demo13</servlet-name>
+    <url-pattern>/demo13</url-pattern>
+</servlet-mapping>
+```
+
+
+
+### Request&Response
+
+service(request, response) 
+
+request：获取请求数据，request就是tomcat获得客户端请求的信息后，放到request对象中
+
+response：设置响应数据，通过reponse对象设置响应数据，tomcat在真正响应前会把响应数据拼接上http响应行和响应头，再返回给客户端
+
+```java
+//简单的请求和响应
+@WebServlet(urlPatterns = "/demo2") // /demo2这种方法方式就是get
+public class Servletdemo2 extends HttpServlet {
+
+    // 通过get方式访问servlet，就会调用doGet
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 使用request对象获取get请求传递的数据
+        String name = req.getParameter("name"); // url?name=david
+
+        // 使用response对象设置响应数据
+        resp.setHeader("content-type","text/html;charset=utf-8");
+        resp.getWriter().write("<h1>" + name + ",欢迎您！</h1>");
+    }
+}
+```
+
+
+
+#### Request对象继承体系
+
+ServletRequest（Java提供的请求对象根接口）
+
+↓
+
+HttpServletRequest（Java提供的对http协议封装的请求对象接口）
+
+↓
+
+RequestFacade（Tomcat定义的实现类，实现上面接口的所有方法）
+
+
+
+#### Request获取请求参数
+
+```java
+@WebServlet("/req1")
+public class ServletRequestdemo3 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 获取请求行
+        String method = req.getMethod(); // 获取请求方式 GET
+        System.out.println("method:"+method);
+
+        String contextPath = req.getContextPath(); // 获取虚拟目录（项目访问路径） 无，因为tomcat设置了/
+        System.out.println("contextPath: "+contextPath);
+
+        StringBuffer requestURL = req.getRequestURL(); // 获取URL（统一资源定位符） http://localhost/req1
+        System.out.println("requestURL： "+requestURL);
+
+        String requestURI = req.getRequestURI(); // 获取URI（统一资源标识符） 域名后面的项目访问路径+资源 /req1
+        System.out.println("requestURI:"+requestURI);
+
+        String queryString = req.getQueryString(); // 获取请求参数(GET),url?后的查询字符串，没传返回null; name=david&age35
+        System.out.println("queryString: "+queryString);
+
+        // 获取请求头
+        String header = req.getHeader("user-agent"); // 根据请求头名，获取值
+        System.out.println("header:"+ header);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 获取请求体（POST） 要写一个post提交的html页面
+        // 请求体有2种获取方式，字节输入流和字符输入流，如果获取文本用字符流，获取二进制文件用字节流
+        BufferedReader reader = req.getReader();
+        String s = reader.readLine();
+        System.out.println(s); // 输出:username=xxx&password=xxx
+
+        // 字节流获取数据
+        ServletInputStream inputStream = req.getInputStream();
+    }
+}
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <h1>hello david!</h1>
+    <form action="/req1" method="post">
+        <input name="username" type="text"/>
+        <input name="password" type="password">
+        <input type="submit">
+    </form>
+</body>
+</html>
+```
+
+
+
+#### 通用方法获取请求参数
+
+doGet获取请求参数用的是getQueryString()，doPost获取请求体参数用的是字节输入流和字符输入流
+
+通用方法可以在doGet和doPost中使用同一方法获取请求参数，简化代码
+
+```java
+package com.david.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+
+@WebServlet("/req2")
+public class ServletRequestDemo4 extends HttpServlet {
+
+    // 通用方法获取请求参数
+    private void getData(HttpServletRequest req, HttpServletResponse resp) {
+        String method = req.getMethod();
+        System.out.println("当前方法：" + method);
+		req.setCharacterEncoding("UTF-8"); // 解决post请求中文乱码
+        
+        // 方法1.获取所有参数Map集合
+        // getParameterMap返回请求参数键值对的map集合，注意值是一个String数组，因为入参可能存在键名相同的情况
+        Map<String, String[]> paramsMap = req.getParameterMap();
+        for (String key : paramsMap.keySet()) {
+            System.out.print(key + ": ");
+            String[] values = paramsMap.get(key);
+            for (String value : values) {
+                System.out.print(value);
+            }
+            System.out.println();
+        }
+
+        // 方法2.根据名称获取参数值（数组）
+        String[] hobbies = req.getParameterValues("hobby");
+        for (String hobby : hobbies) {
+            System.out.println(hobby);
+        }
+        // 方法3.根据名称获取参数值（单个值）
+        String name = req.getParameter("username");
+        System.out.println(name);
+    }
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        getData(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        getData(req, resp);
+    }
+}
+
+```
+
+
+
+#### Request中文乱码解决
+
+post请求是输入字符流和字节流，**调用req.setCharacterEncoding("UTF-8") 设置输入流编码即可**
+
+
+
+get请求调用的是req.getQueryString()获取参数，设置字符集无效
+
+原因：get请求参数通过url传送，在发送时，中文会被浏览器URL编码成类似%E5%BC这种格式，Tomcat解码URL通过ISO-8859-1解码，所以乱码
+
+URL编码规则：
+
+1、建字符串按编码方式转为二进制
+
+2、每个字节转为2个16进制数并在前面加上%
+
+java工具类进行url编码和解码
+
+```java
+URLEncoder.encode(str, "utf-8") // 把str通过utf-8进行URL编码，转成%E5%BC这种格式
+URLDecoder.decode(s, "utf-8") // 把s进行URL解码
+```
+
+**解决get请求乱码**
+
+```java
+// 思路：先把tomcat解码后的乱码数据转换成字节
+String encode = URLEncoder.encode(username, "utf-8") // 浏览器做的事
+String decode = URLDecoder.decode(encode, "ISO-8859-1") // tomcat做的事
+    
+// 我们要做的事，把乱码转为字节数组
+byte[] bytes = decode.getBytes("ISO-8859-1")
+// 解码成字符串,传入字符集
+String str = new String(bytes, "UTF-8")
+```
+
+**备注：Tomcat8之后默认采用utf-8对Url解码，不需要再解决url传参乱码问题**
+
+
+
+#### 请求转发（forward）
+
+逻辑：请求资源A时，资源A把请求转发给了资源B，资源B处理请求再返回响应，就是请求转发的过程
+
+特点：
+
+浏览器地址路径不发生变化；
+
+只能转发当前服务器内部资源；
+
+因为是一次请求，转发时可以通过request对象共享数据
+
+```java
+@WebServlet("/demo5")
+public class ServetForwardDemo5 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("demo5执行");
+        // 转发前存储共享数据
+        req.setAttribute("message", "hello");
+        // 转发给demo6
+        req.getRequestDispatcher("/demo6").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+}
+
+@WebServlet("/demo6")
+public class ServletForwardDemo6 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 获取转发的共享数据
+        Object message = req.getAttribute("message");
+        System.out.println(message);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+}
+```
+
+
+
+#### Response对象继承体系
+
+ServletResponse（Java提供的请求对象根接口）
+
+↓
+
+HttpServletResponse（Java提供的对http协议封装的请求对象接口）
+
+↓
+
+ResponseFacade（Tomcat定义的实现类，实现上面接口的所有方法）
+
+
+
+#### Response响应结构
+
+响应数据结构：
+
+响应行： HTTP/1.1 200  OK
+
+​				**void setStatus(int sc)** 设置响应状态码
+
+响应头：Content-type: text/html
+
+​				**void setHeader(String name, String value)** 设置响应头键值对
+
+响应体：<html><head><body></body></head></html> 
+
+​				通过字节/字符输出流写出 
+
+
+
+#### response重定向
+
+特点（和转发相反）：
+
+1、浏览器地址会变成重定向的资源地址
+
+2、可转发服务器内部，或服务器外部资源
+
+3、两次请求，所以不能通过request共享数据
+
+```java
+// 请求/resp1时被转发到/resp2
+
+@WebServlet("/resp1")
+public class respDemo1 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 重定向到/resp2
+        resp.sendRedirect("/resp2");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
+    }
+}
+
+@WebServlet("/resp2")
+public class respDemo2 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("resp2");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
+    }
+}
+```
+
+
+
+#### response响应字符数据
+
+```java
+@WebServlet("/resp3")
+public class respDemo3 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 1.响应字符数据
+        // 设置响应中文的字符编码
+        resp.setCharacterEncoding("utf-8");
+        // 设置响应数据类型，设置后才会被浏览器解析成html文档，浏览器默认解析成纯文本
+        resp.setContentType("text/html");
+        // 通过resp对象获取字符输出流，细节：不需要close，resp会随响应结束后销毁，自动close
+        PrintWriter writer = resp.getWriter();
+        writer.write("你好啊，我是大卫");
+        writer.write("<h1>我是html</h1>");
+    }
+}
+```
+
+
+
+#### response响应字节数据
+
+```java
+@WebServlet("/resp4")
+public class respDemo4 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 响应字节数据
+        // 通过resp对象获取字节输出流
+        ServletOutputStream os = resp.getOutputStream();
+
+        // 读取文件
+        FileInputStream fis = new FileInputStream("C:\\Users\\yoki\\Desktop\\javaTest\\a.jpg");
+
+        // 流的对拷，写到输出流 进行响应
+        byte[] bytes = new byte[1024];
+        int len;
+        while ((len = fis.read(bytes)) != -1) {
+            os.write(bytes,0, len);
+        }
+        fis.close();
+    }
+}
+```
+
+
+
+
+
+## JSP概述
+
+java server page(JAVA服务端页面，是一种动态网页技术，在html页面中书写java代码)，JSP = HTML + JAVA
+
+作用：简化了在Servlet中写HTML页面的麻烦
+
+**本质：JSP本质就是一个Servlet类，在执行时JSP被Tomcat自动转换为Servlet, 这个Servlet内部会调用write()输出html页面**
+
+**备注：若访问jsp资源报错，修改jdk版本为1.8即可**
+
+JSP创建步骤：
+
+1、导入依赖坐标
+
+```xml
+<dependency>
+  <groupId>javax.servlet.jsp</groupId>
+  <artifactId>jsp-api</artifactId>
+  <version>2.2</version>
+  <scope>provided</scope>
+</dependency>
+```
+
+2、创建JSP文件
+
+3、编写HTML标签和Java代码
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+<h1>
+  hello jsp
+</h1>
+    <!--嵌入java代码-->
+<%
+  System.out.println("im jsp");
+%>
+</body>
+</html>
+```
+
+
+
+### JSP脚本分类
+
+1、<%....%> ：内容会直接放到_jspService()方法中
+
+2、<%=.....%>：内容会放到out.print()中，作为out,print()的参数
+
+3、<%!.....%>：内容会放到_jspService()方法外，被类直接包含，（定义成员方法，成员变量等）
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+<h1>
+  hello jsp
+</h1>
+<%
+  System.out.println("im jsp");
+  int num = 100;
+%>
+    <!--输出到页面上-->
+<%= "hello" + num %>
+<%= "david is king"%>
+<%= "david is king is forever" %>
+    
+    <!--定义成员变量和成员方法-->
+<%!
+    void show(){};
+    String name = "david";
+%>
+</body>
+</html>
+```
+
+### JSP页面展示数据
+
+```jsp
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="com.david.Pojo.Brand" %><%--
+  Created by IntelliJ IDEA.
+  User: yoki
+  Date: 2023-08-30
+  Time: 11:37
+  To change this template use File | Settings | File Templates.
+--%>
+<%
+    // 创建要插入的数据
+    ArrayList<Brand> list = new ArrayList<>();
+    list.add(new Brand(1, "三只松鼠", "三只松鼠", 8, "三只松鼠，好吃不上火", 1));
+    list.add(new Brand(2, "优衣库", "优衣库", 4, "优衣库，舒适人生", 1));
+    list.add(new Brand(3, "小米", "小米科技有限公司", 5, "为发烧而生", 0));
+%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>JSP嵌入数据</title>
+</head>
+<style>
+    table {
+        border-collapse: collapse;
+    }
+</style>
+<body>
+    <table style="width: 800px;" border="1">
+        <!--插入jsp遍历集合-->
+        <%
+            for (Brand brand : list) {
+        %>
+        <!-- jsp截断1 -->
+        <tr align="center">
+            <td>
+                <!-- %= 输出数据到页面 -->
+                <%=brand.getId()%>
+            </td>
+            <td>
+                <%=brand.getBrandName()%>
+            </td>
+            <td>
+                <%=brand.getCompanyName()%>
+            </td>
+            <td>
+                <%=brand.getSort()%>
+            </td>
+            <td>
+                <%=brand.getDescription()%>
+            </td>
+            <td>
+                <%=brand.getStatus()%>
+            </td>
+        </tr>
+        <!-- jsp截断2 -->
+        <%
+            }
+        %>
+    </table>
+</body>
+</html>
+```
+
+
+
+### JSP转换后的Servlet源代码
+
+编译后的jsp文件根据控制台**org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:** 的输出的路径信息查看
+
+```java
+// 核心响应代码
+// 这部分数据在_jspService方法中执行
+ArrayList<Brand> list = new ArrayList<>();
+list.add(new Brand(1, "三只松鼠", "三只松鼠", 8, "三只松鼠，好吃不上火", 1));
+list.add(new Brand(2, "优衣库", "优衣库", 4, "优衣库，舒适人生", 1));
+list.add(new Brand(3, "小米", "小米科技有限公司", 5, "为发烧而生", 0));
+
+  out.write("\r\n");
+  out.write("\r\n");
+  out.write("<html>\r\n");
+  out.write("<head>\r\n");
+  out.write("    <title>JSP嵌入数据</title>\r\n");
+  out.write("</head>\r\n");
+  out.write("<style>\r\n");
+  out.write("    table {\r\n");
+  out.write("        border-collapse: collapse;\r\n");
+  out.write("    }\r\n");
+  out.write("</style>\r\n");
+  out.write("<body>\r\n");
+  out.write("    <!-- jsp截断 -->\r\n");
+  out.write("    <table style=\"width: 800px;\" border=\"1\">\r\n");
+  out.write("        ");
+
+        for (Brand brand : list) {
+
+          out.write("\r\n");
+          out.write("        <tr align=\"center\">\r\n");
+          out.write("            <td>\r\n");
+          out.write("                <!-- 输出数据到页面 -->\r\n");
+          out.write("                ");
+          out.print(brand.getId());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("            <td>\r\n");
+          out.write("                ");
+          out.print(brand.getBrandName());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("            <td>\r\n");
+          out.write("                ");
+          out.print(brand.getCompanyName());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("            <td>\r\n");
+          out.write("                ");
+          out.print(brand.getSort());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("            <td>\r\n");
+          out.write("                ");
+          out.print(brand.getDescription());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("            <td>\r\n");
+          out.write("                ");
+          out.print(brand.getStatus());
+          out.write("\r\n");
+          out.write("            </td>\r\n");
+          out.write("        </tr>\r\n");
+          out.write("        ");
+
+        }
+
+  out.write("\r\n");
+  out.write("    </table>\r\n");
+  out.write("</body>\r\n");
+  out.write("</html>\r\n");
+}
+```
+
+
+
+### JSP缺点
+
+1、书写麻烦，各种嵌套和截断
+
+2、阅读困难
+
+3、运行麻烦，依赖JRE, Tomcat，JAVAEE环境
+
+4、调试困难，需要找到转换后的.java文件进行调试
+
+**JSP已基本退出历史舞台，目前主流是前端html+ajax动态请求服务端数据进行页面响应**
+
+
+
+### EL表达式
+
+作用：简化JSP内的JAVA代码
+
+语法：${xxx}  获取域中存储的key=xxx的数据
+
+javaWeb中四大域
+
+1、Page 当前页面有效
+
+2、request 当前请求有效
+
+3、session 当前会话有效
+
+4、application 当前应用有效
+
+**el表达式会依次从这个4个域中寻找数据**
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<!--解决el表达式不生效问题-->
+<%@ page isELIgnored="false" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+    <!-- 使用EL表达式直接获取request域中的数据 -->
+${brands}
+</body>
+</html>
+```
+
+```java
+@WebServlet("/eldemo")
+public class ElServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 虚拟数据
+        ArrayList<Brand> list = new ArrayList<>();
+        list.add(new Brand(1, "三只松鼠", "三只松鼠", 8, "三只松鼠，好吃不上火", 1));
+        list.add(new Brand(2, "优衣库", "优衣库", 4, "优衣库，舒适人生", 1));
+        list.add(new Brand(3, "小米", "小米科技有限公司", 5, "为发烧而生", 0));
+        
+        // 保存数据到req域
+        req.setAttribute("brands", list);
+        // 转发给jsp
+        req.getRequestDispatcher("/el-demo1.jsp").forward(req, resp);
+    }
+}
+```
+
+
+
+### JSTL标签
+
+使用标签取代JSP页面上的Java代码，免去了<%...%>截断代码的操作
+
+步骤：
+
+1、pom.xml导入依赖坐标
+
+2、JSP页面上引入JSTL标签库
+
+3、使用<c: if> <c: forEach> 标签语法
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page isELIgnored="false" %>
+<%--引入JSTL标签库--%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<html>
+<head>
+    <title>JSTL-demo</title>
+</head>
+<body>
+<%--JSTL forEach循环--%>
+<table border="1" cellspacing="0" width="800">
+    <tr align="center">
+        <th>序号</th>
+        <th>品牌</th>
+        <th>公司名称</th>
+        <th>排序</th>
+        <th>品牌描述</th>
+        <th>状态</th>
+    </tr>
+<%--    varStatus属性代表索引或序号 主要属性有index和count --%>
+    <c:forEach items="${brands}" var="brand" varStatus="status">
+        <tr align="center">
+            <td>${status.count}</td>
+                <%--        <td>${brand.id}</td>--%>
+            <td>${brand.brandName}</td> <!-- 注意：这里不是获取成员变量，而是通过属性名拼接成getBrandName()调成员方法 -->
+            <td>${brand.companyName}</td>
+            <td>${brand.sort}</td>
+            <td>${brand.description}</td>
+            <!--c if 没有else写法，只能用两个if-->
+            <c:if test="${brand.status == 1}">
+                <td>启用</td>
+            </c:if>
+            <c:if test="${brand.status != 1}">
+                <td>禁用</td>
+            </c:if>
+        </tr>
+    </c:forEach>
+</table>
+<!-- forEach普通遍历，类似for 可设置循环次数 实现类似分页器效果 -->
+<c:forEach begin="1" end="10" step="1" var="i">
+    ${i}
+</c:forEach>
+</body>
+</html>
+```
+
+
+
+
+
+## MVC模式
+
+M：Model:业务模型，处理业务，模型是一个广义概念，javabean类就是一个模型
+
+V：View，视图，界面展示
+
+C：Controller 控制器，处理请求，调用模型和视图
+
+![image-20230830162546014](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230830162546014.png)
+
+
+
+**三层架构**
+
+表现层：接收请求、封装数据，调用业务逻辑层，最后通过jsp响应数据 （包名一般叫web或controller）
+
+业务逻辑层：对业务逻辑封装，组合数据访问层中基本功能，形成复杂的业务逻辑功能（包名一般叫service）
+
+数据访问层：对数据库的CRUD操作（包名一般叫dao或mapper）
+
+
+
+表现层框架：SpringMVC/struts2
+
+业务层框架：Spring（主要框架，包含了SpringMVC）
+
+数据层框架：Mybatis
+
+
+
+### 三层架构创建
+
+1、创建javaWeb项目，pom引入所有的依赖坐标
+
+2、创建3层架构的包结构（web/service/mapper/pojo/util(存放sqlFactory工厂对象)）
+
+3、数据库建表
+
+4、实体类创建
+
+5、Mybatis基础环境（Mybatis-config.xml / Mapper.xml / Mapper接口）
+
+逻辑：
+
+![image-20230830170401082](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230830170401082.png)
+
+
+
+
+
+### 三层架构CRUD开发
+
+![image-20230901090635113](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901090635113.png)
+
+![image-20230901091134578](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901091134578.png)
+
+```java
+// -----brandService服务层
+package com.davidmvc.service;
+
+import com.davidmvc.mapper.BrandMapper;
+import com.davidmvc.pojo.Brand;
+import com.davidmvc.util.SqlSessionFactoryUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+
+import java.io.IOException;
+import java.util.List;
+
+// 创建数据库连接，执行sql操作并把数据给servlet
+public class BrandService {
+
+    // 封装查询方法
+    public List<Brand> selectAll() throws IOException {
+        // 用工具类获取sql工厂
+        SqlSession sqlSession = SqlSessionFactoryUtils.getSqlSessionFactory().openSession();
+        // 获取映射
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+        // 执行sql
+        List<Brand> brands = mapper.selectAll();
+        sqlSession.close();
+        return brands;
+    }
+    // 封装新增方法
+    public void add (Brand brand) {
+        // 用工具类获取sql工厂
+        SqlSession sqlSession = SqlSessionFactoryUtils.getSqlSessionFactory().openSession();
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+        // 执行sql
+        mapper.add(brand);
+        // 增删改操作，记得提交事务
+        sqlSession.commit();
+        sqlSession.close();
+    }
+    // 根据id查询单个数据
+    public Brand selectById(Integer id) {
+        SqlSession sqlSession = SqlSessionFactoryUtils.getSqlSessionFactory().openSession();
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+        // 执行sql
+        Brand brand = mapper.selectById(id);
+        sqlSession.close();
+        return brand;
+    }
+
+    // 修改数据
+    public void updateById (Brand brand) {
+        SqlSession sqlSession = SqlSessionFactoryUtils.getSqlSessionFactory().openSession();
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+        // 执行sql
+        mapper.updateById(brand);
+        // 增删改操作，记得提交事务
+        sqlSession.commit();
+        sqlSession.close();
+    }
+}
+
+
+//-------------------------------- sqlSessionFactory工厂类
+package com.davidmvc.util;
+
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+// sql工厂函数工具类 避免重复创建浪费资源
+public class SqlSessionFactoryUtils {
+    private static SqlSessionFactory sqlSessionFactory;
+
+    // 创建静态代码块，在class类加载时执行，且只执行一次
+    static {
+        try {
+            String resource = "Mybatis-config.xml";
+            InputStream resourceAsStream = Resources.getResourceAsStream(resource);
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // 静态方法：返回这个工厂对象
+    public static SqlSessionFactory getSqlSessionFactory () {
+        return sqlSessionFactory;
+    }
+}
+
+```
+
+```java
+// --------brandMapper 接口
+package com.davidmvc.mapper;
+
+import com.davidmvc.pojo.Brand;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import java.util.List;
+
+// 数据访问层
+public interface BrandMapper {
+    // 查询所有数据
+    @Select("select * from tb_brand")
+    List<Brand> selectAll();
+
+    // 新增数据 用sql注解方式
+    @Insert("INSERT INTO tb_brand VALUES(null, #{brandName}, #{companyName}, #{sort}, #{description}, #{status})")
+    void add(Brand brand);
+
+    // 根据id查询单条数据
+    @Select("select * from tb_brand where id=#{id}")
+    Brand selectById(Integer id);
+
+    // 根据id修改数据
+    @Update("update tb_brand set brand_name=#{brandName},company_name=#{companyName},sort=#{sort},description=#{description},state=#{status} where id=#{id}")
+    void updateById(Brand brand);
+}
+
+```
+
+
+
+```java
+// --------servlet层
+// --------增改查 逻辑
+package com.davidmvc.controller;
+
+import com.davidmvc.pojo.Brand;
+import com.davidmvc.service.BrandService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+//------------ 增加， 注意：实际开发时每个Servlet都是独立文件
+@WebServlet("/add")
+public class AddServlet extends HttpServlet {
+    private BrandService brandService = new BrandService();
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 设置字符编码格式，防止显示时乱码
+        req.setCharacterEncoding("UTF-8");
+        // 解析请求数据
+        String brandName = req.getParameter("brandName");
+        String companyName = req.getParameter("companyName");
+        String sort = req.getParameter("sort");
+        String description = req.getParameter("description");
+        String status = req.getParameter("status");
+        // 封装实体类
+        Brand brand = new Brand(null, brandName, companyName, Integer.parseInt(sort), description, Integer.parseInt(status));
+
+        // 调用Service中的方法，进行sql层操作
+        brandService.add(brand);
+        System.out.println(req.getContextPath() + "add");
+        // 重定向到getBrandServlet 该类会再次转发到jsp页面展示数据
+        resp.sendRedirect("/mvc/getBrand");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        this.doGet(req, resp);
+    }
+}
+
+// -----修改
+package com.davidmvc.controller;
+
+@WebServlet("/updateById")
+public class UpdateByIdServlet extends HttpServlet {
+    private BrandService brandService = new BrandService();
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("utf-8");
+        String id = req.getParameter("id");
+        String brandName = req.getParameter("brandName");
+        String companyName = req.getParameter("companyName");
+        String sort = req.getParameter("sort");
+        String description = req.getParameter("description");
+        String status = req.getParameter("status");
+        Brand brand = new Brand(Integer.parseInt(id), brandName, companyName, Integer.parseInt(sort), description, Integer.parseInt(status));
+        // 执行更新数据sql
+        brandService.updateById(brand);
+        resp.sendRedirect("/mvc/getBrand");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        this.doGet(req, resp);
+    }
+}
+
+
+
+// ----- 查所有
+// 此处路径不用加/mvc
+@WebServlet("/getBrand")
+public class SelectAllServlet extends HttpServlet {
+    private BrandService brandService = new BrandService();
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        List<Brand> brands = brandService.selectAll();
+        // 保存数据
+        req.setAttribute("brands", brands);
+        System.out.println(req.getContextPath());
+        // 转发给Jsp, 展示数据
+        req.getRequestDispatcher("/brand.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+}
+
+// ------------ 查单个
+@WebServlet("/selectById")
+public class SelectByIdServlet extends HttpServlet {
+    private BrandService brandService = new BrandService();
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String id = req.getParameter("id");
+        Brand brand = brandService.selectById(Integer.parseInt(id));
+        // 数据存到req域
+        req.setAttribute("brand", brand);
+        // 转发给jsp，进行数据展现
+        req.getRequestDispatcher("/update.jsp").forward(req, resp);
+    }
+}
+```
+
+
+
+
+
+## 会话跟踪
+
+会话：用户打开浏览器访问web服务器资源，会话建立，当一方断开连接（关闭浏览器，关闭服务器），会话结束，一次会话中可以包含多次请求和响应。
+
+http是一种无状态协议，服务器会被每次请求当做一个新的请求。所以需要会话跟踪技术
+
+**客户端会话跟踪：Cookie（数据保存在客户端）**
+
+**服务端会话跟踪：Session（数据保存在服务端）**
+
+实现功能：一次会话中多次请求间的数据共享
+
+一般来说：记住用户、购物车等功能用Cookie，验证码校验用Session
+
+
+
+### Cookie
+
+底层：基于http协议
+
+响应头：response设置了set-cookie， 浏览器接收到set-cookie响应头，会自动保存该cookie
+
+请求头：cookie，下次请求会在header中携带该cookie
+
+
+
+基本使用：
+
+```java
+String username = req.getParameter("username");
+// 创建Cookie对象，设置数据
+Cookie cookie = new Cookie("username", username);
+// 发送Cookie到客户端，使用response对象
+resp.addCookie(cookie)
+    
+    
+// 获取客户端发送过来的Cookie,返回的是浏览器cookie数组，使用request对象
+Cookie[] cookies = req.getCookies();
+for(cookie : cookies)
+```
+
+
+
+Cookie细节1：默认情况下，浏览器关闭内存释放，Cookie自动销毁
+
+使用**setMaxAge(int seconds)**方法可以设置Cookie保存时间
+
+````java
+// 参数:int seconds
+cookie.setMaxAge(60*60*24*7) // 保存7天； 参数为负数（默认值，关闭自动销毁）； 参数为0删除对应Cookie
+````
+
+Cookie细节2：cookie存中文要使用URL编码 URLEncoder.encode(value, "UTF-8")
+
+
+
+
+
+### Session
+
+底层原理：基于Cookie实现，服务端响应response会发送set-cookie: JSessionid=xxxxx  
+
+基本使用：
+
+```java
+HttpSession session = request.getSession(); // 获取session对象
+// session对象功能
+void setAttribute(String name, Object o) // 存储数据到session域中
+Object getAttribute(String name) // 根据key获取值
+void removeAttribute(String name) // 根据key删除该键值对
+```
+
+session细节：服务器重启后，session中的数据是否存在？
+
+​	钝化：服务器正常关闭后，tomcat会自动把session数据写入硬盘的文件中
+
+​	活化：再次启动服务器后，从文件中加载数据到session中
+
+​	自动销毁：默认无操作时，30分钟后自动销毁，可在web.xml中配置
+
+```xml
+<session-config>
+    <!--单位：分钟-->
+	<session-timeout>100</session-timeout>
+</session-config>
+```
 

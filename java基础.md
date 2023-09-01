@@ -40,7 +40,7 @@
 
 ## **安装jdk**
 
-**下载官网：www.oracle.com**
+**下载官网：https://www.oracle.com/java/technologies/downloads/**
 
 **1.路径不要包含中文**
 
