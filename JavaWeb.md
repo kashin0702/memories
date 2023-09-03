@@ -3278,3 +3278,111 @@ session细节：服务器重启后，session中的数据是否存在？
 </session-config>
 ```
 
+
+
+
+
+## Filter
+
+过滤器，是JavaWeb三大组件之一（Servlet、Filter、Listener）
+
+过滤器语法和Sevrlet类似，需要实现一个Filter接口，重写内部的方法
+
+```java
+package com.davidmvc.filter;
+
+import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
+import java.io.IOException;
+
+// 拦截特定资源
+@WebFilter("/selectById")
+public class FilterDemo implements Filter {
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        System.out.println("filter请求资源前");
+        // 放行
+        filterChain.doFilter(servletRequest, servletResponse);
+        System.out.println("filter请求资源后");
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+}
+```
+
+
+
+过滤器可以把对资源的请求拦截下来，从而实现一些特殊功能
+
+![image-20230901223954729](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901223954729.png)
+
+
+
+**细节：**
+
+放行前，可以对request进行一些数据的处理
+
+放行前response中是没有数据的，放行后的response才有数据
+
+
+
+### 过滤器拦截配置
+
+拦截具体资源：/index.jsp：只有访问index.jsp时才会被拦截
+
+目录拦截：/user/*：访问/user下的所有资源都会被拦截
+
+后缀名拦截：*.jsp：访问后缀名为jsp的资源都会被拦截
+
+拦截所有： /*： 访问所有资源都会被拦截
+
+
+
+### 过滤器链
+
+一个web应用可以配置多个过滤器，被称为过滤器链，**过滤器执行顺序按字符串名自然排序，内部代码执行顺序为依次执行每个过滤器放行前逻辑，访问资源后再回头执行放行后逻辑，像一根链条**
+
+
+
+
+
+## Listener
+
+监听器可以监听application、session、request三个对象创建、销毁或者往其中增删改属性时**自动执行代码**的功能组件
+
+Listener分类：
+
+ServletContext监听 （对应application，监听整个web应用）
+
+Session监听
+
+Request监听
+
+```java
+// ServletContext监听
+public class ListenerDemo implements ServletContextListener {
+    @Override
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+        // 监听web应用初始化时执行
+        System.out.println("监听器执行~");
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+
+    }
+}
+```
+
+
+
+
+
