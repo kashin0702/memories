@@ -404,7 +404,26 @@ export default {
 
 ### ref() API和解包
 
-vue3 新api
+在其内部，Vue 在它的 getter 中执行追踪，在它的 setter 中执行触发。
+
+可以将 ref 看作是一个像这样的对象：
+
+```js
+// 伪代码，不是真正的实现
+const myRef = {
+  _value: 0,
+  get value() {
+    track()
+    return this._value
+  },
+  set value(newValue) {
+    this._value = newValue
+    trigger()
+  }
+}
+```
+
+
 
 ```vue
 <template>
@@ -495,6 +514,17 @@ watch:  指定要监听的依赖
 watch可以侦听的范围:  data/props/computed
 
 watch只能侦听数据本身的改变，不能侦听数据内部属性的改变(**要使用深度侦听**)
+
+
+
+**官方：**
+
+### `watch` vs. `watchEffect`
+
+`watch` 和 `watchEffect` 都能响应式地执行有副作用的回调。它们之间的主要区别是追踪响应式依赖的方式：
+
+- `watch` 只追踪明确侦听的数据源。它不会追踪任何在回调中访问到的东西。另外，仅在数据源确实改变时才会触发回调。`watch` 会避免在发生副作用时追踪依赖，因此，我们能更加精确地控制回调函数的触发时机。
+- `watchEffect`，则会在副作用发生期间追踪依赖。它会在同步执行过程中，自动追踪所有能访问到的响应式属性。这更方便，而且代码往往更简洁，但有时其响应性依赖关系会不那么明确。
 
 ```js
 watch: {
@@ -616,7 +646,7 @@ const changeData = () => {
 
 //情况3 侦听ref对象并传入该对象，获取到的newVal和OldVal是一个普通的值
 const name = ref('gyf')
-watch(name,(newVal,oldVal) => {
+watch(name, (newVal,oldVal) => {
     console.log(newVal,newVal)
 })
 

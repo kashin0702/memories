@@ -1004,18 +1004,6 @@ vite: 相当于一个构建工具，类似webpack， 从0开始搭建项目
 
 
 
-
-
-
-
-### 
-
-### 
-
-### 
-
-### 
-
 ### 　vue-cli各配置文件作用
 
 1、build/dev-server.js  文件 项目node的启动文件，这里面做了webpack配置和node操作，
