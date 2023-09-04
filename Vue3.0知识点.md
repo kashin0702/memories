@@ -1241,6 +1241,17 @@ setup(){
 
 ## v-model对组件双向绑定 
 
+```vue
+<CustomInput v-model="searchText" />
+<!-- 组件v-model展开后本质 -->
+<CustomInput
+  :modelValue="searchText"
+  @update:modelValue="newValue => searchText = newValue"
+/>
+```
+
+
+
 ### 子组件事件emit("update:modelValue")
 
 ```vue
