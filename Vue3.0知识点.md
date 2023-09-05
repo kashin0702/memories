@@ -404,12 +404,19 @@ export default {
 
 ### ref() API和解包
 
+官方：
+
+ref 对象是可更改的，也就是说你可以为 `.value` 赋予新的值。它也是响应式的，即所有对 `.value` 的操作都将被追踪，并且写操作会触发与之相关的副作用。
+
+如果将一个对象赋值给 ref，那么这个对象将通过 [reactive()](https://cn.vuejs.org/api/reactivity-core.html#reactive) 转为具有深层次响应式的对象。这也意味着如果对象中包含了嵌套的 ref，它们将被深层地解包。
+
+
+
 在其内部，Vue 在它的 getter 中执行追踪，在它的 setter 中执行触发。
 
-可以将 ref 看作是一个像这样的对象：
-
 ```js
-// 伪代码，不是真正的实现
+// 可以将 ref 看作是一个像这样的对象：
+// 伪代码
 const myRef = {
   _value: 0,
   get value() {
@@ -450,6 +457,60 @@ export default {
 }
 </script>
 ```
+
+
+
+### reactive()
+
+返回一个对象的响应式代理，与将内部值包装在特殊对象中的 ref 不同，`reactive()` 将使对象本身具有响应性
+
+1.响应式转换是“深层”的：它会影响到所有嵌套的属性。一个响应式对象也将深层地解包任何 [ref](https://cn.vuejs.org/api/reactivity-core.html#ref) 属性，同时保持响应性。
+
+2.值得注意的，当访问到某个响应式数组或 `Map` 这样的原生集合类型中的 ref 元素时，不会执行 ref 的解包。
+
+3.返回的对象以及其中嵌套的对象都会通过 [ES Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) 包裹，因此**不等于**源对象，建议只使用响应式代理，避免使用原始对象。
+
+```js
+const count = ref(1)
+const obj = reactive({ count })
+
+// ref 会被解包
+console.log(obj.count === count.value) // true
+
+// 会更新 `obj.count`
+count.value++
+console.log(count.value) // 2
+console.log(obj.count) // 2
+
+// 也会更新 `count` ref
+obj.count++
+console.log(obj.count) // 3
+console.log(count.value) // 3
+
+
+// =============================================
+const books = reactive([ref('Vue 3 Guide')])
+// 这里需要 .value
+console.log(books[0].value)
+
+const map = reactive(new Map([['count', ref(0)]]))
+// 这里需要 .value
+console.log(map.get('count').value)
+
+
+
+// ====================================
+// 将一个 ref 赋值给一个 reactive 属性时，该 ref 会被自动解包：
+const count = ref(1)
+const obj = reactive({})
+
+obj.count = count
+
+console.log(obj.count) // 1
+console.log(obj.count === count.value) // true
+```
+
+
 
 
 
@@ -628,7 +689,7 @@ watch侦听数据源有2种类型
 
 ```js
 const info = reactive({name: 'david',age: 18})
-// 情况1 侦听reactive对象的属性，传入一个getter函数 
+// 情况1 当使用 getter 函数作为源时，回调只在此函数的返回值变化时才会触发。使用deep属性开启深层监听
 watch(() => info.name, (newVal,oldVal) => {
     console.log(newVal,newVal)  
 })
@@ -636,7 +697,7 @@ const changeData = () => {
     info.name = 'yyy'  
 }
 // 
-//情况2 侦听整个对象，获取到的newVal和oldVal也是reactive对象
+//情况2 侦听整个响应式对象，自动开启深层监听，获取到的newVal和oldVal也是reactive对象
 watch(info, (newVal,oldVal) => {
     console.log(newVal,newVal) //Proxy{name: ,age:}对象
 })
@@ -672,6 +733,22 @@ watch([info,name],([newInfo,newName],[oldInfo,oldName]) => {
 
 
 ### computed本质
+
+官方：
+
+接受一个 getter 函数，返回一个只读的响应式 [ref](https://cn.vuejs.org/api/reactivity-core.html#ref) 对象。该 ref 通过 `.value` 暴露 getter 函数的返回值。它也可以接受一个带有 `get` 和 `set` 函数的对象来创建一个可写的 ref 对象。
+
+```js
+// 创建一个只读的计算属性ref
+const count = ref(1)
+const plusOne = computed(() => count.value + 1)
+
+console.log(plusOne.value) // 2
+
+plusOne.value++ // 错误
+```
+
+
 
 ```js
 //vue2中computed可以配置成一个函数getter或者设置get/set (源码中会判断)
@@ -1287,6 +1364,71 @@ setup(){
         }
     }
 </script>
+```
+
+
+
+### v-model自定义修饰符
+
+```vue
+<!-- 自定义修饰符capitalize，作用是让绑定值字符串的首字母自动转为大写 -->
+<MyComponent v-model.capitalize="myText" />
+
+
+<!--组件的 v-model 上所添加的修饰符，可以通过 modelModifiers prop 在组件内访问到。在下面的组件中 -->
+<script setup>
+const props = defineProps({
+  modelValue: String,
+  modelModifiers: { default: () => ({}) }
+})
+
+defineEmits(['update:modelValue'])
+
+console.log(props.modelModifiers) // { capitalize: true }
+</script>
+
+<template>
+  <input
+    type="text"
+    :value="modelValue"
+    @input="$emit('update:modelValue', $event.target.value)"
+  />
+</template>
+```
+
+
+
+## 自定义指令
+
+```vue
+<!-- 在 <script setup> 中，任何以 v 开头的驼峰式命名的变量都可以被用作一个自定义指令。
+	vFocus 即可以在模板中以 v-focus 的形式使用。 -->
+<script setup>
+// 在模板中启用 v-focus
+const vFocus = {
+  mounted: (el) => el.focus()
+}
+</script>
+
+<template>
+  <input v-focus />
+</template>
+
+```
+
+```js
+// 非<script setup>情况
+export default {
+  setup() {
+    /*...*/
+  },
+  directives: {
+    // 在模板中启用 v-focus
+    focus: {
+      /* ... */
+    }
+  }
+}
 ```
 
 
