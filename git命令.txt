@@ -24,6 +24,7 @@ git remote add origin https://github.com/kashin0702/my-project.git
 SSH方式连接远程仓库
 git remote add origin git@github.com:yourName/yourRepo.git
 
+git remote -v 查看已经关联的远程仓库，关联错了可以用下面的命令删除
 git remote rm origin(删除关联的origin的远程库)
 
 拉取远程仓库主干
