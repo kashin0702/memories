@@ -333,7 +333,7 @@ insert into emp(name,age,dep_id) values('张三', 20, 1),('李四', 25, 2),('大
 
 
 
-![image-20230815103729007](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230815103729007.png)
+![](C:\Users\yoki\Desktop\memories\assets\image-20230815103729007.png)
 
 
 
@@ -1056,7 +1056,7 @@ jar包依赖流程：先找本地仓库有没有，如果搭建了私服，就�
 
 4.配置阿里云私服，修改conf/settings.xml中<mirrors>标签，添加子标签（可选，下载依赖更快）
 
-![image-20230817172951490](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230817172951490.png)
+![image-20230817172951490](C:\Users\yoki\Desktop\memories\assets\image-20230817172951490.png)
 
 **IDEA配置MAVEN**
 
@@ -1105,7 +1105,7 @@ version：定义当前项目版本号
 
 **依赖有效范围： 默认值compile，3个环境都有效**
 
-![image-20230821150240468](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230821150240468.png)
+![image-20230821150240468](C:\Users\yoki\Desktop\memories\assets\image-20230821150240468.png)
 
 
 
@@ -1892,7 +1892,7 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 部署的项目结构：web/WEB-INF文件夹下多了classes和lib文件，保存java字节码文件和依赖jar包
 
-![image-20230828105611839](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230828105611839.png)
+![image-20230828105611839](C:\Users\yoki\Desktop\memories\assets\image-20230828105611839.png)
 
 #### maven创建web项目
 
@@ -2899,7 +2899,7 @@ V：View，视图，界面展示
 
 C：Controller 控制器，处理请求，调用模型和视图
 
-![image-20230830162546014](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230830162546014.png)
+![image-20230830162546014](C:\Users\yoki\Desktop\memories\assets\image-20230830162546014.png)
 
 
 
@@ -2935,7 +2935,7 @@ C：Controller 控制器，处理请求，调用模型和视图
 
 逻辑：
 
-![image-20230830170401082](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230830170401082.png)
+![image-20230830170401082](C:\Users\yoki\Desktop\memories\assets\image-20230830170401082.png)
 
 
 
@@ -2943,9 +2943,9 @@ C：Controller 控制器，处理请求，调用模型和视图
 
 ### 三层架构CRUD开发
 
-![image-20230901090635113](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901090635113.png)
+![image-20230901090635113](C:\Users\yoki\Desktop\memories\assets\image-20230901090635113.png)
 
-![image-20230901091134578](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901091134578.png)
+![image-20230901091134578](C:\Users\yoki\Desktop\memories\assets\image-20230901091134578.png)
 
 ```java
 // -----brandService服务层
@@ -3322,7 +3322,7 @@ public class FilterDemo implements Filter {
 
 过滤器可以把对资源的请求拦截下来，从而实现一些特殊功能
 
-![image-20230901223954729](C:\Users\yoki\AppData\Roaming\Typora\typora-user-images\image-20230901223954729.png)
+![image-20230901223954729](C:\Users\yoki\Desktop\memories\assets\image-20230901223954729.png)
 
 
 
