@@ -60,7 +60,7 @@ setup(props, {emit, attrs, slots}){
 
 将值封装在一个对象中，看似没有必要，但为了保持 JavaScript 中不同数据类型的行为统一，这是必须的。这是因为在 JavaScript 中，`Number` 或 `String` 等基本类型是通过值而非引用传递的：
 
-![img](C:\Users\yoki\Desktop\memories\assets\pass-by-reference-vs-pass-by-value-animation.gif)
+![img](D:\typora-img\pass-by-reference-vs-pass-by-value-animation.gif)
 
 **ref 为我们的值创建了一个响应式引用。在整个组合式 API 中会经常使用引用的概念。**
 
@@ -2219,13 +2219,13 @@ const subTree = (instance.subTree = renderComponentRoot(instance))
 patch(null, subTree, container, anchor, instance,parentSuspense, isSVG)
 ```
 
-![](C:\Users\yoki\Desktop\memories\assets\image-20220120151547026.png)
+![](D:\typora-img\image-20220120151547026.png)
 
-![image-20220126155149173](C:\Users\yoki\Desktop\memories\assets\image-20220126155149173.png)
+![image-20220126155149173](D:\typora-img\image-20220126155149173.png)
 
 #### **编译器compile函数源码**
 
-![image-20220121180739102](C:\Users\yoki\Desktop\memories\assets\image-20220121180739102.png)
+![image-20220121180739102](D:\typora-img\image-20220121180739102.png)
 
 ### 组件VNode和组件instance区别
 

@@ -4,7 +4,7 @@
 
 ## **微服务架构**
 
-**![image-20230725121557135](C:\Users\yoki\Desktop\memories\assets\image-20230725121557135.png)**
+**![image-20230725121557135](D:\typora-img\image-20230725121557135.png)**
 
 ## **java版本**
 
@@ -111,7 +111,7 @@ public class HelloWorld{
 
 **java中有6种字面量类型：整数，小数，字符串，字符，布尔，空**
 
-**![image-20230628153909801](C:\Users\yoki\Desktop\memories\assets\image-20230628153909801.png)**
+**![image-20230628153909801](D:\typora-img\image-20230628153909801.png)**
 
 
 
@@ -119,7 +119,7 @@ public class HelloWorld{
 
 **打印时把前面字符串长度补齐到8，或8的整数倍。最少补1个空格，最多补8个空格**
 
-**![image-20230628154307751](C:\Users\yoki\Desktop\memories\assets\image-20230628154307751.png)**
+**![image-20230628154307751](D:\typora-img\image-20230628154307751.png)**
 
 
 
@@ -160,9 +160,9 @@ double b = 10.2;
 
 ## **进制转换**
 
-**![image-20230628163008744](C:\Users\yoki\Desktop\memories\assets\image-20230628163008744.png)**
+**![image-20230628163008744](D:\typora-img\image-20230628163008744.png)**
 
-**![image-20230628163351983](C:\Users\yoki\Desktop\memories\assets\image-20230628163351983.png)**
+**![image-20230628163351983](D:\typora-img\image-20230628163351983.png)**
 
 
 
@@ -230,7 +230,7 @@ float z = 10.33F
 | **字符**     | **char**    |
 | **布尔**     | **boolean** |
 
-**![image-20230628170513944](C:\Users\yoki\Desktop\memories\assets\image-20230628170513944.png)**
+**![image-20230628170513944](D:\typora-img\image-20230628170513944.png)**
 
 
 
@@ -421,7 +421,7 @@ public class Arithmetic {
 
 ### **运算符优先级**
 
-**![image-20230630164354777](C:\Users\yoki\Desktop\memories\assets\image-20230630164354777.png)**
+**![image-20230630164354777](D:\typora-img\image-20230630164354777.png)**
 
 ## **原码 补码 反码**
 
@@ -453,7 +453,7 @@ public class Arithmetic {
 
 **数字的存储和计算都是以补码的形式来操作的**
 
-**![image-20230630172727088](C:\Users\yoki\Desktop\memories\assets\image-20230630172727088.png)**
+**![image-20230630172727088](D:\typora-img\image-20230630172727088.png)**
 
 
 
@@ -986,7 +986,7 @@ public class Friend {
 }
 ```
 
-**![image-20230704115804563](C:\Users\yoki\Desktop\memories\assets\image-20230704115804563.png)**
+**![image-20230704115804563](D:\typora-img\image-20230704115804563.png)**
 
 
 
@@ -996,7 +996,7 @@ public class Friend {
 
 **实际开发中常用private和public**
 
-**![image-20230707162000404](C:\Users\yoki\Desktop\memories\assets\image-20230707162000404.png)**
+**![image-20230707162000404](D:\typora-img\image-20230707162000404.png)**
 
 
 
@@ -1681,7 +1681,7 @@ public class StringP02 {
 
 **实例化后打印sb对象,打印的是属性值,不是地址值(java底层处理过)**
 
-**![image-20230705092724087](C:\Users\yoki\Desktop\memories\assets\image-20230705092724087.png)**
+**![image-20230705092724087](D:\typora-img\image-20230705092724087.png)**
 
 ```java
 StringBuilder sb = new StringBuilder("abc");
@@ -1701,7 +1701,7 @@ String str = sb.toString() // sb对象转换为String
 
 **jdk8后出现, 实际作用和Stringbuilder一样, 代码编写比StringBuilder更简洁**
 
-**![image-20230705095054242](C:\Users\yoki\Desktop\memories\assets\image-20230705095054242.png)**
+**![image-20230705095054242](D:\typora-img\image-20230705095054242.png)**
 
 ```java
 StringJoiner sj = new StringJoiner(", ", "[", "]"); // 指定间隔符,开始符(可选), 结束符(可选)
@@ -1854,7 +1854,7 @@ ArrayList<Short> list2 = new ArrayList<>();
 
 
 
-**![image-20230705145708622](C:\Users\yoki\Desktop\memories\assets\image-20230705145708622.png)**
+**![image-20230705145708622](D:\typora-img\image-20230705145708622.png)**
 
 ### **ArrayList**
 
@@ -1988,7 +1988,7 @@ loop: while(true) {
 
 **Set：添加元素无序，不重复，无索引**
 
-**![image-20230720141356522](C:\Users\yoki\Desktop\memories\assets\image-20230720141356522.png)**
+**![image-20230720141356522](D:\typora-img\image-20230720141356522.png)**
 
 ### **单列集合Collection**
 
@@ -2384,7 +2384,7 @@ public class Person implements Comparable<Person> {
 
 ### **双列集合Map**
 
-**![image-20230724152057608](C:\Users\yoki\Desktop\memories\assets\image-20230724152057608.png)**
+**![image-20230724152057608](D:\typora-img\image-20230724152057608.png)**
 
 **map特点：无序，不重复、无索引，每次添加一对数据，一一对应，键不能重复，值可以重复（也叫键值对对象/Entry对象）**
 
@@ -3009,7 +3009,7 @@ public class Student extends Person{
 
 **成员方法==> 编译看左边, 运行看右边, 运行被重写的方法, 也就是成员方法**
 
-**![image-20230707113119742](C:\Users\yoki\Desktop\memories\assets\image-20230707113119742.png)**
+**![image-20230707113119742](D:\typora-img\image-20230707113119742.png)**
 
 ```java
 public class duotai {
@@ -5532,9 +5532,9 @@ File f1 = new File(str); // 根据路径字符串创建File对象
 f1.delete() // 删除文件或空文件夹
 ```
 
-**![image-20230728161700713](C:\Users\yoki\Desktop\memories\assets\image-20230728161700713.png)**
+**![image-20230728161700713](D:\typora-img\image-20230728161700713.png)**
 
-**![image-20230728163835103](C:\Users\yoki\Desktop\memories\assets\image-20230728163835103.png)**
+**![image-20230728163835103](D:\typora-img\image-20230728163835103.png)**
 
 
 
@@ -5680,7 +5680,7 @@ static HashMap getCount(File src) {
 
 ## **IO流**
 
-**![image-20230731143019501](C:\Users\yoki\Desktop\memories\assets\image-20230731143019501.png)**
+**![image-20230731143019501](D:\typora-img\image-20230731143019501.png)**
 
 **作用：读、写文件数据的解决方案**
 
@@ -6901,7 +6901,7 @@ public class Mycall implements Callable<Integer> {
 
 ### 成员方法
 
-![image-20230804173034164](C:\Users\yoki\Desktop\memories\assets\image-20230804173034164.png)
+![image-20230804173034164](D:\typora-img\image-20230804173034164.png)
 
 ```java
 // 线程休眠，执行到的地方会停止指定时间，再执行后面的代码
@@ -7391,7 +7391,7 @@ public class Cook extends Thread{
 
 **当执行start()后，就会开启独立的线程栈，而每个线程都会执行自己的run方法，run方法中创建的变量都是互相独立的**
 
-![image-20230808222516836](C:\Users\yoki\Desktop\memories\assets\image-20230808222516836.png)
+![image-20230808222516836](D:\typora-img\image-20230808222516836.png)
 
 
 

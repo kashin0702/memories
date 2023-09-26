@@ -631,7 +631,7 @@ class App extends React.Component {
 
 ### 生命周期函数
 
-![image-20221017145449532](C:\Users\yoki\Desktop\memories\assets\image-20221017145449532.png)
+![image-20221017145449532](D:\typora-img\image-20221017145449532.png)
 
 React内部为了告诉我们当前处于哪个阶段，会对组件内部实现的某些函数进行回调，这些函数就是生命周期函数
 
@@ -1114,7 +1114,7 @@ export default cpn1
 
 #### PureComponent源码
 
-![image-20221101141720292](C:\Users\yoki\Desktop\memories\assets\image-20221101141720292.png)
+![image-20221101141720292](D:\typora-img\image-20221101141720292.png)
 
 ### 不可变数据(state)
 
@@ -1302,7 +1302,7 @@ class App extends PureComponent{
 
 #### 受控组件的form表单提交
 
-![image-20221102165646594](C:\Users\yoki\Desktop\memories\assets\image-20221102165646594.png)
+![image-20221102165646594](D:\typora-img\image-20221102165646594.png)
 
 ```jsx
 import React, { PureComponent } from 'react'
@@ -2103,7 +2103,7 @@ store/constants.js  ===>action.type常量定义
 
 #### redux核心流程
 
-![image-20221110203530324](C:\Users\yoki\Desktop\memories\assets\image-20221110203530324.png)
+![image-20221110203530324](D:\typora-img\image-20221110203530324.png)
 
 
 
@@ -2140,7 +2140,7 @@ import {connect} from 'react-redux'
 
 #### redux中进行异步请求
 
-![image-20221111170932877](C:\Users\yoki\Desktop\memories\assets\image-20221111170932877.png)
+![image-20221111170932877](D:\typora-img\image-20221111170932877.png)
 
 本质就是在action中编写网络请求相关代码，在组件中直接调用，实现代码解耦
 
