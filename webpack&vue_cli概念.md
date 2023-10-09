@@ -784,6 +784,99 @@ module.exports = merge(commonConfig, {
 
 
 
+### vue-cli 2.x 核心流程
+
+1.npm run build -- prod 执行build/build.js
+
+2.build.js逻辑：获取启动参数，即prod，进行一些环境参数设置，获取config/index.js,  webpack.build.conf.js, 执行webpack打包编译
+
+3.webpack.build.conf.js逻辑：合并配置-》webpack.base.conf.js和其他配置
+
+
+
+### vue-cli 2.x 易混淆配置
+
+```js
+index: path.resolve(__dirname, '../dist/index.html'),// Paths
+assetsRoot: path.resolve(__dirname, '../dist'),
+assetsSubDirectory: 'static',
+assetsPublicPath: './'
+
+/*
+ `index`: 模板
+ `assetRoot`: 打包后文件要存放的路径
+ `assetsSubDirectory`: 除了 index.html 之外的静态资源要存放的路径，
+ `assetsPublicPath`: 代表打包后，index.html里面引用资源的的相对地址
+*/
+```
+
+
+
+
+
+### vue-cli env环境配置
+
+官方文档：
+
+**模式**是 Vue CLI 项目中一个重要的概念。默认情况下，一个 Vue CLI 项目有三个模式：
+
+- `development` 模式用于 `vue-cli-service serve`
+- `test` 模式用于 `vue-cli-service test:unit`
+- `production` 模式用于 `vue-cli-service build` 和 `vue-cli-service test:e2e`
+
+你可以通过传递 `--mode` 选项参数为命令行覆写默认的模式。例如，如果你想要在构建命令中使用开发环境变量：
+
+```
+vue-cli-service build --mode development
+```
+
+当运行 `vue-cli-service` 命令时，所有的环境变量都从对应的[环境文件](https://cli.vuejs.org/zh/guide/mode-and-env.html#环境变量)中载入。如果文件内部不包含 `NODE_ENV` 变量，它的值将取决于模式，例如，**在 `production` 模式下被设置为 `"production"`，在 `test` 模式下被设置为 `"test"`，默认则是 `"development"`。**
+
+
+
+**理解：env文件中不写NODE_ENV， 默认根据执行的命令设置NODE_ENV的值**
+
+**执行vue-cli-service serve， NODE_ENV默认为"development" **
+
+**执行vue-cli-service build， NODE_ENV默认为"production"**
+
+**执行vue-cli-service build --mode uat  则用env.uat中的变量覆盖默认变量**
+
+
+
+1，.env 后缀的文件是全局默认配置文件，不论什么环境都会加载并合并。
+
+2，.env.development 是开发环境下的配置文件，仅在开发环境加载。
+
+3，.env.production 是生产环境下的配置文件（也就是正式环境），仅在生产环境加载。
+
+以上三个命名不能变动，除此之外，可以另外自定义加上`.env.test`文件，也就是测试环境，或者`.env.bata`，也就是内部测试版，等等...
+
+变量命名必须以`VUE_APP_`开头，比如`VUE_APP_URL`，`VUE_APP_PWD`
+
+```json
+"scripts": {
+  "serve": "vue-cli-service serve",
+  "serve-test": "vue-cli-service serve --mode test",
+  "build": "vue-cli-service build",
+  "test": "vue-cli-service build --mode test",
+  "all": "vue-cli-service build && vue-cli-service build --mode test"
+}
+/*
+1，npm run serve，启动项目，并且加载.env和.env.development文件
+2，npm run serve-test，启动项目，并且加载.env和.env.test文件
+3，npm run build，生产环境打包，其中.env和.env.production文件会加载
+4，npm run test，测试环境打包，其中.env和.env.test文件会加载
+5，npm run all，生产环境和测试环境同时打包，加载不同的.env文件
+*/
+```
+
+
+
+
+
+
+
 
 
 ## vue-cli知识点
