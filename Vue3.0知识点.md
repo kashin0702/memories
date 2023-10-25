@@ -408,7 +408,7 @@ export default {
 
 ref 对象是可更改的，也就是说你可以为 `.value` 赋予新的值。它也是响应式的，即所有对 `.value` 的操作都将被追踪，并且写操作会触发与之相关的副作用。
 
-如果将一个对象赋值给 ref，那么这个对象将通过 [reactive()](https://cn.vuejs.org/api/reactivity-core.html#reactive) 转为具有深层次响应式的对象。这也意味着如果对象中包含了嵌套的 ref，它们将被深层地解包。
+**如果将一个对象赋值给 ref，那么这个对象将通过 [reactive()](https://cn.vuejs.org/api/reactivity-core.html#reactive) 转为具有深层次响应式的对象。**这也意味着如果对象中包含了嵌套的 ref，它们将被深层地解包。
 
 
 
@@ -543,7 +543,7 @@ console.log(obj.count === count.value) // true
 
 ### toRefs() / toRef()
 
-作用: 将reactive对象中的所有属性都转换成ref
+作用: 将reactive对象中的所有属性都转换成ref，并且和源对象关联
 
 ```js
 import {reactive,toRefs} from 'vue'
@@ -558,10 +558,27 @@ export default {
         let name = toRef(info,'name')
     }
     return {
-    	name,
+    	name, // 和info对象内属性关联，在模板中直接使用即可
     	age
 	}
 }
+
+
+// 应用：在hooks中使用toRefs， 解构后不会失去响应性
+function useFeatureX() {
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+
+  // ...基于状态的操作逻辑
+
+  // 在返回时都转为 ref
+  return toRefs(state)
+}
+
+// 可以解构而不会失去响应性 
+const { foo, bar } = useFeatureX()
 ```
 
 ### watchEffect / watch
@@ -575,6 +592,20 @@ watch:  指定要监听的依赖
 watch可以侦听的范围:  data/props/computed
 
 watch只能侦听数据本身的改变，不能侦听数据内部属性的改变(**要使用深度侦听**)
+
+```js
+// 自动追踪id的更新，更新时执行该回调
+// 该回调有一个onCleanup参数，也是一个函数用来注册清理回调函数，会在监听回调执行前，执行清理回调
+watchEffect(async (onCleanup) => {
+  const { response, cancel } = doAsyncWork(id.value)
+  // `cancel` 会在 `id` 更改时调用 
+  // 取消之前未完成的请求
+  onCleanup(cancel)
+  data.value = await response
+})
+```
+
+
 
 
 
