@@ -61,7 +61,8 @@ then (onFulfilled, onRejected) {
         } else {
           let res =  onFulfilled(value);
           if (res instanceof MyPromise) {
-            // 如果当前回调函数返回MyPromise对象，必须等待其状态改变后在执行下一个回调
+            // 关键：如果当前回调函数返回MyPromise对象，必须等待其状态改变后在执行下一个回调
+            // 在then中传入当前promise的resolve回调，res状态改变后就会执行then中传入的resolve回调
             res.then(onFulfilledNext, onRejectedNext)
           } else {
             //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
