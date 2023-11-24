@@ -47,3 +47,21 @@ git config --global credential.helper store
 
 token方式配置验证
 git remote set-url origin https://<token值>@github.com/kashin0702/memories.git
+
+
+kashin0702
+kasim0702
+邮箱：32313941@qq.com
+
+
+gitLab
+guyufeng01
+david19880702
+
+hbuild
+32313941@qq.com
+kasim123
+
+iconfont
+kashin0702
+gyf021816
