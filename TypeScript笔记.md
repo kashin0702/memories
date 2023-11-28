@@ -380,6 +380,31 @@ function sum2(nums: (string|number)[]){
 
 
 
+### 交叉类型
+
+```typescript
+//CombinedType 是将 Type1、Type2 和 Type3 组合在一起的交叉类型
+//这意味着 CombinedType 的值必须同时满足 Type1、Type2 和 Type3 的所有要求。
+type CombinedType = Type1 & Type2 & Type3;
+
+interface Person {
+  name: string;
+  age: number;
+}
+type Worker = Person & {
+  company: string;
+};
+const worker: Worker = {
+  name: 'Alice',
+  age: 26,
+  company: 'ABC Corp'
+};
+```
+
+
+
+
+
 ### Void类型
 
 当函数没有返回值时，就是void类型，可以不写，ts会自动推导
