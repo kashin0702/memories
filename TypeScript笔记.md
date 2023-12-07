@@ -124,7 +124,7 @@ const add: (num1: number,num2: number) => number = (num1: number, num2: number) 
 }
 //或者
 const addType = (num1: number, num2: number) => number
-cosnt add: addType = (num1: number, num2: number) {
+const add: addType = (num1: number, num2: number) {
     return num1 + num2
 }
 ```
