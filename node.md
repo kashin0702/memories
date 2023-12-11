@@ -305,6 +305,20 @@ module.exports 可以将模块内成员共享出去，供外界调用
 
 
 
+#### 加载机制
+
+1.模块首次加载会放到缓存中，如引用了多次同一个模块，模块中的代码只会执行一次
+
+2.内置模块优先级最高，如第三方模块和内置模块重名，优先加载内置模块
+
+3.require()加载的模块不写后缀名，会自动补全，优先补全为js
+
+4.require()加载的是文件夹，优先加载文件夹内package.json中指定的main入口文件，若没有package.json，则加载index.js
+
+查找机制： 如果加载模块不是内置模块，也没有路径标识，node会从当前模块的父目录开始尝试从/node_modules中加载第三方模块，如果没有则移动到再上一层，直到系统根目录
+
+
+
 ### npm
 
 全球最大的包共享平台，也就是第三方模块共享平台，可以从官方服务器下载所需包，通过npm包管理工具下载包
@@ -338,4 +352,49 @@ module.exports = {
 const myUtils = require('david-pacakge') // package.json中配置的包名
 myUtils.formatDate(new Date())
 ```
+
+
+
+**发布包流程：**
+
+1.npm官网注册账号
+
+2.终端内执行**npm login** 依次输入用户名、密码、邮箱后登录成功
+
+3.将终端切换到包的根目录，执行**npm publish**,即将包发布到了npm(注意包名必须唯一)
+
+
+
+
+
+### express
+
+基于nodejs的一个web开发框架，用来创建web服务器（代替内置模块http，更高效），本质也是一个第三方模块
+
+express最常见的使用：
+
+创建web网页资源服务器，创建api接口服务器
+
+
+
+#### 安装
+
+npm install express@4.17.1  安装指定版本
+
+#### 使用
+
+```js
+// 导入模块
+const express = require('express')
+// 创建web服务器
+const app = express()
+
+app.listen(80, () => {
+    console.log('express server is running at http://127.0.0.1')
+})
+```
+
+
+
+#### 托管静态资源
 
