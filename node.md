@@ -311,7 +311,7 @@ module.exports 可以将模块内成员共享出去，供外界调用
 
 2.内置模块优先级最高，如第三方模块和内置模块重名，优先加载内置模块
 
-3.require()加载的模块不写后缀名，会自动补全，优先补全为js
+3.require()加载的模块不写后缀名，会自动补全，优先补全为js，如果没有xx.js这个文件，补全为xx.json
 
 4.require()加载的是文件夹，优先加载文件夹内package.json中指定的main入口文件，若没有package.json，则加载index.js
 
@@ -392,9 +392,135 @@ const app = express()
 app.listen(80, () => {
     console.log('express server is running at http://127.0.0.1')
 })
+
+// 监听get请求
+app.get('请求URL', function(req, res) {/* 处理函数 */})
+// 监听post请求
+app.post('请求URL', function() {/* 处理函数 */})
+
+// 返回数据
+app.get('/user', function(req, res) {
+    // send方法可以响应一个JSON对象， 也可以响应文本
+    res.send({name: 'david', age: 35})
+})
+
+
+// 获取url中的参数  127.0.0.1/?name=david&age=35
+app.get('/', function(req, res) {
+    // req.query获取url上的参数
+    console.log(req.query) // {name: 'david', age: 35}
+})
+
+// 获取动态参数 请求地址127.0.0.1/user/123
+app.get('/user/:id', function(req, res) {
+    // req.params匹配动态参数
+    console.log(req.params) // {id: 123}
+})
 ```
 
 
 
 #### 托管静态资源
+
+app.use(express.static(’目录‘))   对外提供静态资源
+
+```js
+/* 
+	指定public目录为静态资源文件夹，如images,css,js都是public文件夹内的资源，就都可以访问到了
+	访问的路径不需要添加/public路径，默认访问的就是public路径下的资源
+	localhost:3000/images/xx.jpg
+	localhost:3000/css/style.css
+	localhost:3000/js/xx.js
+*/
+app.use(express.static('./public')) // 当前文件相对路径
+app.use(express.static('./files')) // 可以托管多个静态资源目录
+
+
+// 挂载路径前缀
+app.use('/resource', express.static('./public')) // 需要访问localhost:3000/resource/js/xx.js 才能访问资源
+```
+
+
+
+#### 路由
+
+express中，路由是指客户端请求与服务器处理函数的**映射关系**
+
+express中路由分3部分组成：请求类型，请求的URL，处理函数
+
+```js
+// 挂载路由，匹配get请求， 请求url为/user
+app.get('/user', (req, res) => {
+    res.send('hello get')
+})
+
+// 挂载路由，匹配post请求，请求url为/
+app.post('/', (req, res) => {
+    res.send('hello post')
+})
+```
+
+
+
+#### 路由模块化
+
+不推荐把路由直接挂载到app上，推荐抽离到单独模块管理
+
+```js
+// router.js文件内，创建路由实例
+const express = require('express')
+// 创建路由实例
+const router = express.Router()
+// 挂载路由
+router.get('/user/list', (req, res) => {res.send('get list')})
+router.post('/user/add', (req, res) => {res.send('post add')})
+
+// 导出路由
+module.exports = router
+```
+
+app模块内导入路由
+
+```js
+// 导入路由模块
+const useRouter = require('./router.js')
+// 注册路由模块
+app.use(useRouter) // app.use 用来注册全局中间件
+
+// 给路由添加统一前缀
+app.use('/api', useRouter) // 访问时路径前要加/api
+```
+
+
+
+
+
+#### nodemon
+
+监听代码，修改node代码后自动重启服务，无需手动重启
+
+安装：npm i nodemon -g
+
+使用：nodemon xx.js     使用nodemon运行的js代码，就可以监听代码改动，并自动重启项目
+
+
+
+#### 中间件
+
+express中间件概念：
+
+业务处理环节中的中间过程，必须有输入和输出，本质是一个函数
+
+当请求到达服务器后，可以连续调用多个中间件，从而对请求进行预处理
+
+客户端请求==》中间件1===》中间件2===》....中间件N===》处理完毕响应(路由)===》客户端接收响应
+
+中间件next函数作用：是多个中间件连续调用的关键，表示把流转关系转交给下一个**中间件**或**路由**
+
+```js
+// 中间件函数的形参中必须包含一个next函数， 这是和路由函数的区别
+app.get('/', function(req, res, next) {
+    next() // 处理完毕，转交处理给下一个中间件或路由
+})
+```
 
