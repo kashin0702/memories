@@ -1,4 +1,4 @@
-### 浏览器运行环境
+###  浏览器运行环境
 
 浏览器本身也是一个运行环境，也就是js的前端运行环境，chrome浏览器的运行环境主要由2部分组成：
 
@@ -515,12 +515,91 @@ express中间件概念：
 
 客户端请求==》中间件1===》中间件2===》....中间件N===》处理完毕响应(路由)===》客户端接收响应
 
-中间件next函数作用：是多个中间件连续调用的关键，表示把流转关系转交给下一个**中间件**或**路由**
+next函数作用：是多个中间件连续调用的关键，表示把流转关系转交给下一个**中间件**或**路由**
 
 ```js
-// 中间件函数的形参中必须包含一个next函数， 这是和路由函数的区别
+// 官方示例：这是一个中间件函数，它的形参中必须包含一个next函数， 这是和路由函数的区别
 app.get('/', function(req, res, next) {
     next() // 处理完毕，转交处理给下一个中间件或路由
 })
 ```
 
+##### 全局中间件
+
+```js
+const express = require('express')
+const app = express()
+
+// 定义中间件函数
+const mw = function(req, res, next) {
+    console.log('我是中间件')
+    const reqTime = new Date().getTime()
+    req.reqTime = reqTime // 给req对象添加属性，流转到下一个函数中使用
+    next() // 必须调用，流转req和res给下一个函数
+}
+// 注册全局中间件
+app.use(mw)
+
+app.get('/', function(req, res) {
+    console.log(req.reqTime) // 获取中间件添加的属性
+})
+app.listen(80, () => {console.log('server is running')})
+```
+
+##### 局部中间件
+
+不使用app.use的就是局部中间件
+
+```js
+const mw = function(req, res, next) {
+    console.log('中间件函数')
+    next()
+}
+const mw2 = function() {}
+/*
+	挂载局部生效的中间件，可以同时挂载多个，会先调用中间件函数，再调用路由函数
+*/
+app.get('/', mw, mw2, function(req, res) {
+    res.send('home')
+})
+```
+
+##### 路由级别中间件
+
+```js
+const app = express()
+const router = express.Router()
+// 路由上注册中间件
+router.use(function(req, res, next) {
+    next()
+})
+app.use(router)
+```
+
+##### 错误级别中间件
+
+```js
+app.get('/', function(req, res) {
+    throw new Error('some error') // 模拟错误并抛出
+})
+
+// 错误级别的中间件多一个形参err，包含了错误信息, 捕获错误防止程序崩溃
+app.use(function(err, req, res, next) {
+    console.log('错误信息:', err.message )
+    res.send('error==>', err.message) // 响应错误信息
+})
+```
+
+
+
+
+
+##### 注意事项
+
+多个中间件共享req和res对象
+
+中间件必须定义在路由前面；
+
+必须调用next函数；
+
+next函数后不要再写代码
