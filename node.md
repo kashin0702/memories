@@ -1032,7 +1032,7 @@ session基于cookie实现，cookie默认不支持跨域，当涉及前端跨域�
 
 
 
-#### JWT
+### JWT
 
 JSON Web Token：跨域认证解决方案
 
