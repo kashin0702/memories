@@ -96,13 +96,13 @@ fs.readFile(__dirname + '/files/aa.txt',  function(){})
 
 node官方提供，提供处理路径的一系列方法和属性
 
-**path.join()**  将多个路径片段拼接成一个完整的路径字符串, 拼接路径推荐都是用join，不要用+号
+**path.join()**  将多个路径片段拼接成一个完整的路径字符串,  **推荐拼接路径都是用join，不要用+号**
 
 **path.basename()**  从字符串中将文件名解析出来
 
 ```js
 const path = require('path')
-const newpath = path.join(__dirname, './files/aa.txt') // 当前文件目录/file/aa.txt
+const newpath = path.join(__dirname, './files/aa.txt') // 路径为： __dirname/files/aa.txt
 
 // 读取文件案例最终写法，通过join
 fs.readFile(path.join(__dirname, './files/aa.txt'), function(){})
@@ -485,7 +485,7 @@ app模块内导入路由
 // 导入路由模块
 const useRouter = require('./router.js')
 // 注册路由模块
-app.use(useRouter) // app.use 用来注册全局中间件
+app.use(useRouter) // app.use 用来注册全局中间件, 路由本质上也是一个中间件
 
 // 给路由添加统一前缀
 app.use('/api', useRouter) // 访问时路径前要加/api
@@ -569,6 +569,7 @@ app.get('/', mw, mw2, function(req, res) {
 ```js
 const app = express()
 const router = express.Router()
+
 // 路由上注册中间件
 router.use(function(req, res, next) {
     next()
@@ -583,23 +584,468 @@ app.get('/', function(req, res) {
     throw new Error('some error') // 模拟错误并抛出
 })
 
-// 错误级别的中间件多一个形参err，包含了错误信息, 捕获错误防止程序崩溃
+// 错误级别的中间件多一个形参err，包含了错误信息, 捕获错误防止程序崩溃, ！必须注册在所有路由之后！
 app.use(function(err, req, res, next) {
     console.log('错误信息:', err.message )
     res.send('error==>', err.message) // 响应错误信息
 })
 ```
 
+##### 内置中间件
 
+node官方提供的中间件
+
+```js
+// express.static 托管静态资源的中间件
+
+// express.json  解析json格式的请求数据
+app.use(express.json())
+// express.urlencoded  解析url-encoded格式的请求数据
+app.use(express.urlencoded({ extended: false }))
+```
+
+获取请求体演示：
+
+```js
+const express = require('express')
+const app = express()
+
+// 关键：配置解析json的中间件
+app.use(express.json())
+
+app.post('/user', function(req, res) {
+    // req.body可以获取客户端发送的请求体数据，默认情况若不配置解析数据的中间件res.body = undefined
+    console.log(req.body)
+    res.send('ok')
+})
+
+app.listen(80, function() {console.log('server is running')})
+```
+
+
+
+##### 第三方中间件
+
+body-parser ：解析请求体数据中间件
+
+安装 **npm install body-parser**，require导入， app.use注册中间件
+
+```js
+const parser = require('body-parser')
+
+app.use(parser.urlencoded({extended: false}))
+
+app.post('user', function(req, res) {
+    console.log(req.body) // 可以解析url-encoded格式数据
+})
+```
+
+
+
+##### 自定义中间件
+
+模拟express.urlencoded中间件
+
+```js
+// 0.创建服务器 略
+
+// node内置模块querystring, 转换数据格式用
+const qs = require('querystring')
+
+// 1. 定义中间件
+app.use((req, res, next) => {
+    // 1.1监听req的data事件, 当服务端接收到数据时就会出发这个事件
+    // 当数据很大时，不会一次接收完，可能多次触发事件，定义一个变量存储所有数据
+    let str = ''
+    req.on('data', (chunk) => { // chunk就是每次触发事件时接收到的数据
+        str += chunk
+    })
+    // 1.2 监听req的end事件， 请求发送完毕后触发
+    req.on('end', () => {
+        console.log(str) // 完整的数据，是一个字符串
+        // 1.3 把字符串数据转换成对象
+       	const body = qs.parse(str)
+        // 1.4 把body挂载到req.body上，给下游中间件或路由使用
+        req.body = body
+        next() // 别忘记调用next
+    })
+})
+
+// 下游路由
+app.post('/user',  function(req, res) {
+    res.send(req.body) // 获取body数据并响应回去
+})
+```
+
+**封装成模块**
+
+```js
+// custom-parser.js 文件名
+const qs = require('querystring')
+
+function bodyParser(req, res, next) {
+    let str = ''
+    req.on('data', (chunk) => {
+        str += chunk
+    })
+    req.on('end', () => {
+       	const body = qs.parse(str)
+        req.body = body
+        next()
+    })
+}
+module.exports = bodyParser
+
+// 使用模块
+const customParser = require('custom-parser')
+app.use(customParser)
+```
 
 
 
 ##### 注意事项
 
-多个中间件共享req和res对象
+1.多个中间件共享req和res对象
 
-中间件必须定义在路由前面；
+2.中间件必须定义在路由前面（错误级别中间件定义在最后）
 
-必须调用next函数；
+3.必须调用next函数
 
-next函数后不要再写代码
+4.next函数执行后不要再写代码
+
+
+
+#### 编写接口
+
+```js
+// app.js 
+const express = require('express')
+const app = express()
+
+// 导入路由
+const router = require('./router.js')
+
+// 注册解析请求体中间件
+app.use(express.urlencoded({extended: false}))
+
+// 指定/api为统一路由前缀， 注册全局路由
+app.use('/api', router)
+// 启动服务
+app.listen(80, function() {})
+
+
+// router.js
+const express = require('express')
+const router = express.Router()
+
+// 挂载get请求路由  前端请求路径为: /api/user
+router.get('/user', function(req, res) {
+    // 获取查询参数
+    const query = req.query
+    
+    res.send({
+        code: '000000',
+        msg: 'get请求成功',
+        data: query // 把请求查询参数原样返给前端
+    })
+})
+
+// 挂载post请求路由  请求路径：/api/other
+router.post('/other', function(req, res) {
+    // 获取请求体数据
+    const body = req.body 
+    res.send({
+        code: '000000',
+        msg: 'post请求成功',
+        data: body
+    })
+})
+```
+
+#### 跨域
+
+cors解决跨域
+
+安装cors中间件: npm install cors
+
+**原理：跨域的响应是被浏览器阻止的，在服务端配置响应头：Access-Control-Allow-*， 客户端识别到这种响应头就不会被拦截了**
+
+```js
+// 导入模块
+const cors = require('cors')
+// 在所有路由前注册cors中间件
+app.use(cors())
+
+const router = require('./router.js')
+
+app.use('/api', router)
+```
+
+
+
+#### cors响应头类型
+
+**Access-Control-Allow-Origin: <origin> | ***       origin的值指定了允许访问该资源的外域URL， *就是通配符，允许任何外域请求
+
+**Access-Control-Allow-Headers  ：**  默认情况cors仅支持9种客户端请求头（Accept, Accept-Language, Content-Language, DPR, Downlink, Save-Data, Viewport-Width, Width, Content-Type (值仅限于text/plain，multipart/form-data , application/x-www-form-urlencoded 三者之一) ）
+
+如果客户端发送额外的请求头，则服务端需要对额外请求头进行声明，否则请求会失败
+
+**Access-Control-Allow-Methods:**   默认情况cors仅支持get,post,head请求， 如果客户端希望通过put,delete方式请求服务端，需要配置这个响应头
+
+```js
+// 设置只允许来自指定域名的请求
+res.setHeader('Access-Control-Allow-Origin', 'http://xx.com')
+
+// 声明允许客户端发送Content-Type和X-Custom-Header请求头
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Custom-Header')
+
+// 声明允许的请求方式
+res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PUT, HEAD, DELETE') // 允许这5个方法 或*允许所有
+```
+
+
+
+#### cors请求的分类
+
+客户端在请求CORS接口时，根据请求方式和请求头不同，可将CORS请求分为2类
+
+**简单请求只发生一次请求，预检请求发生二次**
+
+
+
+**简单请求**
+
+满足以下2个条件就是简单请求
+
+1.请求方式是GET/POST/HEAD
+
+2.HTTP头部信息不超过cors默认支持的9个类型
+
+
+
+**预检请求**
+
+**预检请求概念：在浏览器和服务端正式通信前，浏览器会发送OPTION请求进行预检，以获知服务器是否允许该实际请求，这次OPTION请求被称为预检请求。服务器成功响应预检请求后，才会发送真正的请求并携带真实数据。**
+
+符合以下条件之一，就需要执行预检请求
+
+1.GET,POST,HEAD之外的请求类型
+
+2.请求头中包含自定义头部字段
+
+3.发送的数据类型是application/json
+
+
+
+#### JSONP接口
+
+jsonp概念：浏览器通过script标签的src属性，请求服务端数据，同时服务端返回一个函数的调用，这种请求方式就是jsonp，**jsonp仅支持get请求， 不是真正的AJAX请求，因为没有使用XMLHttpRequest对象**
+
+实现步骤：
+
+1. 获取客户端发送过来的回调函数名字
+2. 拼接一个函数调用的字符串
+3. 把字符串响应给客户端的<script>标签进行解析
+
+```js
+// 创建jsonp接口， 放在cors中间件前防止cors冲突， 放后面会被被cors处理成跨域接口
+app.get('/api/jsonp', function(req, res) {
+    // 获取回调函数的名字
+    const funcName = req.query.callback
+    // 传给回调函数的数据
+    const data = { name: 'david', age: 35}
+    // 发送的是一个函数调用，拼接成字符串返回给客户端
+    const scriptStr = `${funcName}(${JSON.stringify(data)})`  // funcName(data) 就是这种样式
+    res.send(scriptStr) // 响应给客户端的<script>标签进行解析
+})
+
+const cors = require('cors')
+app.use(cors())
+const router = require('./router.js')
+app.use('/api', router)
+```
+
+**客户端用jquery进行jsonp接口请求**
+
+```js
+// 绑定事件触发请求
+$('#button').on('click', function() {
+    $.ajax({
+        method: 'GET',
+        url: 'http://127.0.0.1/api/jsonp',
+        dataType: 'jsonp', // 必须指定为jsonp请求
+        success: function (res) {
+            console.log(res) // {name: 'david', age: 35}
+        }
+    })
+})
+```
+
+
+
+### mySQL
+
+#### 安装
+
+mySQL sever  数据库服务软件
+
+mySQL workbench 可视化操作工具
+
+
+
+#### 项目中操作mySQL
+
+1.安装mySQL模块
+
+2.通过mySql模块连接数据库
+
+3.通过mySql模块执行SQL语句
+
+**安装模块**
+
+npm install mysql
+
+**建立数据库连接**
+
+```js
+const mysql = require('mysql')
+
+// 建立与mysql数据库的连接
+const db = mysql.createPool({
+    host: '127.0.0.1', // 数据库地址
+    user: 'root',
+    password: 'admin123',
+    database: 'my_db_01' // 要操作哪个数据库
+})
+
+
+// 查询users表数据
+const sqlStr = 'select * from  users'
+db.query(sqlStr, (err, res) => { // 执行完毕的回调函数
+    // 查询失败
+    if (err) console.log(err.message)
+    // 查询成功
+    console.log(res)
+})
+
+// 插入数据 
+const user = { name: 'david', password: '123456' }
+// ?表示占位符
+const insertSql = 'insert into users(name, password) VALUES(?, ?)'
+// 方法中按顺序传入占位符的数据， 通过affectedRows判断是否执行成功
+db.query（insertSql, [user.name, user.password], (err, res) => {
+    if (err) console.log('执行失败')
+    if (res.affectedRows === 1) console.log('执行成功')
+}）
+
+// 更新数据
+const user2 = { id:7, name: 'kashin', password: '000' }
+// 也要使用?作为占位符
+const updateSql = 'update users SET name=?, password=? WHERE id=?'
+// 按顺序传入占位符对应数据， 备注：sql中如果只有一个占位符，可以省略[]，直接传数据
+db.query(updateSql, [user2.name, user2.password, user2.id], (err, res) => {
+    if (res.affecedRows === 1) console.log('成功')
+})
+```
+
+
+
+### web开发模式
+
+大致分为2种：
+
+1.服务端渲染： 服务端发送html页面给客户端，服务端通过字符串拼接动态生成
+
+​	优点：前端响应快，只需渲染页面，利于SEO
+
+​	缺点：占用服务端资源，不利于前后端分离，对于前端复杂的项目开发效率低
+
+2.前端渲染： 前端专注UI， 后端专注API
+
+​	优点：AJAX可实现局部渲染，用户体验好， 减轻服务端渲染压力
+
+​	缺点：不利于SEO（Vue，react的SSR能解决该问题）
+
+
+
+### Session
+
+**http协议是无状态性的，每次http请求都是独立的**
+
+Cookie在身份认证中的作用：
+
+客户端第一次请求时，服务端通过响应头的形式，向客户端发送一个身份认证的Cookie,客户端会自动将Cookie保存到浏览器中。
+
+随后当客户端每次请求时，浏览器会自动将该Cookie通过请求头发送给服务器，服务器即可验证该客户端身份
+
+**Cookie不具备安全性：** 浏览器发送的Cookie可能伪造，需要服务端认证通过, 见以下session认证
+
+
+
+#### express-session中间件
+
+```js
+const express = require('express')
+const app = express()
+
+const session = require('express-session')
+// 注册session中间件.传入一个配置对象
+app.use(session({
+    secret: 'abc123',
+    resave: false,
+    svaUninitialized: true
+}))
+
+
+// 在session上保存数据
+app.post('/api/login', (req, res) => {
+    if (req.body.username !== 'david' && req.body.password !== '123456') {
+        return res.send({status: 1, msg: '登陆失败'})
+    }
+    // 配置了express-session, 才能获取到req.session属性
+    req.session.user = req.body // 把用户信息保存到session中
+    req.session.isLogin = true  // 把登录状态保存到session中
+    res.send({stuats: 0, msg: '登录成功'})
+})
+
+
+// 从session上获取数据
+app.get('/api/userInfo', (req, res) => {
+    if (!req.session.isLogin) { // 用户未登录
+        return res.send({status: 1, msg: 'fail'})
+    }
+})
+
+// 清空session
+app.post('/api/logout', (req, res) => {
+    req.session.destroy() // 只会清空当前用户的session
+    res.send({status: 0, msg: '退出登录成功'})
+})
+```
+
+
+
+#### session的局限性
+
+session基于cookie实现，cookie默认不支持跨域，当涉及前端跨域请求接口时需要很多额外配置。
+
+
+
+#### JWT
+
+JSON Web Token：跨域认证解决方案
+
+JWT由3部分组成：header.payload.signature      其中payload部分是真正的用户信息加密后生成的字符串
+
+![image-20231218175505452](D:\typora-img\image-20231218175505452.png)
+
+
+
+#### express中使用jwt
+
+安装2个包：npm install jsonwebtoken express-jwt 
+
+jsonwebtoken：用于生成jwt字符串
+
+express-jwt：用于将jwt字符串解析还原成JSON对象

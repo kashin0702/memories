@@ -231,7 +231,9 @@ select * from stu order by math desc, english asc; -- 按数学降序排列，�
 	聚合函数分类： count(列名)-统计数量， max(列名)-最大值，min(列名)-最小值, sum(列名)-求和, avg(列名)-平均值
 	聚合函数语法：select 聚合函数名(列名) from 表； 
 */
-select count(id) from stu; -- 统计有多少个学生，传进去的列名不能为空，不会统计列为null的数据，最好传主键或*(星号表示一行只要有一个不为空就会统计)
+select count(id) from stu; -- 统计有多少个学生，传进去的列名不能为空，不会统计列为null的数据，最好传主键或*(*表示一行只要有一个不为空就会统计)
+select count(*) AS total_20 from stu where age>= 20 --给count(*)起一个别名，统计大于20岁的学生个数
+
 select max(math) from stu; -- 查询数学成绩最高分
 select min(english) from stu; -- 查询英语成绩最低分，如果有null,不参与计算，只会统计有值的最低值
 
