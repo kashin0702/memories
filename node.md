@@ -1049,3 +1049,45 @@ JWT由3部分组成：header.payload.signature      其中payload部分是真正
 jsonwebtoken：用于生成jwt字符串
 
 express-jwt：用于将jwt字符串解析还原成JSON对象
+
+```js
+const express = require('express')
+const app = express()
+const jwt = require('jsonwebtoken')
+const expressJWT = require('express-jwt')
+
+// 定义秘钥，一个字符串，用来加密和解密jwt字符串
+const secretKey = 'hello david'
+
+// 定义全局中间件，解析请求里传过来的token, 还原为json对象  配置正则：/api开头的请求不需要token认证
+app.use(expressJWT({secret: secretKey}).unless({path: [/^\/api\//]}))
+
+// 1.生成jwt
+app.post('/api/login', (req, res) => {
+    if (req.body.username === 'david' && req.body.password === '123456') {
+        // 传入username和secretky,生成jwt字符串
+        const token = jwt.sign({username: req.body.username}, secretKey, {expiresIn: '60s'})
+        
+        res.send({
+            status: 0,
+            msg: '登陆成功',
+            token: token
+        })
+    }
+})
+
+// 2.解析jwt
+app.post('/admin/userinfo', (req, res) => {
+    res.send({
+        msg: 'success'
+        data: req.user // {username: 'david', exp: xxxxx} 只有添加了expressJWT中间件，才能在req.user属性上获取到解析后的JWT中的username信息
+    })
+})
+
+app.listen(80, () ={})
+```
+
+
+
+
+
