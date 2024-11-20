@@ -7055,7 +7055,8 @@ public class MyThread03 extends Thread{
             synchronized (MyThread03.class) {
                 if (ticket < 100) {
                     try {
-                        Thread.sleep(100); // 休眠100毫秒 让出线程，醒来后重新加入抢夺cpu
+                         // 休眠100毫秒 -- 同步代码块内执行sleep不会让出线程
+                        Thread.sleep(100);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
