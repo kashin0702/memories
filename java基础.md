@@ -63,7 +63,7 @@ public class HelloWorld{
 }
 ```
 
-**如何运行java程序**
+## **如何运行java程序**
 
 **1、在要运行的文件目录下打开cmd  执行javac  xxx.java  编译源文件，会生成一个class文件**
 

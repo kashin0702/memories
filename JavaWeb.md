@@ -511,6 +511,22 @@ JDBC(Java DataBase Connectivity)：java数据库连接，使用JAVA操作关系�
 
 mysql, oracle等数据库厂商分别定义自己的实现类，实现JDBC接口，并提供数据库jar包（也叫驱动）
 
+### IDEA配置JDBC
+
+1. **下载JDBC驱动**：
+   - 访问MySQL官网下载对应的JDBC驱动（Connector/J），选择适合您操作系统的版本进行下载，通常是一个`.zip`文件。
+2. **安装JDBC驱动到IDEA**：
+   - 将下载的JDBC驱动解压，得到`.jar`文件，例如`mysql-connector-java-8.0.26.jar`。
+   - 打开IntelliJ IDEA，找到项目设置中的`Libraries`部分，将`.jar`文件添加到项目中。可以通过`File` -> `Project Structure` -> `Libraries`，然后点击`+`号添加JARs或目录。
+3. **配置数据库连接**：
+   - 在IDEA的主界面右侧边栏找到“Database”选项卡，点击`+`号添加新的数据源。
+   - 选择您要连接的数据库类型（例如MySQL），并填写连接配置信息，包括主机名、端口号、数据库名称、用户名和密码。
+   - 确保填写的URL格式正确，例如：`jdbc:mysql://localhost:3306/your_database_name?useSSL=false&serverTimezone=UTC`。
+4. **测试连接**：
+   - 配置完成后，点击`Test Connection`按钮以确保IDEA能够成功连接到数据库。
+
+
+
 核心流程：
 
 ```java
