@@ -36,35 +36,33 @@ path配置：%MYSQL_HOME%\bin
 
 ```ini
 [mysqld]
-; 设置3306端口
+# 设置3306端口
 port=3306
-; 设置mysql的安装目录
+# 设置mysql的安装目录
 basedir=E:\\MySQL\\mysql-5.7.40-winx64
-; 设置mysql数据库的数据的存放目录	
+# 设置mysql数据库的数据的存放目录	
 datadir=E:\\MySQL\\mysql-data
-; 允许最大连接数
+# 允许最大连接数
 max_connections=200
-; 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统
+# 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统
 max_connect_errors=10
-; 服务端使用的字符集默认为UTF8
+# 服务端使用的字符集默认为UTF8
 character-set-server=utf8
-; 创建新表时将使用的默认存储引擎
+# 创建新表时将使用的默认存储引擎
 default-storage-engine=INNODB
-; 默认使用“mysql_native_password”插件认证
-default_authentication_plugin=mysql_native_password
 sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 [mysql]
-; 设置mysql客户端默认字符集
+# 设置mysql客户端默认字符集
 default-character-set=utf8
 [client]
-; 设置mysql客户端连接服务端时默认使用的端口
+# 设置mysql客户端连接服务端时默认使用的端口
 port=3306
 default-character-set=utf8
 ```
 
 
 
-3.初始化data文件：管理员权限打开cmd，执行mysqld --initialize-insecure 
+3.初始化data文件：管理员权限打开cmd，执行mysqld --initialize-insecure   (-insecure表示非可靠模式，可以不输入密码登录)
 
 4.注册mysql服务：mysqld -install
 
@@ -73,7 +71,9 @@ default-character-set=utf8
 6. 登录mysql： mysql -u root -p （这个mysql指的是mysql.exe, 即mysql客户端，用来和服务通信，因为未设置密码，可以直接回车登录）
 7. 查询用户名和密码：select host,user,authentication_string from mysql.user;
 
-修改默认账户名密码：mysqladmin -u root password 123456  (修改管理员root账户的密码)
+修改默认账户名密码：mysqladmin -u root password 123456  (修改管理员root账户的密码，非可靠模式使用)
+
+**8.0以上版本mysql修改密码：ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';**  
 
 8.再次登录：mysql -u root -p123456 
 
