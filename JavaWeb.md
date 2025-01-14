@@ -3404,3 +3404,41 @@ public class ListenerDemo implements ServletContextListener {
 
 
 
+## 其他知识点
+
+### @ApiOperation
+
+`@ApiOperation`是 Swagger 框架中的一个注解，主要用于在 API 文档生成过程中描述接口（API 方法）的功能。Swagger 是一个强大的工具，用于设计、构建、记录和使用 RESTful Web 服务。它通过解析代码中的注解来自动生成 API 文档，方便前后端开发人员理解接口的用途、参数、返回值等信息
+
+```java
+       @RestController
+       @RequestMapping("/api")
+       public class MyController {
+           @ApiOperation("获取用户信息")
+           @GetMapping("/user/{id}")
+           public User getUserById(@PathVariable("id") Long id) {
+               // 这里是获取用户信息的具体逻辑
+               return userService.getUserById(id);
+           }
+       }
+```
+
+
+
+### @GetMapping
+
+- `@GetMapping`是 Spring 框架（具体是 Spring Web MVC）中的一个注解，用于将 HTTP GET 请求映射到特定的处理方法上。它是一种方便的、基于注解的方式来定义 RESTful API 端点或者处理普通的网页请求（在 MVC 模式下）。
+- 它表明被标注的方法将处理 HTTP GET 请求。在例子中，`getBooks`方法会处理对`/api/books`路径的 GET 请求。当客户端（如浏览器或者其他 HTTP 客户端）发送一个 GET 请求到`/api/books`时，Spring 框架会自动调用这个`getBooks`方法，并将方法的返回结果（在这个例子中是书籍列表）返回给客户端。
+
+```java
+       @RestController
+       @RequestMapping("/api")
+       public class MyController {
+           @GetMapping("/books")
+           public List<Book> getBooks() {
+               // 从数据库或者其他数据源获取书籍列表
+               return bookService.getBooks();
+           }
+       }
+```
+

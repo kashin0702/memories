@@ -534,7 +534,7 @@ div {
 }
 
 div {
-    margin: 20rem / @baseFont   //所有数值都转化为rem值
+    margin: 20rem / @baseFont   //所有数值都转化为rem值  本质是(20/@baseFont)rem
 }
 
 
