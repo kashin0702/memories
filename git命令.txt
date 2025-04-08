@@ -32,3 +32,6 @@ git pull origin main
 
 推送远程仓库主干
 git push origin main
+
+git 全局配置查询
+git config --global --list
