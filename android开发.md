@@ -83,3 +83,17 @@ class MainActivity : BaseActivity(), IJavascriptInterface {
 
 1. 在xml文件中通过属性android:text 设置文本
 2. 在java文件中调用文本视图对象的setText方法设置文本
+
+
+
+
+
+
+
+### 上海项目加载前端工程
+
+加载用的文件路径：app/src/main/java/com.asiainfo.newmboss/feature/main/MainActivity
+
+可加载打包后的静态文件，也可直接加载本地起来的前端工程地址
+
+![image-20250417102242932](D:\typora-img\image-20250417102242932.png)
