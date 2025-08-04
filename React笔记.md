@@ -427,6 +427,7 @@ class App extends React.Component {
       // 价格计算
       handleCount (index, count) {
         // 重点！浅拷贝state数据 修改state前需要先拷贝原数据修改，再使用setState修改
+        // React 依赖于过去和现在的 state 之间的浅层对比（shallow compare）。只有发现对象引用发生变化，React 认为 state 改变了，才会更新 UI
         const list = [...this.state.books]
         list[index].count += count
         this.setState({
