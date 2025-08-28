@@ -728,7 +728,7 @@ const changeData = () => {
     info.name = 'yyy'  
 }
 // 
-//情况2 直接侦听一个reactive对象，自动开启深层监听，获取到的newVal和oldVal也是reactive对象
+//情况2 直接侦听一个reactive对象，自动开启深层监听，获取到的newVal和oldVal也是reactive对象 (ref对象不会自动开启深度监听)
 watch(info, (newVal,oldVal) => {
     console.log(newVal,newVal) //Proxy{name: ,age:}对象
 })
