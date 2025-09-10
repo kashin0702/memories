@@ -35,3 +35,19 @@ git push origin main
 
 git 全局配置查询
 git config --global --list
+
+
+cd 切换目录命令示例：
+
+例：cd // 显示当前目录
+
+例：cd … // 进入父目录
+
+例：cd /d d: // 进入上次d盘所在的目录（或在直接输入：d:）
+
+例：cd /d d:\ // 进入d盘根目录
+
+例：cd d: // 显示上次d盘所在的目录
+
+例：cd /d d:\src // 进入d:\src目录
+

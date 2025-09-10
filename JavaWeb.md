@@ -1314,7 +1314,7 @@ public class demo1 {
         	优化了这种传字符串的硬编码：List<User> list = sqlSession.selectList("test.selectAll")
         */ 
         // 获取mapper代理对象
-        UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+        UserMapper mapper = sqlSession.getMapper(UserMapper.class); // 传字节码对象 动态代理技术
         List<User> userList = mapper.selectAll();// 执行接口同名方法，会自动去执行mapper配置文件中id对应的sql语句
         System.out.println(userList);
 // 释放资源
@@ -3425,7 +3425,58 @@ public class ListenerDemo implements ServletContextListener {
 
 
 
+### @RestController
+
+`@RestController` 是 Spring 框架中的一个组合注解，用于标识一个控制器类，专门处理 RESTful API 请求。它相当于 `@Controller` 和 `@ResponseBody` 的组合，意味着该类中的所有方法默认都会将返回值直接写入 HTTP 响应体中，而不是通过视图解析器渲染视图。
+
+1. **返回数据直接写入响应体**：无需在方法上额外添加 `@ResponseBody`，适合返回 JSON、XML 等数据格式（默认依赖 Jackson 库实现对象转 JSON）。
+2. **专注于 API 接口开发**：与传统的 `@Controller` 不同（用于 MVC 模式的视图渲染），`@RestController` 更适合构建 RESTful API，供前端、移动端等调用。
+
+
+
+### @Controller
+
+`@Controller` 是 Spring MVC 中的核心注解之一，用于标识一个类作为控制器（Controller），负责处理客户端发来的 HTTP 请求，并协调模型（Model）和视图（View）的交互。
+
+它通常与请求映射注解（如 `@RequestMapping`、`@GetMapping` 等）配合使用，将特定的请求路径映射到控制器的方法上。
+
+### 与 `@RestController` 的区别
+
+| 注解              | 主要用途          | 响应处理方式                                                 |
+| ----------------- | ----------------- | ------------------------------------------------------------ |
+| `@Controller`     | 传统 MVC 视图开发 | 方法返回视图名称，需配合 `@ResponseBody` 才返回数据          |
+| `@RestController` | RESTful API 开发  | 所有方法默认返回数据（等效于 `@Controller + @ResponseBody`） |
+
+```java
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller // 标识此类为控制器
+public class UserViewController {
+    
+    // 处理 GET 请求，路径为 "/users"
+    @GetMapping("/users")
+    public String showUserList(Model model) {
+        // 模拟从服务层获取用户数据
+        List<String> users = Arrays.asList("张三", "李四", "王五");
+        
+        // 将数据存入 Model，供视图使用
+        model.addAttribute("userList", users);
+        
+        // 返回视图名称（由视图解析器解析为具体的视图文件，如 HTML、JSP 等）
+        return "userList"; 
+    }
+}
+```
+
+
+
+
+
 ### @GetMapping
+
+是 `@RequestMapping(method = RequestMethod.GET)` 的简化形式。
 
 - `@GetMapping`是 Spring 框架（具体是 Spring Web MVC）中的一个注解，用于将 HTTP GET 请求映射到特定的处理方法上。它是一种方便的、基于注解的方式来定义 RESTful API 端点或者处理普通的网页请求（在 MVC 模式下）。
 - 它表明被标注的方法将处理 HTTP GET 请求。在例子中，`getBooks`方法会处理对`/api/books`路径的 GET 请求。当客户端（如浏览器或者其他 HTTP 客户端）发送一个 GET 请求到`/api/books`时，Spring 框架会自动调用这个`getBooks`方法，并将方法的返回结果（在这个例子中是书籍列表）返回给客户端。
@@ -3441,4 +3492,397 @@ public class ListenerDemo implements ServletContextListener {
            }
        }
 ```
+
+
+
+### @Autowired
+
+`@Autowired` 是 Spring 框架中用于实现依赖注入（Dependency Injection）的核心注解之一，它可以自动装配（注入）所需的依赖对象，无需手动创建实例，简化了组件之间的耦合。
+
+通常用在类的字段、构造方法或 setter 方法上，告诉 Spring 自动注入匹配的 Bean。
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    // 1. 字段注入（最常用）直接在需要注入的字段上使用 @Autowired：
+    // 自动注入 UserRepository 类型的 Bean
+    @Autowired
+    private UserRepository userRepository;
+    
+    public User getUserById(Long id) {
+        return userRepository.findById(id);
+    }
+}
+
+
+
+// 2. 在构造方法上使用 @Autowired，Spring 会在创建对象时自动传入所需的依赖：
+@Service
+public class UserService {
+    
+    private final UserRepository userRepository;
+    
+    // 构造方法注入（Spring 4.3+ 后，单构造方法可省略 @Autowired）
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+}
+```
+
+
+
+
+
+## SSM(Spring+SpringMVC+Mybatis)
+
+官网：spring.io
+
+**spring的核心**
+
+**1.简化开发**
+
+IOC - Inversion of control 控制反转，对象的控制权由程序转到外部 （解耦） ，由IOC容器创建对象并管理
+
+AOP -面向切面编程  不改变源代码的情况下进行增强
+
+事务处理
+
+**2.框架整合**
+
+MyBatis
+
+MyBatis-plus
+
+Struts
+
+Struts2
+
+Hibernate
+
+
+
+### Spring framework
+
+spring framework是spring生态圈最基础的项目，是其他项目的根基
+
+**目标：充分解耦**
+
+IOC: 使用IOC容器管理bean
+
+DI: dependency injection 依赖注入，在ioc容器内将有依赖关系的bean进行绑定
+
+
+
+### IOC案例
+
+使用spirng框架进行ioc操作
+
+1.POM.xml导入spring-framework依赖  坐标信息：spring-context
+
+2.idea右侧maven刷新依赖
+
+3.resources文件夹右键新建，选择XML configuration File，新建一个spring config文件
+
+
+
+### 依赖注入XML配置
+
+resouces/appconfig.xml文件配置
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!--  spring对bean的配置管理文件  -->
+<!--   id bean的名字。唯一， class 定义类型  scope：单例或非单例模式 单例时容器只创建一个实例-->
+<!--   init-method 和destroy-method代表bean的生命周期对应的方法，在初始化和容器销毁时执行 -->
+    <bean id="bookDao" class="com.david.dao.impl.BookDaoImpl" scope="singleton" init-method="init" destroy-method="destroy"></bean>
+
+    <bean id="bookServiceId" class="com.david.service.impl.BookServiceImpl" scope="singleton">
+<!-- 依赖注入：1.set方法注入： 配置service和dao的绑定关系 因为是service中引用dao，所以在service内注入dao
+    name代表BookServiceImpl中定义的变量名， ref代表引用的bean，注意两者是不一样的 -->
+        <property name="bookDao" ref="bookDao"></property>
+        <property name="userDao" ref="userDao"></property>
+<!--     注入基本类型，使用value属性赋值   -->
+        <property name="myName" value="david"></property>
+        <property name="myNumber" value="38"></property>
+<!--      2.构造函数注入  注意这里的name是构造函数的形参名   -->
+        <constructor-arg name="orderDao" ref="orderDaoId"></constructor-arg>
+    </bean>
+
+<!--    静态工厂模式创建实例时，要传factory-method -->
+    <bean id="orderDaoId" class="com.david.factory.OrderDaoFactory" factory-method="getOrderDao"></bean>
+
+<!--  实例工厂创建对象，实现了FactoryBean接口，不需要factory-method -->
+    <bean id="userDao" class="com.david.factory.UserDaoFactory"></bean>
+
+</beans>
+```
+
+
+
+### bean属性
+
+scope:  prototype | singleton(默认单例)  控制bean的作用范围，是创建单例对象还是非单例对象，单例时容器每次创建的都是同一个对象
+
+适合交给容器管理的bean：表现层/业务层/数据层/工具的对象
+
+不适合的：封装实体的域对象（有数据）
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // 传统写法
+//        BookService bookService = new BookServiceImpl();
+//        bookService.save();
+
+        // spring IOC写法
+        // 初始化IOC容器，传入的参数就是bean配置文件 得到容器对象
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("appconfig.xml");
+        // getBean返回的是Object类，强转一下 这里的参数就是bean中设置的id或者name
+        BookService bookService = (BookService) ctx.getBean("bookService");
+        bookService.save(); // service层save，内部再调用dao层的save
+        
+                // 静态工厂模式创建bean, xml中配置factory-method
+        OrderDao orderDao = (OrderDao) ctx.getBean("orderDaoId");
+        orderDao.save();
+
+        // 实例工厂创建bean, xml配置更简单 （重要，主流方式）
+        UserDao userDao = (UserDao) ctx.getBean("userDao");
+        userDao.save();
+
+
+        // bean的生命周期 会先打印book dao init， 执行初始化方法
+        BookDao bookDao = (BookDao) ctx.getBean("bookDao");
+        ctx.registerShutdownHook(); // 注册一个容器关闭时的钩子，当容器关闭时，执行destroy方法 这行代码可以放在任何位置
+        bookDao.save();
+//        ctx.close(); // 关闭容器， 此时会执行destroy方法 暴力方法
+    }
+}
+```
+
+```java
+package com.david.service.impl;
+import com.david.dao.BookDao;
+import com.david.dao.impl.BookDaoImpl;
+import com.david.service.BookService; // 接口
+
+public class BookServiceImpl implements BookService {
+    // 使用DI进行依赖注入，不需要new创建实例
+    // private BookDao bookDao = new BookDaoImpl();
+
+    // 只定义，不创建
+    private BookDao bookDao;
+    public void save() {
+        System.out.println("book service save...");
+        bookDao.save(); // 调用数据层save
+    }
+
+    // DI关键：创建一个set方法，给spring容器调用，让容器进行创建，获得bookDao实例
+    public void setBookDao(BookDao bookDao) {
+        this.bookDao = bookDao;
+    }
+}
+```
+
+```java
+package com.david.dao.impl;
+import com.david.dao.BookDao; // 接口
+
+public class BookDaoImpl implements BookDao {
+    public void save() {
+        System.out.println("book dao save...");
+    }
+}
+```
+
+
+
+### bean的生命周期函数配置
+
+1. xml配置方式
+2. 接口实现方式， 2个接口：  InitializingBean，DisposableBean（常用）
+
+```xml
+<!--   init-method 和destroy-method代表bean的生命周期对应的方法，在初始化和容器销毁时执行 -->
+<bean id="bookDao" class="com.david.dao.impl.BookDaoImpl" scope="singleton" init-method="init" destroy-method="destroy"></bean>
+```
+
+service实现类，实现2个spirng提供的接口 
+
+```java
+package com.david.service.impl;
+
+import com.david.dao.BookDao;
+import com.david.dao.OrderDao;
+import com.david.dao.UserDao;
+import com.david.dao.impl.BookDaoImpl;
+import com.david.service.BookService;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+
+public class BookServiceImpl implements BookService, InitializingBean, DisposableBean {
+
+    // 使用DI进行依赖注入，不需要new创建实例
+//    private BookDao bookDao = new BookDaoImpl();
+
+    // 只定义，不创建
+    private BookDao bookDao;
+    private UserDao userDao; // 再注入一个依赖
+
+    private OrderDao orderDao;
+    private int myNumber; // 注入基本类型
+    private String myName; // 注入基本类型
+
+    // spring实例化bean时，会自动调用构造函数 私有构造方法也能调用（利用反射）
+    public BookServiceImpl(OrderDao orderDao) {
+        this.orderDao = orderDao;
+        System.out.println("BookServiceImpl constructor is running ...");
+    }
+    public void save() {
+        System.out.println("book service save...");
+        // 下面的bean都是通过依赖注入创建的
+        bookDao.save();
+        userDao.save();
+        orderDao.save();
+        System.out.println("myNumber==>"+myNumber+" myName===>"+myName);
+    }
+
+    // 引用类型  DI(依赖注入)：set注入：创建一个set方法，给spring容器调用，让容器进行创建，获得bookDao实例
+    public void setBookDao(BookDao bookDao) {
+        this.bookDao = bookDao;
+    }
+
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
+    // 依赖注入 基本类型
+    public void setMyName(String myName) {
+        this.myName = myName;
+    }
+
+    public void setMyNumber(int myNumber) {
+        this.myNumber = myNumber;
+    }
+
+    //  两个接口需要实现的方法，分别用来实现bean销毁和创建的生命周期方法，这种方式就不需要在xml中配置init-method和destroy-method了
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("book service destory...");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("book service init...");
+    }
+}
+
+```
+
+
+
+### autowire自动注入
+
+用的很少，实际开发时使用注解
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!--  创建bean  -->
+    <bean name="bookDao" class="com.david.dao.impl.BookDaoImpl"></bean>
+<!--  autowire自动装配，不用自己写property，会根据type自动去调set方法注入 byType时bean需要唯一 -->
+    <bean name="bookService1" class="com.david.service.impl.BookServiceImpl" autowire="byType"/>
+</beans>
+```
+
+
+
+### 集合注入
+
+比较少用到，学下格式
+
+```xml
+<bean name="listDao" class="com.david.dao.impl.ListDaoImpl">
+        <property name="array">
+            <array>
+                <value>1000</value>
+                <value>2000</value>
+            </array>
+        </property>
+        <property name="list">
+            <list>
+                <value>david1</value>
+                <value>david2</value>
+            </list>
+        </property>
+    </bean>
+```
+
+
+
+### 第三方数据源注入
+
+
+
+### 加载properties
+
+
+
+### 容器总结
+
+```java
+package org.example;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import javax.sql.DataSource;
+
+// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
+// then press Enter. You can now see whitespace characters in your code.
+public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("appConfig.xml");
+       	 // 写法1 传入bean的id 需要强转
+        // DataSource dataSource = (DataSource) ctx.getBean("dataSource");
+        // 写法2 只传入类的class, 但是这个bean必须唯一
+       //  DataSource dataSource = ctx.getBean(DataSource.class);
+        // 写法3 传入名字和类class， 不用强转
+        DataSource dataSource1 = ctx.getBean("dataSource", DataSource.class);
+        System.out.println(dataSource1);
+    }
+}
+```
+
+
+
+
+
+### 注解开发定义bean
+
+```java
+// 使用@Component定义bean 2种写法 
+@Component("bookDao")
+public class BookDaoImpl implements BookDao {
+    
+}
+// 这种写法需要这样获得容器 getBean(BookDao.class)
+@Component
+public class BookDaoImple2 implements BookDao {}
+```
+
+```xml
+// 配置文件通过组件扫描加载bean
+<context:component-scan base-package="com.david"></context:component-scan>
+```
+
+
 
