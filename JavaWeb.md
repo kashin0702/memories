@@ -127,9 +127,20 @@ MYSQL中数据类型分为3类：
 
 **细节：**
 
-CHAR最大255字符，字符集对CHAR没有影响，CHAR()括号内填写最大字符数255
+**CHAR(10)在UTF-8字符集下**
 
-VARCHAR最大65535字节，字符集对VARCHAR有影响
+| 存储内容      | 字符数 | 每字符字节数 | 总占用字节数                        |
+| ------------- | ------ | ------------ | ----------------------------------- |
+| `'Hello'`     | 5      | 3            | 5 × 3 = 15 字节                     |
+| `'你好'`      | 2      | 3            | 2 × 3 = 6 字节                      |
+| `'Hello你好'` | 8      | 3            | 8 × 3 = 24 字节                     |
+| 空字符串      | 0      | -            | 仍占用 10 × 3 = 30 字节（填充空格） |
+
+> 💡 因为 `CHAR` 是定长类型，即使只存 1 个字符，也会用空格补足 10 个字符的空间。
+
+**CHAR最大255字符，CHAR内定义的是字符数，字符集影响的是字节数，不影响字符数**
+
+**VARCHAR内定义的也是字符数，因为mysql每行最大65535字节，字符集对VARCHAR定义有影响**
 
 UTF8字符集，每个字符大小3字节，所以65535/3 = 21845，最大支持21845字符，因此VARCHAR()括号中最大填写21845字符
 
@@ -1070,9 +1081,9 @@ jar包依赖流程：先找本地仓库有没有，如果搭建了私服，就�
 
 2.配置环境变量MAVEN_HOME
 
-3.配置本地仓库，修改conf/settings.xml中<localRepository>为一个指定目录（可选，默认会配在C盘用户目录下）
+3.配置本地仓库，修改本地maven配置文件：conf/settings.xml中<localRepository>为一个指定目录（可选，默认会配在C盘用户目录下）
 
-4.配置阿里云私服，修改conf/settings.xml中<mirrors>标签，添加子标签（可选，下载依赖更快）
+4.配置阿里云私服，修改本地maven的配置文件：conf/settings.xml中<mirrors>标签，添加子标签（可选，下载依赖更快）
 
 ![image-20230817172951490](D:\typora-img\image-20230817172951490.png)
 
@@ -3589,9 +3600,9 @@ DI: dependency injection 依赖注入，在ioc容器内将有依赖关系的bean
 
 
 
-### 依赖注入XML配置
+### 依赖注入bean配置
 
-resouces/appconfig.xml文件配置
+**resouces/appconfig.xml文件配置**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -3874,15 +3885,126 @@ public class Main {
 public class BookDaoImpl implements BookDao {
     
 }
-// 这种写法需要这样获得容器 getBean(BookDao.class)
+// 不传名字, 这种写法需要传入class获得bean -》 getBean(BookDao.class)
 @Component
 public class BookDaoImple2 implements BookDao {}
 ```
 
 ```xml
-// 配置文件通过组件扫描加载bean
+// 配置文件通过组件扫描加载bean 不用再定义bean
 <context:component-scan base-package="com.david"></context:component-scan>
+```
+
+### @Component的3个衍生注解
+
+**这3个衍生注解和@Component的功能一样，方便在不同的层级进行区分**
+
+1. @Controller 用于表现层bean定义
+2. @Service 用于业务层bean定义
+3. @Repository 用于数据层bean定义
+
+
+
+### 纯注解开发
+
+1. 定义一个config类，把之前在xml中定义的bean 改写到这个config类中
+2. getBean读取配置文件方式，改为调用读取配置类，调不同的方法
+
+```java
+package com.david.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+// 纯注解开发的配置类，替代appConfig.xml配置文件
+
+// @Configuration用于设定当前类为配置类
+// @ComponentScan用于设置扫描文件路径，用来获取bean信息
+@Configuration
+@ComponentScan("com.david.dao")
+public class SpringConfig {
+}
+```
+
+```java
+package com.david;
+
+import com.david.config.SpringConfig;
+import com.david.dao.BookDao;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+
+// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
+// then press Enter. You can now see whitespace characters in your code.
+public class Main {
+    public static void main(String[] args) {
+        // 1. 通过读取配置文件创建容器
+//        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("appConfig.xml");
+
+        // 2. 纯注解开发，通过读取配置类创建容器，就不需要appConfig.xml了， 传入config类
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+        BookDao bookDao = (BookDao) ctx.getBean("bookDao111");
+        bookDao.save();
+        System.out.println(bookDao);
+    }
+}
 ```
 
 
 
+
+
+### 注解方式依赖注入
+
+```java
+package com.david.service.impl;
+
+import com.david.dao.UserDao;
+import com.david.service.BookService;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Service("bookService1")
+public class BookServiceImpl implements BookService {
+
+    // 注解方式依赖注入，自动装配 不需要再提供set方法注入  原理：暴力反射对私有属性访问，所以无需set方法
+    @Autowired
+//    @Qualifier("UserDao") // 指定要装配的bean名称， 当存在多个相同类型的bean时需要指定
+    private UserDao userDao;
+
+    // 基本类型注入 一般使用配置文件注入
+    @Value("${name}")
+    private String name;
+    @Override
+    public void save() {
+        System.out.println("book service save "+name);
+        userDao.save();
+    }
+}
+
+```
+
+
+
+
+
+### 第三方Bean管理
+
+
+
+
+
+### 第三方Bean依赖注入
+
+
+
+
+
+### XML配置和注解方式区别总结
+
+![image-20250911181537993](D:\typora-img\image-20250911181537993.png)
