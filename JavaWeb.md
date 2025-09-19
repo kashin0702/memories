@@ -3588,7 +3588,7 @@ DI: dependency injection 依赖注入，在ioc容器内将有依赖关系的bean
 
 
 
-### IOC案例
+### IOC执行
 
 使用spirng框架进行ioc操作
 
@@ -4008,3 +4008,331 @@ public class BookServiceImpl implements BookService {
 ### XML配置和注解方式区别总结
 
 ![image-20250911181537993](D:\typora-img\image-20250911181537993.png)
+
+
+
+
+
+### spring整合mybatis
+
+最核心的就是创建2个bean
+
+1个SqlSessionFactory Bean， 初始化mybatis配置
+
+1个mapperScannerConfigurer的Bean,  用于配置mapper映射
+
+MyBatisConfig:
+
+```java
+package com.kashin.config;
+
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.mapper.MapperScannerConfigurer;
+import org.springframework.context.annotation.Bean;
+
+import javax.sql.DataSource;
+
+// 因为sqlSessionFactory是整个mybatis的核心bean，所以用spring管理这个bean
+// mybatis的配置类，初始化sqlSessionFactory对应的bean
+public class MybatisConfig {
+    // SqlSessionFactoryBean类型就是用来快速创建bean的一个对象，是mybatis-spring包提供的
+    // 关键：引用类型通过参数的形式传入，传入dataSource等于配置了一系列数据库的初始化操作 如账户密码数据库地址等 Spring会自动去找有没有这个类型的Bean，有的话就创建
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) {
+        SqlSessionFactoryBean ssfb = new SqlSessionFactoryBean();
+        ssfb.setTypeAliasesPackage("com.kashin.domain"); // 配置别名 跟mybatis-config中作用一样
+        ssfb.setDataSource(dataSource); // 其他初始化配置全部通过dataSource传入
+        return ssfb;
+    }
+
+    // 定义mapper映射的bean  对应的就是mybatis-config的mapper配置
+    @Bean
+    public MapperScannerConfigurer mapperScannerConfigurer() {
+        MapperScannerConfigurer msc = new MapperScannerConfigurer();
+        msc.setBasePackage("com.kashin.dao"); // 传入映射文件位置 交给mybatis创建自动代理对象
+        return msc;
+    }
+}
+```
+
+SpringConfig统一出口
+
+```java
+package com.kashin.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
+
+@Configuration // 表示当前类为配置类，替代springConfig配置文件
+@ComponentScan("com.kashin") // 扫描包的路径
+@PropertySource("classpath:jdbc.properties") // 扫描配置
+@Import({JdbcConfig.class, MybatisConfig.class}) // 导入jdbc, mybatis配置
+public class SpringConfig {
+}
+
+```
+
+
+
+![image-20250919124406799](D:\typora-img\image-20250919124406799.png)
+
+![image-20250919124244006](D:\typora-img\image-20250919124244006.png)
+
+![image-20250919124437259](D:\typora-img\image-20250919124437259.png)
+
+AccountDao
+
+```java
+package com.kashin.dao;
+
+import com.kashin.domain.Account;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+// mybatis注解方式操作sql
+@Repository // spring识别到bean
+public interface AccountDao {
+    @Insert("insert into tb_account(name,money)values(#{name},#{money})")
+    void save(Account account);
+    @Delete("delete from tb_account where id=#{id}")
+    void delete(Integer id);
+    @Update("update tb_account set name=#{name}, money=#{money} where id=#{id}")
+    void update(Account account);
+    @Select("select * from tb_account")
+    List<Account> findAll();
+    @Select("select * from tb_account where id=#{id}")
+    Account findById(Integer id);
+}
+
+```
+
+AccountServiceImpl
+
+```java
+package com.kashin.service.impl;
+
+import com.kashin.dao.AccountDao;
+import com.kashin.domain.Account;
+import com.kashin.service.AccountService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+// Service层调用Dao层的方法
+@Service
+public class AccountServiceImpl implements AccountService {
+    @Autowired
+    private AccountDao accountDao;
+    @Override
+    public void save(Account account) {
+        accountDao.save(account);
+    }
+    @Override
+    public void update(Account account) {
+        accountDao.update(account);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        accountDao.delete(id);
+    }
+
+    @Override
+    public Account findById(Integer id) {
+        return accountDao.findById(id);
+    }
+    @Override
+    public List<Account> findAll() {
+        return accountDao.findAll();
+    }
+}
+
+```
+
+
+
+执行：
+
+```java
+import com.kashin.config.SpringConfig;
+import com.kashin.domain.Account;
+import com.kashin.service.AccountService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import java.util.List;
+
+// spring容器整合Mybatis的使用
+public class App2 {
+    public static void main(String[] args) {
+        // 导入SpringConfig统一暴露的配置
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+        AccountService ac = ctx.getBean(AccountService.class); // 获取bean对象
+        List<Account> all = ac.findAll(); // 内部执行的是AccountDao的方法，即接口映射的sql方法
+        System.out.println("all===>"+all);
+        Account byId = ac.findById(4);
+        System.out.println("byId===>"+byId);
+    }
+}
+
+```
+
+
+
+### Spring整合Junit
+
+导入2个依赖 junit和 spring-test
+
+test/java文件夹下创建测试类AccountServiceTest
+
+```java
+package com.kashin.service;
+
+import com.kashin.config.SpringConfig;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@RunWith(SpringJUnit4ClassRunner.class) // 设置类运行器
+@ContextConfiguration(classes = SpringConfig.class) // 导入上下文环境配置
+public class AccountServiceTest {
+    @Autowired // 注入bean
+    private AccountService accountService;
+
+    // 进行测试
+    @Test
+    public void testFindById(){
+        System.out.println(accountService.findById(1));
+    }
+}
+
+```
+
+
+
+### AOP（面向切面编程）
+
+**核心：不改变原始代码的情况下做逻辑增强 （无侵入式编程）**
+
+连接点：执行过程中的任意位置，在SpringAOP中理解为方法的执行
+
+切入点：匹配连接点的式子，在Spring中可只描述一个具体方法，也可匹配多个方法
+
+通知：在切入点处执行的操作，也就是共性功能，在Spring中以方法的形式呈现
+
+通知类：定义通知的类
+
+切面：描述通知和切入点的对应关系
+
+![image-20250919154002241](D:\typora-img\image-20250919154002241.png)
+
+
+
+### aop入门案例
+
+导入依赖spring-context , aspectjweaver
+
+SpringConfig 
+
+```java
+package com.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
+@Configuration
+@ComponentScan({"com.dao", "com.aop"}) // 要扫的包，包括AOP对象
+@EnableAspectJAutoProxy // 告诉spring有用注解开发的AOP， 会启动MyAdvice中的@Aspect注解
+public class SpringConfig {
+}
+
+```
+
+MyAdvice (AOP核心对象)
+
+```java
+package com.aop;
+
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+// AOP 注解方式
+@Component // 让spring识别到
+@Aspect // 让spring识别为aop 不然就会当成普通的bean处理了
+public class MyAdvice {
+    // 定义切入点
+    @Pointcut("execution(void com.dao.BookDao.update())") // 表示当执行到这个方法时
+    private void pt() {} // 私有创建一个空方法
+
+
+    // 定义共性功能（通知）
+    @Before("pt()") // 绑定切入点，表示在切入点的位置执行下面这个功能
+    public void myAop() {
+        System.out.println(System.currentTimeMillis());
+    }
+}
+
+```
+
+BookDaoImpl
+
+```java
+package com.dao.impl;
+
+import com.dao.BookDao;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class BookDaoImpl implements BookDao {
+    @Override
+    public void save() {
+        System.out.println(System.currentTimeMillis());
+        System.out.println("im save...");
+    }
+    @Override
+    public void update() { // 要实现aop的方法
+        System.out.println("im update...");
+    }
+
+}
+
+```
+
+执行
+
+```java
+package com;
+
+import com.config.SpringConfig;
+import com.dao.BookDao;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+        BookDao bookDao = ctx.getBean(BookDao.class);
+//        bookDao.save();
+        bookDao.update(); // 执行会自动加上aop中添加的共性方法
+    }
+}
+
+```
+
+
+
+
+
