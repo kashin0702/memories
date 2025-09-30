@@ -3288,9 +3288,17 @@ class Student extends Person{
 **2.要么自己也是抽象类**
 
 ```java
-// 定义接口
+// 定义接口 所有方法必须是 public —— 对外暴露，不能是 private 或 protected
 public interface swim{
-    public abstract void swim(); // 定义抽象方法
+     // 写法1：最简洁（推荐）
+    void swim();
+
+    // 写法2：显式写 abstract（常见）
+    abstract void swim();
+
+    // 写法3：完整写法（冗余，不推荐）
+    public abstract void swim();
+    
 }
 public interface play{
     public abstract void play();

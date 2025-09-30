@@ -4234,6 +4234,24 @@ public class AccountServiceTest {
 
 切面：描述通知和切入点的对应关系
 
+内部l流程：
+
+1.Spring容器启动
+
+2.读取所有切面配置中的切入点
+
+3.初始化bean,判定bean对应的类中的方法是否匹配到任意切入点
+
+​	3.1 匹配失败，创建对象
+
+​	**3.2 匹配成功，创建原始对象（目标对象）的代理对象  使用了jdk的动态代理技术**
+
+4. 获取bean执行方法
+
+   4.1 获取bean,调用对应方法执行
+
+   **4.2 获取的bean是代理对象时，根据代理对象的运行模式运行原始方法和增强内容**
+
 ![image-20250919154002241](D:\typora-img\image-20250919154002241.png)
 
 
@@ -4327,12 +4345,478 @@ public class App {
         BookDao bookDao = ctx.getBean(BookDao.class);
 //        bookDao.save();
         bookDao.update(); // 执行会自动加上aop中添加的共性方法
+        System.out.println(bookDao.getClass()); // 匹配了切入点，这个就是一个proxy代理对象， 没匹配创建的就是原对象
     }
 }
 
 ```
 
 
+
+### 切入点表达式
+
+格式：动作关键字（访问修饰符 返回值 包名.类/接口名.方法名（参数）异常名）  访问修饰符是public可省略
+
+```java
+execution(void com.dao.BookDao.update())
+```
+
+
+
+### 切入点通配符
+
+*:单个独立的任意符号，可以独立出现，也可以作为前缀或后桌的匹配符出现， 一个\*  匹配任意符号
+
+```java
+// 匹配com.david包下的任意包中的UserService类或接口中所有find开头的带有一个参数的方法
+excution(public * com.david.*.UserService.find*(*))
+```
+
+..: 多个连续的任意符号，可以独立出现，常用于简化包名和参数的书写，.. 表示任意可以有或没有
+
+```java
+//匹配com包下的任意包中的UserService类或接口中所有名称为findById的方法 参数任意，可带可不带
+exuction(public User com..UserService.findById(..))
+```
+
++：专用于匹配子类类型
+
+```java
+// 任意返回值 任意包下的以Service结尾的类或接口的子类 任意方法 任意参数
+// 表示给业务层的所有方法加这个切入点
+execution(* *..*Service+.*(..))
+```
+
+
+
+### 通知类型
+
+即共性代码最终要运行的位置，有5种
+
+前置通知 @Before
+
+后置通知@After
+
+环绕通知（重点） @Around   可以实现@Before和@After的功能
+
+返回后通知，原始方法执行完毕后执行 @AfterReturning
+
+抛出异常后通知，原始方法抛出异常后执行 @AfterThrowing
+
+
+
+### 环绕通知@Around
+
+```java
+package com.aop;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+// AOP 注解方式
+@Component // 让spring识别到
+@Aspect // 让spring识别为aop 不然就会当成普通的bean处理了
+public class MyAdvice {
+    // 定义切入点 execution内就是切入点表达式
+//    @Pointcut("execution(void com.dao.impl.BookDaoImpl.update())") // 用实现类描述
+    @Pointcut("execution(void com.dao.BookDao.update())") // 表示当执行到这个方法时切入  用接口描述
+    private void pt() {} // 私有创建一个空方法
+
+
+    // 定义共性功能（通知）
+    @Before("pt()") // 绑定切入点，表示在切入点的位置执行下面这个功能
+    public void myAop() {
+        System.out.println(System.currentTimeMillis());
+    }
+
+    // 定义切入点2
+    @Pointcut("execution(int com.dao.BookDao.select())")
+    private void pt2(){}
+
+    // 环绕通知 接收一个参数ProceedingJoinPoint 用来执行原始方法， 必须抛出一个异常，防止原始方法有错误时不知道
+    @Around("pt2()")
+    public Object myAop2(ProceedingJoinPoint pjp) throws Throwable {
+        System.out.println("im before advice");
+        Object ret = pjp.proceed(); // 表示对原始方法调用 pjp返回Object类型， 该方法有返回值，所以接收一个返回值
+        System.out.println("im after advice");
+        System.out.println("ret===>"+ret);
+        return ret; // 返回原始方法的返回值
+    }
+}
+
+```
+
+BookDao实现类
+
+```java
+package com.dao.impl;
+
+import com.dao.BookDao;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class BookDaoImpl implements BookDao {
+    @Override
+    public void save() {
+        System.out.println(System.currentTimeMillis());
+        System.out.println("im save...");
+    }
+    @Override
+    public void update() {
+        System.out.println("im update...");
+    }
+
+    // 注意select方法有返回值，环绕通知内必须返回原始方法的返回值
+    @Override
+    public int select() {
+        System.out.println("im select...");
+        return 666;
+    }
+}
+
+```
+
+
+
+### 各类通知获取数据 
+
+获取原始方法中的数据，3种数据（参数，返回值，异常）
+
+注意：抛出异常后通知没有返回值， 前置后置没有异常
+
+**1.获取切入点方法的参数**
+
+**JoinPoint**: 适用于前置，后置，返回后，抛出异常后通知
+
+**ProceedJoinPoint**：适用于环绕通知
+
+**2.获取切入点方法返回值**  只有afterReturning和Around有
+
+返回后通知
+
+环绕通知  获取方式：@AfterReturning(value = "pt3()", returning = "ret")    // ret是变量名 形参需要一致
+
+**3.获取切入点方法运行异常信息**
+
+抛出异常后通知   获取方式： 注解写法@AfterThrowing(value = "pt3()", throwing = "e") // e是变量名，形参需要一致
+
+环绕通知  获取方式：通过try...catch(e)方法获取
+
+```java
+package com.aop;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+
+// AOP 注解方式
+@Component // 让spring识别到
+@Aspect // 让spring识别为aop 不然就会当成普通的bean处理了
+public class MyAdvice {
+    // 通知获取参数  注意用通配符匹配形参
+    @Pointcut("execution(String com.dao.*.getParamFn(*))") // 先定义切入点
+    private void pt3(){}
+
+    @Around("pt3()")
+    public Object myAopAround(ProceedingJoinPoint pjp) throws Throwable {
+        Signature signature = pjp.getSignature(); // 获取原始对象的签名数据，即对象的所有数据
+        System.out.println(signature.getDeclaringType()); // 原始对象类型
+        System.out.println(signature.getName()); // 原始对象方法名
+        Object[] args = pjp.getArgs(); // 获取原始方法的参数，返回的是一个对象数组
+        System.out.println("args===>"+ Arrays.toString(args));
+        args[0] = 333;
+        // 此处可以修改args参数，再传回原始方法中 ，在真实业务中可以做校验等操作
+        Object proceed = pjp.proceed(args);
+        System.out.println("proceed==>"+proceed);
+        return null;
+    }
+
+//    @Before("pt3()") // 对象JoinPoint用来接收参数，是ProceedingJoinPoint的父类接口, 两个用法差不多
+    public Object myAopBefore(JoinPoint jp) {
+        Object[] args = jp.getArgs();
+        System.out.println("args===>"+Arrays.toString(args));
+        return null;
+    }
+
+    // 返回后通知 接收返回值，注解需要2个参数：切入点和返回值，返回值的变量名必须和方法的形参名一样
+    @AfterReturning(value = "pt3()", returning = "ret")
+    public void myAopAfterReturning(JoinPoint jp, Object ret) { // 如果用到jp, 必须放在形参第一位
+        System.out.println("after===>"+ ret);
+    }
+
+    // 抛出异常后通知 接收异常：和上面拿返回值类似，分开写注解参数
+    @AfterThrowing(value = "pt3()", throwing = "e")
+    public void myAopAfterThrowing(Throwable e) { // 这样就可以接收异常对象了
+        System.out.println(e);
+    }
+}
+
+```
+
+**被切入的方法**
+
+```java
+package com.dao.impl;
+
+import com.dao.BookDao;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class BookDaoImpl implements BookDao {
+    
+
+    @Override
+    public String getParamFn(int num) {
+        System.out.println("getParm.num===>"+num);
+        return "im david";
+    }
+}
+
+```
+
+
+
+### Spring事务
+
+事务作用：在数据层保障一系列数据库操作同成功同失败
+
+Spring事务作用：**在数据层或业务层**保障一系列数据库操作同成功同失败
+
+Spring在业务层提供了一个接口和实现类，实现了在业务层中的事务管理，内部使用的是jdbc事务，mybatis用的也是jdbc
+
+```java
+// 事务接口
+public interface PlatformTranscationManager{
+    void commit(TranscationStatus status) throws TranscationException;
+    void rollback(TranscationStatus status) throws TranscationException;
+}
+// 事务实现类 内部使用jdbc
+public class DataSourceTranscationManager {
+    // ...
+}
+```
+
+### 如何开启Spring事务
+
+案例：银行转账， A账户减钱，B账户加钱
+
+三个核心步骤
+
+1.在业务层接口上添加事务的注解
+
+```java
+public interface AccountService{
+    @Transcational // 事务注解 也可以直接写在接口上，表示接口内所有方法都开启事务
+    public void transfer(String out, String in, Double money); // 转账的方法
+}
+```
+
+2.设置事务管理器
+
+jdbcConfig配置类
+
+```java
+@Bean // 声明为Bean交给spring注入
+public PlatformTranscationManager transcationManager(DataSource datasource) {
+    DataSourceTranscationManager ptm = new DataSourceTranscationManager();
+    ptm.setDataSource(dataSource); // 这里注入的是和Mybatis创建时相同的数据源，所以能进行事务管理
+    return ptm;
+}
+```
+
+3, 开启注解式事务驱动
+
+SpringConfig配置类
+
+```java
+@EnableTranscationManagement // 开启注解式事务
+public class SpringConfig {
+    
+}
+```
+
+
+
+### 事务角色
+
+事务管理员：发起事务方，在Spring中通常指代业务层开启事务的方法  @Transcational就是事务管理员
+
+事务协调员：加入事务方，在Spring中通常指代数据层方法，也可以是业务层方法
+
+```java
+
+@Transcational // 也可在业务层开启事务，这个就是事务管理员
+public void transfer(String in, String out, Double money) {
+    	// 这两个数据层操作就是事务协调员，都加入了事务管理员的事务，属于同一个事务
+        accountDao.outMoney(out, 100D);
+        accountDao.inMoney(in, 100D);
+    }
+```
+
+
+
+### 事务的属性
+
+readonly:设置是否只读事务
+
+timeout:设置事务超时时间    time=-1 (永不超时)
+
+rollbackFor：设置事务回滚异常(class)  示例：rollbackFor = {NullPointerExecption.class}
+
+rollbackForClassName: 设置事务回滚异常（String） 同上格式为字符串
+
+noRollbackFor: 设置事务不回滚异常(class) 示例：noRollbackFor = {NullPointerExecption.class}
+
+noRollbackForClassName：设置事务不回滚异常（String） 同上格式为字符串
+
+propagation：设置事务传播行为 ，控制事务是否加入事务管理，或自己新建事务，见图
+
+![image-20250925162322492](D:\typora-img\image-20250925162322492.png)
+
+```java
+// spring事务默认只会回滚error和运行时异常，ioexecption不属于运行时异常，所以不会回滚，要手动添加
+@Transactional(rollbackFor = {IOExecption.clss}) 
+```
+
+
+
+### 转账案例
+
+执行A给B转账操作，且转账时无论是否成功，都记录日志
+
+```java
+package com.kashin;
+
+import com.kashin.config.SpringConfig;
+import com.kashin.service.AccountService;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+        AccountService accountService = ctx.getBean(AccountService.class);
+        // 转账操作 已经开启了spring事务
+        // 1. SpringConfig加注解@EnableTransactionManagement
+        // 2. transfer接口加注解@Transactional
+        // 3. jdbcConfig定义一个事务的Bean
+        accountService.transfer("kashin", "david", 500D);
+
+    }
+}
+
+```
+
+**accountServiceImpl**
+
+```java
+package com.kashin.service.impl;
+
+import com.kashin.Dao.AccountDao;
+import com.kashin.service.AccountService;
+import com.kashin.service.LogService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AccountServiceImpl implements AccountService {
+
+    @Autowired
+    private AccountDao accountDao;
+    @Autowired
+    private LogService logService; // 注入记录日志对象
+    @Override // 业务层定义一个转账操作，内部实现减钱和加钱两个数据层操作
+    public void transfer(String in, String out, Double money) {
+        // 这里使用try finally目的是无论是否报错，finally方法肯定执行，达成日志始终记录的需求
+        // 同时日志的事务必须配置propagation = Propagation.REQUIRES_NEW 表示开启自己的事务，防止一起回滚
+        try {
+            // 对数据层进行操作，分两步， 开启spring事务
+            accountDao.outMoney(out, money);
+            // 模拟一个异常，查看事务一致性是否生效
+            int num = 100 / 0;
+            accountDao.inMoney(in, money);
+        } finally {
+            logService.logSave(out, in, money);
+        }
+    }
+}
+
+```
+
+**LogService**
+
+```java
+package com.kashin.service;
+
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+public interface LogService {
+    // 日志记录也开启一个事务，无论转账是否成功都记录日志 propagation配置传播行为，表示创建一个自己的事务，如果外层事务回滚，内层不会回滚
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void logSave(String out, String in, Double money);
+}
+
+```
+
+**AccountService**
+
+```java
+package com.kashin.service;
+
+
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+
+public interface AccountService {
+    // 定义一个转账方法， 参数是收款方，付款方，具体金额
+    // 在接口上声明，表示在这个方法开启事务，方法内的数据层操作都会被管理
+    @Transactional(rollbackFor = {IOException.class}) // 添加事务回滚异常，spring事务默认只会回滚error和运行时异常，IOException不属于运行时异常所以不会回滚，要手动添加
+    public void transfer(String in, String out, Double money);
+}
+
+```
+
+**DAO**
+
+```java
+@Component
+public interface LogDao {
+    // 存表记录转账操作的日志
+    @Insert("insert into tb_log (info, createDate) values(#{info}, now())")
+    void logSave(String info);
+}
+
+@Component
+public interface AccountDao {
+    // 数据层定义两个接口，一个加钱一个减钱
+    // 多个参数时必须使用@Param绑定参数名，否则Mybatis无法找到对应参数
+    @Update("update tb_account set money = money + #{money} where name = #{name}")
+    void inMoney(@Param("name") String name, @Param("money") Double money);
+
+    @Update("update tb_account set money = money - #{money} where name = #{name}")
+    void outMoney(@Param("name") String name, @Param("money") Double money);
+
+}
+```
+
+
+
+
+
+
+
+## SpringMVC
+
+**简介：和servlet技术等同，都是一种基于MVC模型的web表现层技术**
 
 
 
