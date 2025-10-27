@@ -4818,5 +4818,89 @@ public interface AccountDao {
 
 **简介：和servlet技术等同，都是一种基于MVC模型的web表现层技术**
 
+### 入门案例
+
+1.导入SpringMVC合servlet坐标
+
+![image-20251020143415115](D:\typora-img\image-20251020143415115.png)
+
+2.创建SpringMVC控制器类（等同于Servlet功能）
+
+```java
+@Controller
+public class UserController{
+    @RequestMapping("/save")
+    @ResponseBody
+    public String save() {
+        System.out.println("user save...");
+            return "{'info': 'springmvc'}";
+    }
+}
+```
+
+
+
+3.初始化SpringMVC环境（同Spring环境），设定SpringMVC加载对应的Bean
+
+```java
+// SpringMVC配置类
+@Configuration
+@ComponentScan("com.david.controller")
+public class SpringMvcConfig{
+    
+}
+```
+
+4.配置Servlet容器（web容器），加载SpringMVC配置
+
+```java
+// 定义一个servlet容器启动的配置类，在里面加载spring配置
+public class ServletContainersConfig extends AbstractDispatcherServletInitializer {
+
+    // 加载SpringMVC容器配置
+    @Override
+    protected WebApplicationContext createServletApplicationContext() {
+        // 服务启动时会加载这个对象
+        AnnotationConfigWebApplicationContext ctx = new AnnotationConfigWebApplicationContext();
+        ctx.register(SpringMvcConfig.class); // 注册SpringMVC配置
+        return ctx;
+    }
+
+    // 设置哪些请求由SpringMVC处理
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"}; //  ”/“ 表示映射所有请求
+    }
+
+    // Spring容器的配置
+    @Override
+    protected WebApplicationContext createRootApplicationContext() {
+        return null;
+    }
+}
+```
+
+
+
+5.pom.xml配置tomcat插件，右上角run配置，选择maven，使用tomcat:run启动服务
+
+```xml
+<build>
+    <finalName>spring08_springMVC</finalName>
+    <plugins>
+	<!--   tomcat服务器插件   -->
+      <plugin>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat7-maven-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <port>80</port>
+          <path>/</path>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+```
+
 
 
