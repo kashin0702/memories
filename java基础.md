@@ -348,7 +348,7 @@ public class myImport{
 public class Arithmetic{
 	public static void main(String[] agrs){
         System.out.println(10/3) // 整数参与计算,返回整数3
-        System.out.println(10.0/3) // 小数参与计算,返回3.333333333333335
+        System.out.println(10.0/3) // 小数参与计算（只要有一个double类型即可）,返回3.333333333333335
         int a =5
         double b = a
         System.out.println(b) // double型5.0 自动提升为double型
@@ -1432,7 +1432,7 @@ public class ArrUtil{
 
 **String name = "david";**
 
-**name = "kashin";  // 创建了一个新的字符串类赋给了name,之前的字符串没有变**
+**name = "kashin";  // 创建了一个新的字符串类赋给了name,之前的字符串没有变，（StringBuilder可以变）**
 
 ### **字符串创建**
 
@@ -1746,7 +1746,7 @@ public class stringbuilder {
             if (flag) {
                 str = sb.toString();
                 System.out.println(str);
-                break;
+                break; // 退出while循环
             }
         }
     }
@@ -3339,7 +3339,7 @@ public class Student extends Person implements swim, play{
 ```java
 // 接口中允许定义默认方法，解决接口升级时，实现类全部要重写的兼容性问题
 public interface inter{
-    // 定义默认方法 必须用default修饰， 表示默认方法
+    // 定义默认方法 必须用default修饰， 表示默认方法（实现类可以直接继承默认方法实现，或自己重写）
     public default void show() {
         
     }
@@ -4827,9 +4827,11 @@ public class suanfa04 {
 
 ## **不定参数细节**
 
+格式：返回类型 方法名(类型... 参数名) {}
+
 ```java
 // 形参是不定参数时，也可传这个类型的数组
-public static void testFn(String...args) {}
+public static void testFn(String... args) {}
 
 testFn("david", "kashin")  // 调用1：内部转为String[]处理
     

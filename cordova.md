@@ -126,3 +126,81 @@ document.addEventListener('deviceready', function () {
 ![image-20240415115633461](D:\typora-img\image-20240415115633461.png)
 
 4.导入签名文件，签名文件在前端根目录XXX.keystore， 签名和密码在release-sigining.properties
+
+
+
+
+
+## 安装插件
+
+## 一、确认 SDK 类型
+
+### 1. **JavaScript SDK**
+
+- 如果 SDK 是纯 JS 文件（如 .js 文件或 npm 包），可以直接在 Web 层使用。
+- 适用于不需要访问原生功能（如摄像头、蓝牙等）的场景。
+
+### 2. **原生 SDK（Android/iOS）**
+
+- 通常以 `.aar` / `.jar`（Android）或 `.framework` / `.xcframework`（iOS）形式提供。
+- 必须通过 **Cordova 插件** 封装后才能在 Cordova 项目中调用。
+
+------
+
+## 二、集成方式
+
+### ✅ 情况 A：SDK 已封装为 Cordova 插件（推荐）
+
+如果供应商提供了 Cordova 插件（通常包含 `plugin.xml` 文件），可直接安装：
+
+```
+1# 本地路径安装（假设插件在 ./my-sdk-plugin 目录）
+2cordova plugin add ./my-sdk-plugin
+3
+4# 或从 Git 安装
+5cordova plugin add https://github.com/xxx/my-sdk-plugin.git
+6
+7# 或从 npm 安装（如果已发布）
+8cordova plugin add cordova-plugin-my-sdk
+```
+
+然后在 JS 中调用：
+
+```
+1// 示例：调用插件方法
+2window.mySdkPlugin.doSomething(
+3  successCallback,
+4  errorCallback,
+5  params
+6);
+```
+
+> 💡 注意：确保插件已正确声明 JS 接口（通常在 `www/` 目录下有 .js 文件，并在 `plugin.xml` 中 `<js-module>` 引用）。
+
+## 三、验证插件是否添加成功
+
+- 查看 `config.xml` 文件，会自动添加 `<plugin>` 节点。
+- 查看 `plugins/` 目录下是否包含该插件文件夹。
+- 查看 `package.json` 中的 `cordova.plugins` 字段。
+
+------
+
+## 四、在代码中使用插件
+
+大多数插件会挂载到全局对象（如 `navigator` 或 `window`）上。例如：
+
+```
+1// 使用相机插件
+2navigator.camera.getPicture(onSuccess, onFail, {
+3    quality: 50,
+4    destinationType: Camera.DestinationType.FILE_URI
+5});
+6
+7function onSuccess(imageURI) {
+8    console.log('Image URI: ' + imageURI);
+9}
+10
+11function onFail(message) {
+12    alert('Failed because: ' + message);
+13}
+```
