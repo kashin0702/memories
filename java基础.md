@@ -4644,6 +4644,21 @@ Arrays.sort(arr, (Integer o1, Integer o2) -> {
 );
 ```
 
+**常见的函数式接口（来自 `java.util.function` 包）：**
+
+| 接口             | 抽象方法                | 用途                     |
+| :--------------- | :---------------------- | :----------------------- |
+| `Runnable`       | `void run()`            | 无参无返回               |
+| `Supplier<T>`    | `T get()`               | 无参有返回               |
+| `Consumer<T>`    | `void accept(T t)`      | 有参无返回               |
+| `Function<T, R>` | `R apply(T t)`          | 有参有返回               |
+| `Predicate<T>`   | `boolean test(T t)`     | 判断条件（返回 boolean） |
+| `Comparator<T>`  | `int compare(T a, T b)` | 比较两个对象             |
+
+> ✅ **只有当上下文期望一个函数式接口时，才能使用 Lambda 表达式。**
+
+
+
 
 
 ###  **经典算法**
@@ -4891,7 +4906,7 @@ public class MyArrayList<E> {
         return Arrays.toString(obj) // 重写toStirng, 打印数组
     }
 }
-
+// 从 Java 7 开始引入了钻石操作符 <>，用于简化泛型实例化的语法。它允许你在创建泛型对象时，省略右侧的类型参数，编译器会自动根据左侧的声明推断出正确的泛型类型。
 // 创建一个接收字符串类型的集合对象
 MyArrayList<String> list = new MyArrayList<>();
 list.add("abc");
@@ -5712,6 +5727,22 @@ static HashMap getCount(File src) {
 
 
 
+| 对比项 | 字节流                                       | 字符流                 |
+| :----- | :------------------------------------------- | :--------------------- |
+| 基类   | `InputStream` / `OutputStream`               | `Reader` / `Writer`    |
+| 单位   | byte（8 bit）                                | char（16 bit Unicode） |
+| 用途   | 通用（二进制/文本）                          | 仅文本                 |
+| 编码   | 无关                                         | 必须处理               |
+| 转换   | 可通过 `InputStreamReader/Writer` 转为字符流 | 底层仍依赖字节流       |
+
+📌 **最佳实践**：
+
+- 二进制数据 → 字节流
+
+- 文本数据 → 字符流 + 显式指定编码（如 UTF-8）
+
+  
+
 ### **字节流**
 
 ```java
@@ -5886,8 +5917,11 @@ public class fileMod {
         FileInputStream fis = new FileInputStream("C:\\Users\\yoki\\Desktop\\javaTest\\a.txt");
         StringBuilder sb = new StringBuilder(); // 创建sb对象接收字符串
         int data;
+        // 字节流read() 返回0-255 int值 (表示读取到的字节，已提升为无符号整数)
         while ((data = fis.read()) != -1) {
-            sb.append((char) data);
+            System.out.println("data===>"+data); // 单字节对应的asc值
+            System.out.println("char data===>"+ (char) data); // asc对应的实际值
+            sb.append((char) data); // 有漏洞，字节流强转char会导致中文乱码，因为文件都是数字所以没事
         }
         fis.close();
         // 字符串转数组
@@ -6517,9 +6551,13 @@ String(byte[] bytes, String charsetName) //使用指定方式解码
 
 问题：一个char类型占2个字节，但一个utf-8编码汉字占3个字节，为什么char可以存？
 
-char字符存储的是Unicode编码的代码点，也就是存储的是U+FF00这样的数值，然而我们在调试或者输出到输出流的时候，是JVM或者开发工具按照代码点对应的编码字符输出的。
+**UTF-8的3字节是磁盘/网络阐述的字节编码形式，和JAVA中的CHAR表示无关**
 
-所以虽然UTF-8编码的中文字符是占用3个或者4个字节，但是对应的代码点仍然集中在[0x4E00, 0x9FBB]，所以char是能够存下在这个范围内的中文字符的。
+**核心原因：Java 的 `char` 类型使用的是 UTF-16 编码**
+
+- Java 的 `char` 并不是直接存储“UTF-8 字节”，而是存储 **Unicode 码点的 UTF-16 编码单元**。
+
+当执行 char c = '中'，实际上 Java 把 `'中'` 的 Unicode 码点（U+4E2D）以 UTF-16 形式存入 2 字节的 `char` 中 —— 这完全可行，因为 U+4E2D ≤ U+FFFF。
 
 
 
