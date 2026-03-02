@@ -1965,112 +1965,6 @@ Servlet是java提供的动态web资源开发技术，JavaEE的规范之一，本
 
 需要定义Servlet类实现Servlet接口，并由web服务器运行Servlet
 
-#### 运行原理（JSP → Servlet）
-
-你可能会好奇：JSP 为什么能运行？其实 Tomcat 会做这几步：
-
-1. 当浏览器第一次访问`user.jsp`时，Tomcat 会把 JSP 文件**编译成 Java 源文件**（本质是 Servlet 类）；
-2. 接着把 Java 源文件编译成`.class`字节码文件；
-3. 最后执行这个 Servlet 类，生成响应返回给浏览器。
-
-你可以在 Tomcat 的`work`目录下找到编译后的 JSP Servlet 文件，会发现它和你手写的 Servlet 结构几乎一致，只是自动生成了大量 HTML 拼接的代码。
-
-**实际开发中的分工**
-
-早期 Java Web 开发遵循 “MVC 思想”，Servlet 和 JSP 各司其职：
-
-1. **Servlet（Controller / 控制器）**：
-
-   
-
-   - 接收前端请求参数；
-   - 调用业务逻辑（如查询数据库）；
-   - 将处理后的数据存入请求域（`request.setAttribute()`）；
-   - 转发到 JSP 页面（`request.getRequestDispatcher("user.jsp").forward(request, response)`）。
-
-   
-
-2. **JSP（View / 视图）**：
-
-   
-
-   - 从请求域中取出 Servlet 传递的数据；
-   - 仅负责把数据渲染成 HTML 页面，不写复杂业务逻辑。
-
-#### 分工示例（完整流程）
-
-- Servlet（处理逻辑）：
-
-  
-
-  ```java
-  @WebServlet("/userController")
-  public class UserController extends HttpServlet {
-      @Override
-      protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-          // 1. 处理业务逻辑
-          String username = "张三";
-          int age = 25;
-  
-          // 2. 把数据存入请求域
-          request.setAttribute("username", username);
-          request.setAttribute("age", age);
-  
-          // 3. 转发到JSP页面
-          try {
-              request.getRequestDispatcher("user.jsp").forward(request, response);
-          } catch (Exception e) {
-              e.printStackTrace();
-          }
-      }
-  }
-  ```
-
-  
-
-- JSP（展示页面）：
-
-  
-
-  ```jsp
-  <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-  <html>
-  <body>
-      <%-- 从请求域取数据并展示 --%>
-      用户名：${username}<br>  <%-- EL表达式，比<%= %>更简洁 --%>
-      年龄：${age}<br>
-  </body>
-  </html>
-  ```
-
-  
-
-**补充：现在还常用吗？**
-
-- Servlet：仍是 Java Web 的底层基础（Spring MVC 的`DispatcherServlet`就是核心 Servlet），但开发者很少手写原生 Servlet；
-- JSP：已逐渐被 Thymeleaf、FreeMarker 等模板引擎替代（更简洁、易维护），但老旧项目仍广泛使用。
-
-------
-
-**总结**
-
-1. **核心差异**：Servlet 是纯 Java 类，适合处理业务逻辑；JSP 是 HTML 嵌 Java，适合页面展示，且 JSP 最终会编译为 Servlet；
-2. **分工原则**：开发中应让 Servlet 专注逻辑处理，JSP 仅负责数据展示（避免 JSP 写复杂 Java 代码）；
-3. **底层关联**：二者都是 Java Web 的基础，JSP 是 Servlet 的 “页面友好版”，本质上是同一套技术体系。
-
-
-
-#### JSP 与 Servlet 核心区别
-
-| 维度             | JSP（Java Server Pages）                           | Servlet（Java Servlet）                                      |
-| ---------------- | -------------------------------------------------- | ------------------------------------------------------------ |
-| **核心定位逻辑** | 基于**URL 路径直接映射物理文件**，无需手动配置映射 | 基于**手动配置的 URL 映射规则**（web.xml 或注解）定位，与物理文件路径无关 |
-| **开发方式**     | 以 HTML 为主，嵌入 Java 代码（适合页面展示）       | 纯 Java 代码，无 HTML（适合业务逻辑处理）                    |
-| **执行入口方法** | 自动生成的 `_jspService()` 方法                    | 手动重写的 `doGet()`/`doPost()`/`service()` 方法             |
-| **配置要求**     | 无需额外配置，直接访问文件路径即可                 | 必须配置映射（如 `@WebServlet("/user/list")` 或 web.xml）    |
-| **响应输出方式** | 静态 HTML 自动生成 `out.write()`，无需手动拼接     | 需通过 `PrintWriter` 手动拼接 HTML（繁琐）                   |
-| **使用场景**     | 页面展示（如列表页、详情页）                       | 业务逻辑处理（如参数校验、数据库操作、请求转发）             |
-
 
 
 
@@ -2718,6 +2612,153 @@ JSP创建步骤：
 </body>
 </html>
 ```
+
+
+
+### 运行原理（JSP → Servlet）
+
+**一、JSP 处理 URL 请求的底层原理**
+
+首先要明确一个核心前提：**JSP 本质上就是一个特殊的 Servlet**，它是 Servlet 的 “语法糖”，最终都会被容器编译成 Servlet 类来执行。下面分步拆解 URL 访问 JSP 资源的完整流程（以 Tomcat 为例）：
+
+1. **请求到达 Web 容器（Tomcat）**
+
+当你在浏览器输入 `http://域名/项目名/xxx.jsp` 这类 URL 时，请求会先到达 Web 容器（如 Tomcat），容器会先解析 URL 的路径：
+
+- 提取**上下文路径**（项目名）：确定请求属于哪个 Web 应用；
+- 提取**资源路径**（/xxx.jsp）：确定要访问的具体 JSP 文件。
+
+2. **容器检查 JSP 是否已编译**
+
+Tomcat 会先检查这个 JSP 文件是否已经被编译成 Servlet 的.class 文件：
+
+- 若未编译 / 或 JSP 文件已修改：容器会自动将 JSP 文件翻译成 Java 源文件（Servlet），然后编译成.class 文件；
+- 若已编译且未修改：直接复用已编译的 Servlet 类。
+
+3. **JSP 翻译为 Servlet 的关键规则**
+
+JSP 的翻译过程有固定的路径和命名规则（以 Tomcat 为例）：
+
+- 翻译后的 Java 文件默认存放在 `Tomcat/work/Catalina/localhost/项目名/org/apache/jsp/` 目录下；
+- 命名规则：比如 `index.jsp` 会被翻译成 `index_jsp.java`，编译后为 `index_jsp.class`；
+- 翻译后的类会继承 `org.apache.jasper.runtime.HttpJspBase`（这个类是 Servlet 的子类），因此 JSP 本质就是 Servlet。
+
+**4. 执行 JSP 对应的 Servlet 并返回响应**
+
+容器会实例化这个 JSP 对应的 Servlet 类，执行其 `_jspService(HttpServletRequest request, HttpServletResponse response)` 方法（对应 Servlet 的 `service` 方法）：
+
+- JSP 中的 HTML 静态内容会被翻译成 `out.write()` 语句输出；
+- JSP 中的 Java 脚本（`<% ... %>`）会直接嵌入到 `_jspService` 方法中；
+- 最终将拼接好的 HTML 内容通过 Response 返回给浏览器。
+
+**5. 核心定位逻辑总结**
+
+JSP 的定位完全依赖**URL 路径和物理文件路径的映射**：
+
+- URL 路径 `http://xxx/项目名/user/list.jsp` 直接对应 Web 应用根目录下的 `user/list.jsp` 文件；
+- 容器无需额外配置（如 web.xml），只要 URL 路径和 JSP 文件的物理路径匹配，就能定位到资源。
+
+
+
+### **实际开发中的分工**
+
+早期 Java Web 开发遵循 “MVC 思想”，Servlet 和 JSP 各司其职：
+
+1. **Servlet（Controller / 控制器）**：
+
+   
+
+   - 接收前端请求参数；
+   - 调用业务逻辑（如查询数据库）；
+   - 将处理后的数据存入请求域（`request.setAttribute()`）；
+   - 转发到 JSP 页面（`request.getRequestDispatcher("user.jsp").forward(request, response)`）。
+
+   
+
+2. **JSP（View / 视图）**：
+
+   
+
+   - 从请求域中取出 Servlet 传递的数据；
+   - 仅负责把数据渲染成 HTML 页面，不写复杂业务逻辑。
+
+**分工示例（完整流程）**
+
+- Servlet（处理逻辑）：
+
+  
+
+  ```java
+  @WebServlet("/userController")
+  public class UserController extends HttpServlet {
+      @Override
+      protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+          // 1. 处理业务逻辑
+          String username = "张三";
+          int age = 25;
+  
+          // 2. 把数据存入请求域
+          request.setAttribute("username", username);
+          request.setAttribute("age", age);
+  
+          // 3. 转发到JSP页面
+          try {
+              request.getRequestDispatcher("user.jsp").forward(request, response);
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+  
+
+- JSP（展示页面）：
+
+  
+
+  ```jsp
+  <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+  <html>
+  <body>
+      <%-- 从请求域取数据并展示 --%>
+      用户名：${username}<br>  <%-- EL表达式，比<%= %>更简洁 --%>
+      年龄：${age}<br>
+  </body>
+  </html>
+  ```
+
+  
+
+**补充：现在还常用吗？**
+
+- Servlet：仍是 Java Web 的底层基础（Spring MVC 的`DispatcherServlet`就是核心 Servlet），但开发者很少手写原生 Servlet；
+- JSP：已逐渐被 Thymeleaf、FreeMarker 等模板引擎替代（更简洁、易维护），但老旧项目仍广泛使用。
+
+------
+
+**总结**
+
+1. **核心差异**：Servlet 是纯 Java 类，适合处理业务逻辑；JSP 是 HTML 嵌 Java，适合页面展示，且 JSP 最终会编译为 Servlet；
+2. **分工原则**：开发中应让 Servlet 专注逻辑处理，JSP 仅负责数据展示（避免 JSP 写复杂 Java 代码）；
+3. **底层关联**：二者都是 Java Web 的基础，JSP 是 Servlet 的 “页面友好版”，本质上是同一套技术体系。
+
+
+
+### JSP 与 Servlet 核心区别
+
+| 维度             | JSP（Java Server Pages）                           | Servlet（Java Servlet）                                      |
+| ---------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| **核心定位逻辑** | 基于**URL 路径直接映射物理文件**，无需手动配置映射 | 基于**手动配置的 URL 映射规则**（web.xml 或注解）定位，与物理文件路径无关 |
+| **开发方式**     | 以 HTML 为主，嵌入 Java 代码（适合页面展示）       | 纯 Java 代码，无 HTML（适合业务逻辑处理）                    |
+| **执行入口方法** | 自动生成的 `_jspService()` 方法                    | 手动重写的 `doGet()`/`doPost()`/`service()` 方法             |
+| **配置要求**     | 无需额外配置，直接访问文件路径即可                 | 必须配置映射（如 `@WebServlet("/user/list")` 或 web.xml）    |
+| **响应输出方式** | 静态 HTML 自动生成 `out.write()`，无需手动拼接     | 需通过 `PrintWriter` 手动拼接 HTML（繁琐）                   |
+| **使用场景**     | 页面展示（如列表页、详情页）                       | 业务逻辑处理（如参数校验、数据库操作、请求转发）             |
+
+
+
+
 
 
 
