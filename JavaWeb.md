@@ -1976,6 +1976,10 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 
 
 
+#### tomcat部署路径配置
+
+![image-20260306153717163](D:\typora-img\image-20260306153717163.png)
+
 
 
 ### Servlet
@@ -1983,6 +1987,8 @@ http协议默认端口为80，tomcat改成80，则浏览器访问时可以省略
 Servlet是java提供的动态web资源开发技术，JavaEE的规范之一，本质是一个接口
 
 需要定义Servlet类实现Servlet接口，并由web服务器运行Servlet
+
+
 
 
 
@@ -3387,6 +3393,46 @@ public class SelectByIdServlet extends HttpServlet {
     }
 }
 ```
+
+
+
+
+
+## tomcat日志
+
+#### 1. catalina.log（Tomcat 核心日志）
+
+- **定位**：Tomcat 服务器本身的 “系统日志”，记录 Tomcat 核心引擎（Catalina 是 Tomcat 的核心容器名称）的运行状态。
+
+- 记录内容
+
+  ：
+
+  - Tomcat 启动 / 停止过程中的关键信息（如端口绑定、连接器初始化、容器加载）；
+  - JVM 参数、类加载、数据源初始化等底层系统级信息；
+  - Tomcat 核心组件（如连接器、引擎、主机）的异常（非应用代码抛出的异常）；
+  - 全局级别的错误（如端口被占用、配置文件解析失败）。
+
+  
+
+- **使用场景**：排查 Tomcat 本身启动失败、端口冲突、配置错误等**服务器级问题**时，优先看这个日志。
+
+#### 2. [localhost](https://localhost).log（本地主机日志）
+
+- **定位**：Tomcat 中 `localhost` 虚拟主机的日志，聚焦于 “请求接入层” 的信息。
+
+- 记录内容
+
+  ：
+
+  - 所有发往 `localhost` 主机的 HTTP 请求的接入 / 结束记录（如请求路径、响应状态码）；
+  - 应用部署 / 卸载时与主机相关的信息；
+  - 少数与主机绑定的异常（如请求解析失败、主机配置错误）；
+  - **注意**：它**不记录应用业务代码的异常**（应用异常默认在 `localhost_access_log.*.txt` 或自定义应用日志中）。
+
+  
+
+- **使用场景**：排查特定主机（[localhost](https://localhost)）的请求接入问题、虚拟主机配置问题。
 
 
 
