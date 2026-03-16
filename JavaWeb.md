@@ -3764,6 +3764,148 @@ public class UserService {
 
 
 
+### POJO，VO，DAO
+
+**一、先一句话总结核心**
+
+1. **POJO**：普通 Java 类，只存数据，无业务逻辑（最基础）
+2. **VO**：给前端 / 页面展示用的数据类（视图专用）
+3. **DAO**：操作数据库的工具类（增删改查专用）
+
+------
+
+**二、逐字逐句详解**
+
+1. **POJO (Plain Old Java Object) —— 普通 Java 对象**
+
+**官方定义**：不继承、不实现任何框架 / 接口，只包含**私有字段 + getter/setter** 的简单 Java 类。
+
+**大白话**：就是一个**纯数据容器**，只用来存数据、取数据，不干别的事。
+
+**特点**：
+
+- 无任何框架依赖（不是 Servlet、不是 Entity）
+- 只有私有属性、get/set 方法、toString
+- 不写业务逻辑、不写数据库操作
+
+**示例代码**
+
+```java
+// 标准POJO
+public class User {
+    // 私有字段
+    private Long id;
+    private String username;
+    private Integer age;
+
+    // getter/setter
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    // 无业务代码！
+}
+```
+
+**用途**：作为**数据载体**，在程序各层之间传递数据。
+
+------
+
+**2. VO (View Object) —— 视图对象**
+
+**官方定义**：专门给**前端页面 / 接口返回**展示的数据对象。
+
+**大白话**：**前端要什么数据，我就封装什么数据**，只给页面看。
+
+**特点**：
+
+- 只包含**页面需要的字段**（多余字段不返回）
+- 字段名可以和数据库不一样（比如给前端友好名称）
+- 不包含敏感数据（密码、密钥绝不放 VO）
+
+**示例场景**：
+
+数据库 User 有：id、username、password、age、create_time
+
+页面只需要展示：用户名、年龄
+
+→ 就做一个**UserVO**，只封装这两个字段。
+
+**示例代码**
+
+```java
+// VO：专门给前端展示
+public class UserVO {
+    private String username; // 页面展示用
+    private Integer age;
+
+    // getter/setter
+}
+```
+
+**用途**：**接口返回值、页面渲染数据**，隔离前端和后端数据结构。
+
+------
+
+**3. DAO (Data Access Object) —— 数据访问对象**
+
+**官方定义**：负责**和数据库交互**的层，封装所有增删改查。
+
+**大白话**：**专门操作数据库的工具类**，Service 层调用它读写数据。
+
+**特点**：
+
+- 只干数据库相关操作：select/insert/update/delete
+- 不写业务逻辑，不处理页面数据
+- 通常对应一张表，一个表一个 DAO
+
+**示例代码**
+
+```java
+// DAO：操作user表
+public interface UserDAO {
+    // 查
+    User selectById(Long id);
+    // 增
+    int insert(User user);
+    // 改
+    int update(User user);
+    // 删
+    int delete(Long id);
+}
+// 用途：统一管理数据库操作，让业务层不用关心 SQL 细节。
+```
+
+**三者核心区别：**
+
+| 名称     | 全称           | 核心职责     | 存放数据               | 典型位置          |
+| -------- | -------------- | ------------ | ---------------------- | ----------------- |
+| **POJO** | 普通 Java 对象 | 通用数据载体 | 完整数据               | 全项目通用        |
+| **VO**   | 视图对象       | 给前端展示   | 页面需要的精简数据     | 控制层 / 接口返回 |
+| **DAO**  | 数据访问对象   | 操作数据库   | 无数据，提供 CRUD 方法 | 数据访问层        |
+
+
+
+#### **一个用户查询接口的完整流程**
+
+1. **前端请求** → 2. Controller 接收
+2. **调用 Service**（业务逻辑处理）
+3. **Service 调用 DAO** → **DAO 查数据库**
+4. DAO 返回 **POJO（User）**
+5. Service 把 POJO 转成 **VO（UserVO）**
+6. Controller 把 **VO 返回给前端**
+
+**一句话链路**：
+
+```
+前端 ← VO ← Service ← POJO ← DAO ← 数据库
+```
+
+
+
+
+
+
+
 
 
 ## SSM(Spring+SpringMVC+Mybatis)
